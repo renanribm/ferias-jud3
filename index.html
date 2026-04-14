@@ -222,12 +222,140 @@ body {
   .dn { font-size: 11px; }
   .dnames { font-size: 8px; }
 }
+/* ── Conflict tab indicator ── */
+.conflict-tab.active { color: var(--red) !important; border-bottom-color: var(--red) !important; }
+.conflict-tab:not(.active) { color: var(--amber); }
+/* ── Conflicts view ── */
+.conflicts-wrap { margin-bottom: 20px; }
+.conflict-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 48px 24px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); text-align: center; gap: 12px;
+}
+.conflict-ok-icon {
+  width: 52px; height: 52px; border-radius: 50%; background: var(--green-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.conflict-empty-title { font-size: 15px; font-weight: 600; color: var(--green); }
+.conflict-empty-sub { font-size: 13px; color: var(--text-3); }
+.conflict-month-block { margin-bottom: 20px; }
+.conflict-month-title {
+  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-3); margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.conflict-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--red); border-radius: var(--r-sm);
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.conflict-date-col { min-width: 80px; flex-shrink: 0; }
+.conflict-day-num { font-size: 28px; font-weight: 600; letter-spacing: -.03em; color: var(--red); line-height: 1; }
+.conflict-weekday { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.conflict-body { flex: 1; }
+.conflict-count-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--red-bg); color: var(--red); font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px; margin-bottom: 7px;
+}
+.conflict-names { display: flex; flex-wrap: wrap; gap: 5px; }
+.conflict-name-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 3px 9px; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: border-color .12s;
+}
+.conflict-name-chip:hover { border-color: var(--border-md); }
+.conflict-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.conflict-summary-bar {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+  padding: 12px 14px; background: var(--red-bg); border-radius: var(--r-sm);
+  border: 1px solid rgba(138,26,26,.12);
+}
+.csb-item { font-size: 13px; color: var(--red); }
+.csb-val { font-weight: 600; }
+/* ── Login screen ── */
+#login-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 99999; padding: 24px;
+}
+.login-box {
+  background: var(--surface); border: 1px solid var(--border-md);
+  border-radius: 16px; padding: 40px 36px; width: 380px; max-width: 100%;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.10);
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.login-mark {
+  width: 52px; height: 52px; background: var(--accent); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 500;
+  margin-bottom: 20px;
+}
+.login-title { font-size: 20px; font-weight: 600; letter-spacing: -.02em; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--text-3); margin-bottom: 28px; text-align: center; }
+.login-field { width: 100%; margin-bottom: 14px; }
+.login-field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+.login-field input {
+  width: 100%; padding: 10px 14px; border: 1px solid var(--border-md);
+  border-radius: var(--r-sm); font-size: 14px; background: var(--surface);
+  color: var(--text); font-family: 'DM Sans', sans-serif;
+  letter-spacing: .12em; transition: border-color .15s;
+}
+.login-field input:focus { outline: none; border-color: var(--accent); }
+.login-field input.error { border-color: var(--red); animation: shake .3s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 60%{transform:translateX(6px)}
+}
+.login-error { font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 12px; text-align: center; }
+.login-btn {
+  width: 100%; padding: 11px; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--r-sm); font-size: 14px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background .15s;
+}
+.login-btn:hover { background: #2a2a28; }
+.login-footer { font-size: 11px; color: var(--text-3); margin-top: 20px; text-align: center; }
 </style>
 </head>
 <body>
-<div class="app" id="app"></div>
 
-<script>
+<!-- Login screen -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-mark">JUD3</div>
+    <div class="login-title">Controle de Férias</div>
+    <div class="login-sub">PGM/SP JUD-3 · Acesso restrito</div>
+    <div class="login-field">
+      <label for="login-input">Senha de acesso</label>
+      <input type="password" id="login-input" placeholder="••••••••" autocomplete="off"
+             onkeydown="if(event.key==='Enter')checkLogin()">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" onclick="checkLogin()">Entrar</button>
+    <div class="login-footer">Uso interno · PGM/SP JUD-3</div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none"></div>
+
+<script type="module">
+// ─── Firebase SDK ─────────────────────────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const _fbApp = initializeApp({
+  apiKey: "AIzaSyAxz4zDAx48jQsl7LpPLeIl4SxzqT84R1U",
+  authDomain: "ferias-jud3.firebaseapp.com",
+  projectId: "ferias-jud3",
+  storageBucket: "ferias-jud3.firebasestorage.app",
+  messagingSenderId: "351958465671",
+  appId: "1:351958465671:web:383ec17d522c72f9970c22"
+});
+const _db = getFirestore(_fbApp);
+const _docRef = doc(_db, "jud3", "oficial");
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 const YEARS = [2026,2027,2028,2029,2030];
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -303,24 +431,81 @@ function getStats(year) {
 }
 
 // ─── Storage ─────────────────────────────────────────────────────────────────
-const OFFICIAL_KEY = 'ferias-jud3-official-v2';
 const SIM_KEY = 'ferias-jud3-sim-local';
+let _unsubscribe = null; // Firestore real-time listener
 
-function saveOfficial() {
-  const payload = JSON.stringify({ vacations, people, savedAt: new Date().toISOString() });
-  localStorage.setItem(OFFICIAL_KEY, payload);
-  lastSaved = new Date();
-  statusMsg = 'Dados oficiais salvos ✓';
+// ── Official: Firebase Firestore ──────────────────────────────────────────────
+async function saveOfficial() {
+  try {
+    statusMsg = 'Salvando...'; renderStatus();
+    await setDoc(_docRef, {
+      vacations: JSON.stringify(vacations),
+      people: JSON.stringify(people),
+      savedAt: new Date().toISOString()
+    });
+    lastSaved = new Date();
+    statusMsg = 'Dados oficiais salvos ✓ (sincronizado)';
+  } catch(e) {
+    statusMsg = 'Erro ao salvar no Firebase: ' + e.message;
+    console.error(e);
+  }
   renderStatus();
 }
 
-function loadOfficial() {
+async function loadOfficial() {
   try {
-    const raw = localStorage.getItem(OFFICIAL_KEY);
-    if(raw) { const d=JSON.parse(raw); officialData={vacations:d.vacations,people:d.people}; if(d.savedAt) lastSaved=new Date(d.savedAt); }
-  } catch(e) {}
+    statusMsg = 'Carregando dados oficiais...'; renderStatus();
+    const snap = await getDoc(_docRef);
+    if(snap.exists()) {
+      const d = snap.data();
+      officialData = {
+        vacations: JSON.parse(d.vacations),
+        people: JSON.parse(d.people)
+      };
+      if(d.savedAt) lastSaved = new Date(d.savedAt);
+      statusMsg = 'Dados oficiais carregados ✓';
+    } else {
+      // First time: push defaults to Firestore
+      officialData = { vacations: DEFAULT_VACS.map(v=>({...v})), people: [...DEFAULT_PEOPLE] };
+      await setDoc(_docRef, {
+        vacations: JSON.stringify(officialData.vacations),
+        people: JSON.stringify(officialData.people),
+        savedAt: new Date().toISOString()
+      });
+      statusMsg = 'Dados iniciais publicados no Firebase ✓';
+    }
+  } catch(e) {
+    statusMsg = 'Erro ao conectar ao Firebase — usando cache local';
+    console.error(e);
+    // Fallback: try localStorage cache
+    try {
+      const raw = localStorage.getItem('ferias-jud3-official-cache');
+      if(raw) { const d=JSON.parse(raw); officialData={vacations:d.vacations,people:d.people}; }
+    } catch(_) {}
+  }
+  renderStatus();
 }
 
+function subscribeOfficial() {
+  // Real-time listener: updates official view if another user saves
+  if(_unsubscribe) _unsubscribe();
+  _unsubscribe = onSnapshot(_docRef, (snap) => {
+    if(!snap.exists()) return;
+    const d = snap.data();
+    const incoming = { vacations: JSON.parse(d.vacations), people: JSON.parse(d.people) };
+    officialData = incoming;
+    // Cache locally as fallback
+    localStorage.setItem('ferias-jud3-official-cache', JSON.stringify(incoming));
+    if(mode === 'official') {
+      applyData(officialData);
+      lastSaved = d.savedAt ? new Date(d.savedAt) : lastSaved;
+      statusMsg = 'Sincronizado ✓';
+      render();
+    }
+  }, (err) => { console.warn('Firestore listener error:', err); });
+}
+
+// ── Simulation: localStorage (local only) ─────────────────────────────────────
 function saveSim() {
   localStorage.setItem(SIM_KEY, JSON.stringify({ vacations, people, savedAt: new Date().toISOString() }));
   lastSaved = new Date();
@@ -429,10 +614,7 @@ function pinKey(k) {
   if(pinBuffer.length===4) {
     if(pinBuffer===OFFICIAL_PIN) {
       closeModal();
-      mode='official';
-      applyData(officialData);
-      statusMsg='Modo oficial ativado';
-      render();
+      activateOfficialMode();
     } else {
       document.getElementById('pin-error').textContent='Senha incorreta. Tente novamente.';
       pinBuffer='';
@@ -452,6 +634,15 @@ function switchMode(target) {
     statusMsg='Modo simulação ativado';
     render();
   }
+}
+
+async function activateOfficialMode() {
+  mode='official';
+  await loadOfficial();
+  applyData(officialData);
+  statusMsg='Modo oficial ativado — sincronizado com Firebase';
+  render();
+  subscribeOfficial();
 }
 
 // ─── Add vacation ─────────────────────────────────────────────────────────────
@@ -626,6 +817,89 @@ function buildGantt(year) {
   return h;
 }
 
+// ─── Conflicts view ──────────────────────────────────────────────────────────
+function buildConflictsView(year) {
+  const dm = buildDayMap(year);
+  const conflictDays = Object.entries(dm)
+    .filter(([,ns]) => ns.length > LIMIT)
+    .sort(([a],[b]) => a.localeCompare(b));
+
+  if(!conflictDays.length) {
+    return `<div class="conflicts-wrap">
+      <div class="conflict-empty">
+        <div class="conflict-ok-icon">✓</div>
+        <div class="conflict-empty-title">Nenhum conflito em ${year}</div>
+        <div class="conflict-empty-sub">Todos os períodos respeitam o limite de ${LIMIT} férias simultâneas.</div>
+      </div>
+    </div>`;
+  }
+
+  // Group by month
+  const byMonth = {};
+  conflictDays.forEach(([ds, ns]) => {
+    const m = parseInt(ds.slice(5,7)) - 1;
+    if(!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push({ds, ns});
+  });
+
+  // Find longest streak
+  let maxStreak = 1, streak = 1;
+  for(let i=1;i<conflictDays.length;i++){
+    const prev = new Date(conflictDays[i-1][0]+'T00:00:00');
+    const curr = new Date(conflictDays[i][0]+'T00:00:00');
+    const diff = (curr - prev) / 86400000;
+    streak = diff === 1 ? streak+1 : 1;
+    if(streak > maxStreak) maxStreak = streak;
+  }
+
+  // People involved in conflicts
+  const conflictPeople = [...new Set(conflictDays.flatMap(([,ns])=>ns))].sort();
+
+  let html = `<div class="conflicts-wrap">`;
+
+  // Summary bar
+  html += `<div class="conflict-summary-bar">
+    <div class="csb-item"><span class="csb-val">${conflictDays.length}</span> dia${conflictDays.length>1?'s':''} com conflito</div>
+    <div class="csb-item" style="opacity:.4">·</div>
+    <div class="csb-item"><span class="csb-val">${Object.keys(byMonth).length}</span> ${Object.keys(byMonth).length>1?'meses afetados':'mês afetado'}</div>
+    <div class="csb-item" style="opacity:.4">·</div>
+    <div class="csb-item">Sequência máxima: <span class="csb-val">${maxStreak} dia${maxStreak>1?'s':''} seguidos</span></div>
+    <div class="csb-item" style="opacity:.4">·</div>
+    <div class="csb-item"><span class="csb-val">${conflictPeople.length}</span> procurador${conflictPeople.length>1?'es':''} envolvido${conflictPeople.length>1?'s':''}</div>
+  </div>`;
+
+  Object.entries(byMonth).forEach(([m, days]) => {
+    html += `<div class="conflict-month-block">`;
+    html += `<div class="conflict-month-title">${MONTHS[parseInt(m)]} ${year} — ${days.length} dia${days.length>1?'s':''}</div>`;
+    days.forEach(({ds, ns}) => {
+      const d = new Date(ds+'T00:00:00');
+      const dayNum = d.getDate();
+      const weekday = d.toLocaleDateString('pt-BR',{weekday:'long'});
+      const extra = ns.length - LIMIT;
+      html += `<div class="conflict-item">
+        <div class="conflict-date-col">
+          <div class="conflict-day-num">${dayNum}</div>
+          <div class="conflict-weekday">${weekday}</div>
+        </div>
+        <div class="conflict-body">
+          <div class="conflict-count-badge">
+            ⚠ ${ns.length} simultâneos · ${extra} acima do limite
+          </div>
+          <div class="conflict-names">
+            ${ns.map(n => `<div class="conflict-name-chip" onclick="showPersonVacs('${n}')">
+              <div class="conflict-dot" style="background:${pColor(n)}"></div>${n}
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
 // ─── Render ───────────────────────────────────────────────────────────────────
 function renderStatus(){
   const el=document.getElementById('statusbar');
@@ -646,7 +920,7 @@ function render(){
 <div class="topbar">
   <div class="logo">
     <div class="logo-mark">JUD3</div>
-    <div><div class="logo-text">Controle de Férias</div><div class="logo-sub">Unidade JUD3 · ${YEARS[0]}–${YEARS[YEARS.length-1]}</div></div>
+    <div><div class="logo-text">Controle de Férias</div><div class="logo-sub">PGM/SP JUD-3 · ${YEARS[0]}–${YEARS[YEARS.length-1]}</div></div>
   </div>
   <div class="topbar-right">
     <div class="mode-badge ${isOfficial?'official':'simulation'}" onclick="${isOfficial?"switchMode('simulation')":'showPinModal()'}">
@@ -681,6 +955,7 @@ ${!isOfficial?`<div class="sim-banner"><svg width="16" height="16" viewBox="0 0 
   <button class="vtab${curView==='calendar'?' active':''}" onclick="setView('calendar')">Calendário</button>
   <button class="vtab${curView==='gantt'?' active':''}" onclick="setView('gantt')">Linha do tempo</button>
   <button class="vtab${curView==='people'?' active':''}" onclick="setView('people')">Procuradores</button>
+  <button class="vtab conflict-tab${curView==='conflicts'?' active':''}" onclick="setView('conflicts')">${st.dOver>0?'⚠ ':''}Conflitos${st.dOver>0?' ('+st.dOver+')':''}</button>
 </div>
 
 ${curView==='calendar'?`
@@ -700,6 +975,8 @@ ${curView==='people'?`
   const c=vacations.filter(v=>v.n===p&&v.s.startsWith(String(curYear))).length;
   return `<div class="pchip" onclick="showPersonVacs('${p}')"><div class="pdot" style="background:${pColor(p)}"></div><div><div class="pname">${p}</div><div class="psub">${c} período${c!==1?'s':''} em ${curYear}</div></div></div>`;
 }).join('')}</div>`:''}
+
+${curView==='conflicts'?buildConflictsView(curYear):''}
 
 <div class="statusbar" id="statusbar">${lastSaved?`Última atualização: ${lastSaved.toLocaleString('pt-BR')} · ${statusMsg}`:statusMsg}</div>`;
 }
@@ -725,15 +1002,51 @@ function setView(v){curView=v;render();}
 function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}render();}
 function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}render();}
 
+// ─── Access password ──────────────────────────────────────────────────────────
+const ACCESS_PASSWORD = 'PGMJUD3';
+const SESSION_KEY = 'ferias-jud3-session';
+
+function checkLogin() {
+  const input = document.getElementById('login-input');
+  const err = document.getElementById('login-error');
+  const val = (input.value || '').trim();
+  if(val === ACCESS_PASSWORD) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = '';
+    input.classList.remove('error');
+    err.textContent = '';
+    bootDashboard();
+  } else {
+    err.textContent = 'Senha incorreta. Tente novamente.';
+    input.classList.add('error');
+    input.value = '';
+    setTimeout(() => input.classList.remove('error'), 400);
+    input.focus();
+  }
+}
+
+async function bootDashboard() {
+  // Show loading state
+  document.getElementById('app').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px"><div style="font-size:14px;color:var(--text-3)">Conectando ao Firebase...</div></div>';
+  await loadOfficial();
+  loadSim();
+  if(!simData) resetSimToOfficial();
+  mode='simulation';
+  applyData(simData);
+  statusMsg='Pronto';
+  render();
+  subscribeOfficial(); // start real-time sync
+}
+
 // ─── Boot ─────────────────────────────────────────────────────────────────────
-loadOfficial();
-loadSim();
-if(!simData) resetSimToOfficial();
-// Start in simulation mode
-mode='simulation';
-applyData(simData);
-statusMsg='Pronto';
-render();
+if(sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = '';
+  bootDashboard();
+} else {
+  setTimeout(() => document.getElementById('login-input').focus(), 100);
+}
 </script>
 </body>
 </html>
