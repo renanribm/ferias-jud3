@@ -315,7 +315,7 @@ function loadOfficial(cb){
     }
     if(cb)cb();
   }).catch(function(e){
-    statusMsg='Erro Firebase - usando cache';
+    statusMsg='Erro Firebase — usando cache';
     try{var r=localStorage.getItem('ferias-jud3-cache');if(r){var d=JSON.parse(r);officialData={vacations:d.vacations,people:d.people};}}catch(ex){}
     if(cb)cb();
   });
@@ -341,7 +341,7 @@ function subscribeOfficial(){
 // ── Sim storage ────────────────────────────────────────────────────────────────
 function saveSim(){
   localStorage.setItem(SIM_KEY,JSON.stringify({vacations:vacations,people:people,savedAt:new Date().toISOString()}));
-  lastSaved=new Date();statusMsg='Simulacao salva localmente';renderStatus();
+  lastSaved=new Date();statusMsg='Simulação salva localmente';renderStatus();
 }
 function loadSim(){
   try{var r=localStorage.getItem(SIM_KEY);if(r){var d=JSON.parse(r);simData={vacations:d.vacations,people:d.people};}}catch(e){}
@@ -357,23 +357,27 @@ function applyData(src){
 function saveData(){if(mode==='admin')saveOfficial();else saveSim();}
 
 // ── Export ─────────────────────────────────────────────────────────────────────
-function exportXLS(){
-  var rows=[['Procurador','Dias de ferias','Data de inicio']];
-  vacations.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
+function exportXLS(year){
+  var rows=[['Procurador','Dias de férias','Data de início']];
+  var src=year==='todos'?vacations:vacations.filter(function(v){return v.s.slice(0,4)===String(year);});
+  src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
   var tbl='<table border="1">';
   rows.forEach(function(r,i){tbl+='<tr>';r.forEach(function(c){tbl+=i===0?'<th style="background:#1a1a18;color:#fff">'+c+'</th>':'<td>'+c+'</td>';});tbl+='</tr>';});
   tbl+='</table>';
   var blob=new Blob(['<html><head><meta charset="UTF-8"></head><body>'+tbl+'</body></html>'],{type:'application/vnd.ms-excel;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='ferias_jud3_'+(mode==='admin'?'oficial':'simulacao')+'.xls';a.click();
+  var ysuffix=year==='todos'?'todos_os_anos':String(year);
+  a.download='ferias_jud3_'+ysuffix+'_'+(mode==='admin'?'oficial':'simulação')+'.xls';a.click();
 }
-function exportCSV(){
-  var rows=[['Procurador','Dias de ferias','Data de inicio']];
-  vacations.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
+function exportCSV(year){
+  var rows=[['Procurador','Dias de férias','Data de início']];
+  var src=year==='todos'?vacations:vacations.filter(function(v){return v.s.slice(0,4)===String(year);});
+  src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
   var csv=rows.map(function(r){return r.map(function(c){return '"'+c+'"';}).join(';');}).join('\n');
   var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='ferias_jud3_'+(mode==='admin'?'oficial':'simulacao')+'.csv';a.click();
+  var ysuffix=year==='todos'?'todos_os_anos':String(year);
+  a.download='ferias_jud3_'+ysuffix+'_'+(mode==='admin'?'oficial':'simulação')+'.csv';a.click();
 }
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
@@ -449,12 +453,12 @@ function activateAdminMode(){
 function switchMode(target){
   if(target==='admin'){showPinModal();return;}
   if(mode==='admin'){
-    if(!confirm('Sair do modo administrador e entrar em simulacao?'))return;
+    if(!confirm('Sair do modo administrador e entrar em simulação?'))return;
     mode='simulation';
     loadSim();
     if(!simData)resetSimToOfficial();
     applyData(simData);
-    statusMsg='Modo simulacao ativado';
+    statusMsg='Modo simulação ativado';
     render();
   }
 }
@@ -464,10 +468,10 @@ function showAddVac(personName){
   var opts=people.map(function(p){return '<option value="'+p+'"'+(p===personName?' selected':'')+'>'+p+'</option>';}).join('');
   var mo=String(curMonth+1).padStart(2,'0');
   openModal(
-    '<h3>Adicionar periodo de ferias</h3>'+
+    '<h3>Adicionar período de férias</h3>'+
     '<div class="field"><label>Procurador</label><select id="av-person">'+opts+'</select></div>'+
-    '<div class="field"><label>Data de inicio</label><input type="date" id="av-start" value="'+curYear+'-'+mo+'-01"></div>'+
-    '<div class="field"><label>Numero de dias</label><input type="number" id="av-days" min="1" max="60" value="15"></div>'+
+    '<div class="field"><label>Data de início</label><input type="date" id="av-start" value="'+curYear+'-'+mo+'-01"></div>'+
+    '<div class="field"><label>Número de dias</label><input type="number" id="av-days" min="1" max="60" value="15"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmAddVac()">Adicionar</button></div>'
   );
@@ -483,7 +487,7 @@ function confirmAddVac(){
   tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
   var over=false;
   for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
-  if(over&&!confirm('Atencao: este periodo ultrapassa o limite de '+LIMIT+' simultaneos. Continuar?'))return;
+  if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Continuar?'))return;
   vacations.push({n:person,s:start,d:days});
   closeModal();saveData();render();
 }
@@ -496,20 +500,20 @@ function showPersonVacs(person){
     return '<div class="vac-item"><div><div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+'</div>'+
            '<div class="vac-days">'+v.d+' dias</div></div>'+
            '<button class="btn sm danger" onclick="removeVac('+idx+')">Remover</button></div>';
-  }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum periodo cadastrado.</div>';
+  }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período cadastrado.</div>';
   openModal(
     '<h3 style="display:flex;align-items:center;gap:8px">'+
     '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+' &mdash; '+curYear+'</h3>'+
     '<div class="vac-list">'+items+'</div>'+
     '<hr class="divider">'+
     '<div class="mbtns" style="justify-content:space-between">'+
-    '<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar periodo</button>'+
+    '<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar período</button>'+
     '<button class="btn" onclick="closeModal()">Fechar</button></div>'
   );
 }
 
 function removeVac(idx){
-  if(!confirm('Remover este periodo?'))return;
+  if(!confirm('Remover este período?'))return;
   vacations.splice(idx,1);closeModal();saveData();render();
 }
 
@@ -527,7 +531,7 @@ function showPeopleManager(){
     '<div class="vac-list">'+list+'</div>'+
     '<hr class="divider">'+
     '<div class="field"><label>Adicionar novo procurador</label>'+
-    '<input type="text" id="new-person" placeholder="Nome em maiusculas" style="text-transform:uppercase"></div>'+
+    '<input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
     '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>'
   );
@@ -537,36 +541,51 @@ function confirmAddPerson(){
   var raw=document.getElementById('new-person').value||'';
   var nm=raw.trim();
   if(!nm){alert('Digite o nome.');return;}
-  if(nm!==nm.toUpperCase()){alert('O nome deve ser escrito em letras MAIUSCULAS.');return;}
+  if(nm!==nm.toUpperCase()){alert('O nome deve ser escrito em letras MAIÚSCULAS.');return;}
   nm=nm.toUpperCase();
-  if(people.indexOf(nm)>=0){alert('Ja existe.');return;}
+  if(people.indexOf(nm)>=0){alert('Já existe.');return;}
   people.push(nm);people.sort();
   closeModal();saveData();render();
 }
 
 function removePerson(p){
-  if(!confirm('Remover '+p+' e todos os seus periodos?'))return;
+  if(!confirm('Remover '+p+' e todos os seus períodos?'))return;
   people=people.filter(function(x){return x!==p;});
   vacations=vacations.filter(function(v){return v.n!==p;});
   closeModal();saveData();render();
 }
 
 function confirmResetSim(){
-  if(!confirm('Redefinir simulacao com os dados oficiais atuais?'))return;
+  if(!confirm('Redefinir simulação com os dados oficiais atuais?'))return;
   resetSimToOfficial();applyData(simData);
-  statusMsg='Simulacao redefinida';render();
+  statusMsg='Simulação redefinida';render();
+}
+
+function doExport(fmt){
+  var sel=document.getElementById('exp-year');
+  var y=sel?sel.value:'todos';
+  var year=isNaN(y)?y:parseInt(y);
+  closeModal();
+  if(fmt==='csv')exportCSV(year);
+  else exportXLS(year);
 }
 
 function showExportModal(){
+  var yearOpts='<option value="todos">Todos os anos</option>';
+  YEARS.forEach(function(y){
+    var count=vacations.filter(function(v){return v.s.slice(0,4)===String(y);}).length;
+    yearOpts+='<option value="'+y+'"'+(y===curYear?' selected':'')+'>'+y+(count>0?' ('+count+' períodos)':' (sem dados)')+' </option>';
+  });
   openModal(
     '<h3>Exportar dados</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Exporta todos os periodos com: <strong>Procurador</strong>, <strong>Dias de ferias</strong> e <strong>Data de inicio</strong>.</p>'+
-    (mode==='simulation'?'<div class="notice">Voce esta em modo simulacao &mdash; os dados exportados refletem sua simulacao.</div>':'')+
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Exporta os períodos com tres colunas: <strong>Procurador</strong>, <strong>Dias de férias</strong> e <strong>Data de início</strong>.</p>'+
+    '<div class="field"><label>Ano a exportar</label><select id="exp-year">'+yearOpts+'</select></div>'+
+    (mode==='simulation'?'<div class="notice">Você está em modo simulação &mdash; os dados exportados refletem sua simulação.</div>':'')+
     '<div class="mbtns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:20px">'+
     '<button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<div style="display:flex;gap:8px">'+
-    '<button class="btn export" onclick="closeModal();exportCSV()">&#8595; Exportar CSV</button>'+
-    '<button class="btn export" onclick="closeModal();exportXLS()">&#8595; Exportar Excel</button>'+
+    '<button class="btn export" data-fmt="csv" onclick="doExport(this.dataset.fmt)">&#8595; CSV</button>'+
+    '<button class="btn export" data-fmt="xls" onclick="doExport(this.dataset.fmt)">&#8595; Excel</button>'+
     '</div></div>'
   );
 }
@@ -578,10 +597,10 @@ function selectDay(ds){
   var d=parseD(ds);
   var opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
   var str=d.toLocaleDateString('pt-BR',opts);
-  if(!names.length){el.innerHTML='<strong>'+str+'</strong> &mdash; nenhum procurador de ferias.';return;}
+  if(!names.length){el.innerHTML='<strong>'+str+'</strong> &mdash; nenhum procurador de férias.';return;}
   var over=names.length>LIMIT,atLim=names.length===LIMIT;
   var badge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
-  el.innerHTML='<strong>'+str+'</strong>'+badge+'<br><span style="color:var(--text)">'+names.join(', ')+'</span> <span style="color:var(--text-3)">('+names.length+' em ferias)</span>';
+  el.innerHTML='<strong>'+str+'</strong>'+badge+'<br><span style="color:var(--text)">'+names.join(', ')+'</span> <span style="color:var(--text-3)">('+names.length+' em férias)</span>';
 }
 
 function buildCal(year,month){
@@ -617,7 +636,7 @@ function buildGantt(year){
   h+='<div class="mr"><div class="mr-sp"></div><div style="flex:1;display:flex">';
   MONTHS_PT.forEach(function(_,i){var mo=new Date(year,i+1,0).getDate();h+='<div class="mr-m" style="width:'+(mo/total*100).toFixed(2)+'%">'+MONTHS_PT[i].slice(0,3)+'</div>';});
   h+='</div></div>';
-  if(!ap.length)h+='<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhuma ferias cadastrada para este ano.</div>';
+  if(!ap.length)h+='<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhuma férias cadastrada para este ano.</div>';
   ap.forEach(function(p){
     h+='<div class="gantt-row"><div class="gname">'+p+'</div><div class="gtrack">';
     yv.filter(function(v){return v.n===p;}).forEach(function(v){
@@ -629,7 +648,7 @@ function buildGantt(year){
     h+='</div></div>';
   });
   h+='<div style="height:6px"></div>';
-  h+='<div class="gantt-row"><div class="gname" style="font-size:10px;color:var(--text-3)">Ocupacao</div><div class="gtrack" style="height:20px">';
+  h+='<div class="gantt-row"><div class="gname" style="font-size:10px;color:var(--text-3)">Ocupação</div><div class="gtrack" style="height:20px">';
   for(var d=0;d<total;d++){
     var dt=new Date(year,0,1+d),k=fmt(dt),c=(dm[k]||[]).length;
     if(!c)continue;
@@ -649,7 +668,7 @@ function buildConflictsView(year){
     return '<div class="conflicts-wrap"><div class="conflict-empty">'+
       '<div class="conflict-ok-icon">&#10003;</div>'+
       '<div class="conflict-empty-title">Nenhum conflito em '+year+'</div>'+
-      '<div class="conflict-empty-sub">Todos os periodos respeitam o limite de '+LIMIT+' ferias simultaneas.</div>'+
+      '<div class="conflict-empty-sub">Todos os períodos respeitam o limite de '+LIMIT+' férias simultâneas.</div>'+
       '</div></div>';
   }
   var byMonth={};
@@ -667,9 +686,9 @@ function buildConflictsView(year){
   h+='<div class="conflict-summary-bar">'+
     '<div class="csb-item"><span class="csb-val">'+cDays.length+'</span> dia'+(cDays.length>1?'s':'')+' com conflito</div>'+
     '<div class="csb-item" style="opacity:.4">&#183;</div>'+
-    '<div class="csb-item"><span class="csb-val">'+Object.keys(byMonth).length+'</span> '+(Object.keys(byMonth).length>1?'meses afetados':'mes afetado')+'</div>'+
+    '<div class="csb-item"><span class="csb-val">'+Object.keys(byMonth).length+'</span> '+(Object.keys(byMonth).length>1?'meses afetados':'mês afetado')+'</div>'+
     '<div class="csb-item" style="opacity:.4">&#183;</div>'+
-    '<div class="csb-item">Sequencia maxima: <span class="csb-val">'+maxStreak+' dia'+(maxStreak>1?'s':'')+' seguidos</span></div>'+
+    '<div class="csb-item">Sequência máxima: <span class="csb-val">'+maxStreak+' dia'+(maxStreak>1?'s':'')+' seguidos</span></div>'+
     '<div class="csb-item" style="opacity:.4">&#183;</div>'+
     '<div class="csb-item"><span class="csb-val">'+cPeople.length+'</span> procurador'+(cPeople.length>1?'es':'')+' envolvido'+(cPeople.length>1?'s':'')+'</div>'+
     '</div>';
@@ -686,7 +705,7 @@ function buildConflictsView(year){
         '<div class="conflict-weekday">'+d.toLocaleDateString('pt-BR',{weekday:'long'})+'</div>'+
         '</div>'+
         '<div class="conflict-body">'+
-        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' simultaneos &middot; '+extra+' acima do limite</div>'+
+        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' simultâneos &middot; '+extra+' acima do limite</div>'+
         '<div class="conflict-names">'+
         x.ns.map(function(n){return '<div class="conflict-name-chip" onclick="showPersonVacs(\''+n+'\')"><div class="conflict-dot" style="background:'+pColor(n)+'"></div>'+n+'</div>';}).join('')+
         '</div></div></div>';
@@ -699,7 +718,7 @@ function buildConflictsView(year){
 // ── Render ─────────────────────────────────────────────────────────────────────
 function renderStatus(){
   var el=document.getElementById('statusbar');
-  if(el)el.textContent=lastSaved?'Ultima atualizacao: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg;
+  if(el)el.textContent=lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg;
 }
 
 function render(){
@@ -722,12 +741,12 @@ function render(){
   // Topbar
   h+='<div class="topbar">';
   h+='<div class="logo"><div class="logo-mark">JUD3</div>';
-  h+='<div><div class="logo-text">Controle de Ferias</div>';
+  h+='<div><div class="logo-text">Controle de Férias</div>';
   h+='<div class="logo-sub">PGM/SP JUD-3 &middot; '+YEARS[0]+'&ndash;'+YEARS[YEARS.length-1]+'</div></div></div>';
   h+='<div class="topbar-right">';
   h+='<div class="mode-switcher">';
   h+='<button class="mswitch-btn'+(isAdmin?'':' active sim')+'" onclick="switchMode(\'simulation\')">';
-  h+='<span class="mswitch-dot sim-dot"></span>Simulacao</button>';
+  h+='<span class="mswitch-dot sim-dot"></span>Simulação</button>';
   h+='<button class="mswitch-btn'+(isAdmin?' active adm':'')+'" onclick="showPinModal()">';
   h+='<span class="mswitch-dot adm-dot"></span>Administrador</button>';
   h+='</div>';
@@ -745,12 +764,12 @@ function render(){
   if(!isAdmin){
     h+='<div class="sim-banner">';
     h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3a6a1a" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="#3a6a1a" stroke-width="1.4" stroke-linecap="round"/></svg>';
-    h+='<span>Voce esta em <strong>modo simulacao</strong> &mdash; suas alteracoes ficam salvas apenas neste navegador. Se preferir, <a href="#" onclick="event.preventDefault();showPinModal()" style="color:var(--sim-accent);font-weight:600;text-decoration:underline">acesse o Modo Administrador</a>.</span>';
+    h+='<span>Você está em <strong>modo simulação</strong> &mdash; suas alterações ficam salvas apenas neste navegador. Se preferir, <a href="#" onclick="event.preventDefault();showPinModal()" style="color:var(--sim-accent);font-weight:600;text-decoration:underline">acesse o Modo Administrador</a>.</span>';
     h+='</div>';
   }else{
     h+='<div class="adm-banner">';
     h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3" stroke="var(--admin-accent)" stroke-width="1.2"/><path d="M5 8l2.5 2.5L11 5.5" stroke="var(--admin-accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    h+='<span>Voce esta em <strong>modo administrador</strong> &mdash; alteracoes salvas e sincronizadas para todos. Se preferir, <a href="#" onclick="event.preventDefault();switchMode(\'simulation\')" style="color:var(--admin-accent);font-weight:600;text-decoration:underline">volte ao Modo Simulacao</a>.</span>';
+    h+='<span>Você está em <strong>modo administrador</strong> &mdash; alterações salvas e sincronizadas para todos. Se preferir, <a href="#" onclick="event.preventDefault();switchMode(\'simulation\')" style="color:var(--admin-accent);font-weight:600;text-decoration:underline">volte ao Modo Simulação</a>.</span>';
     h+='</div>';
   }
 
@@ -762,17 +781,17 @@ function render(){
   // Cards
   h+='<div class="cards">';
   h+='<div class="card"><div class="card-label">Procuradores em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+people.length+' no cadastro</div></div>';
-  h+='<div class="card '+(st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok')+'"><div class="card-label">Pico simultaneo</div><div class="card-val">'+st.maxS+'</div><div class="card-sub">limite: '+LIMIT+'</div></div>';
+  h+='<div class="card '+(st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok')+'"><div class="card-label">Pico simultâneo</div><div class="card-val">'+st.maxS+'</div><div class="card-sub">limite: '+LIMIT+'</div></div>';
   h+='<div class="card '+(st.dOver>0?'danger':'ok')+'"><div class="card-label">Dias acima do limite</div><div class="card-val">'+st.dOver+'</div><div class="card-sub">'+st.dAt4+' dias no limite exato</div></div>';
-  h+='<div class="card"><div class="card-label">Total dias de ferias</div><div class="card-val">'+st.totalD+'</div><div class="card-sub">em '+curYear+'</div></div>';
+  h+='<div class="card"><div class="card-label">Total dias de férias</div><div class="card-val">'+st.totalD+'</div><div class="card-sub">em '+curYear+'</div></div>';
   h+='</div>';
 
 
 
   // View tabs
-  var cLabel='Conflitos (+ de 4 ferias simult.)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
+  var cLabel='Conflitos (+ de 4 férias simult.)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
   h+='<div class="view-tabs">';
-  h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendario</button>';
+  h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendário</button>';
   h+='<button class="vtab'+(curView==='gantt'?' active':'')+'" onclick="setView(\'gantt\')">Linha do tempo</button>';
   h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Procuradores</button>';
   h+='<button class="vtab conflict-tab'+(curView==='conflicts'?' active':'')+'" onclick="setView(\'conflicts\')">'+cLabel+'</button>';
@@ -780,7 +799,7 @@ function render(){
 
   // Calendar
   if(curView==='calendar'){
-    var mStatus=mOver>0?'<span style="color:var(--red)">'+mOver+' dias acima do limite</span>':mAt4>0?'<span style="color:var(--amber)">'+mAt4+' dias no limite</span>':'&#10003; Nenhum dia acima do limite neste mes';
+    var mStatus=mOver>0?'<span style="color:var(--red)">'+mOver+' dias acima do limite</span>':mAt4>0?'<span style="color:var(--amber)">'+mAt4+' dias no limite</span>':'&#10003; Nenhum dia acima do limite neste mês';
     h+='<div class="month-nav">';
     h+='<button class="btn" onclick="prevM()">&#8592;</button>';
     h+='<div class="month-label">'+MONTHS_PT[curMonth]+' '+curYear+'</div>';
@@ -790,17 +809,17 @@ function render(){
     h+='<div class="cal-wrap">'+buildCal(curYear,curMonth)+'</div>';
     h+='<div class="sel-info" id="sel-info">Clique em um dia para ver os detalhes.</div>';
     h+='<div class="legend">';
-    h+='<div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em ferias</div>';
-    h+='<div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em ferias</div>';
-    h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em ferias</div>';
-    h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em ferias (limite)</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em férias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em férias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em férias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em férias (limite)</div>';
     h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
     h+='</div>';
   }
   if(curView==='gantt')h+='<div class="gantt-wrap">'+buildGantt(curYear)+'</div>';
   if(curView==='people'){
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
-    h+='<span style="font-size:12px;color:var(--text-3)">Clique em um nome para ver e editar periodos de '+curYear+'</span>';
+    h+='<span style="font-size:12px;color:var(--text-3)">Clique em um nome para ver e editar períodos de '+curYear+'</span>';
     h+='<div style="display:flex;gap:6px">';
     h+='<button class="btn sm" onclick="showAddVac(\'\')">+ Ferias</button>';
     h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
@@ -810,13 +829,13 @@ function render(){
       var c=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);}).length;
       h+='<div class="pchip" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
          '<div class="pdot" style="background:'+pColor(p)+'"></div>'+
-         '<div><div class="pname">'+p+'</div><div class="psub">'+c+' periodo'+(c!==1?'s':'')+' em '+curYear+'</div></div></div>';
+         '<div><div class="pname">'+p+'</div><div class="psub">'+c+' período'+(c!==1?'s':'')+' em '+curYear+'</div></div></div>';
     });
     h+='</div>';
   }
   if(curView==='conflicts')h+=buildConflictsView(curYear);
 
-  h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Ultima atualizacao: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg)+'</div>';
+  h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg)+'</div>';
 
   document.getElementById('app').innerHTML=h;
 }
