@@ -247,6 +247,7 @@ function fmt(d){
   return y+'-'+m+'-'+day;
 }
 function parseD(s){return new Date(s+'T00:00:00');}
+function fmtBR(s){var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
 var today=fmt(new Date());
 
 function buildDayMap(year){
@@ -489,16 +490,16 @@ function confirmAddVac(){
 
 // ── Person vacations ───────────────────────────────────────────────────────────
 function showPersonVacs(person){
-  var pvacs=vacations.filter(function(v){return v.n===person;}).sort(function(a,b){return a.s.localeCompare(b.s);});
+  var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear);}).sort(function(a,b){return a.s.localeCompare(b.s);});
   var items=pvacs.length?pvacs.map(function(v){
     var idx=vacations.indexOf(v);
-    return '<div class="vac-item"><div><div class="vac-dates">'+v.s+' &rarr; '+fmt(addDays(v.s,v.d-1))+'</div>'+
+    return '<div class="vac-item"><div><div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+'</div>'+
            '<div class="vac-days">'+v.d+' dias</div></div>'+
            '<button class="btn sm danger" onclick="removeVac('+idx+')">Remover</button></div>';
   }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum periodo cadastrado.</div>';
   openModal(
     '<h3 style="display:flex;align-items:center;gap:8px">'+
-    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+'</h3>'+
+    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+' &mdash; '+curYear+'</h3>'+
     '<div class="vac-list">'+items+'</div>'+
     '<hr class="divider">'+
     '<div class="mbtns" style="justify-content:space-between">'+
@@ -533,8 +534,11 @@ function showPeopleManager(){
 }
 
 function confirmAddPerson(){
-  var nm=(document.getElementById('new-person').value||'').trim().toUpperCase();
+  var raw=document.getElementById('new-person').value||'';
+  var nm=raw.trim();
   if(!nm){alert('Digite o nome.');return;}
+  if(nm!==nm.toUpperCase()){alert('O nome deve ser escrito em letras MAIUSCULAS.');return;}
+  nm=nm.toUpperCase();
   if(people.indexOf(nm)>=0){alert('Ja existe.');return;}
   people.push(nm);people.sort();
   closeModal();saveData();render();
@@ -730,9 +734,9 @@ function render(){
   h+='<button class="btn export" onclick="showExportModal()">&#8595; Exportar</button>';
   if(isAdmin){
     h+='<button class="btn" onclick="showAddVac(\'\')">+ Ferias</button>';
-    h+='<button class="btn" onclick="showPeopleManager()">Procuradores</button>';
+
   }else{
-    h+='<button class="btn" onclick="showAddVac(\'\')">+ Ferias (sim.)</button>';
+    
     h+='<button class="btn sm" onclick="confirmResetSim()">&#8635; Redefinir</button>';
   }
   h+='</div></div>';
@@ -763,14 +767,7 @@ function render(){
   h+='<div class="card"><div class="card-label">Total dias de ferias</div><div class="card-val">'+st.totalD+'</div><div class="card-sub">em '+curYear+'</div></div>';
   h+='</div>';
 
-  // Legend
-  h+='<div class="legend">';
-  h+='<div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em ferias</div>';
-  h+='<div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em ferias</div>';
-  h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em ferias</div>';
-  h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em ferias (limite)</div>';
-  h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
-  h+='</div>';
+
 
   // View tabs
   var cLabel='Conflitos (+ de 4 ferias simult.)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
@@ -792,13 +789,26 @@ function render(){
     h+='</div>';
     h+='<div class="cal-wrap">'+buildCal(curYear,curMonth)+'</div>';
     h+='<div class="sel-info" id="sel-info">Clique em um dia para ver os detalhes.</div>';
+    h+='<div class="legend">';
+    h+='<div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em ferias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em ferias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em ferias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em ferias (limite)</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
+    h+='</div>';
   }
   if(curView==='gantt')h+='<div class="gantt-wrap">'+buildGantt(curYear)+'</div>';
   if(curView==='people'){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+    h+='<span style="font-size:12px;color:var(--text-3)">Clique em um nome para ver e editar periodos de '+curYear+'</span>';
+    h+='<div style="display:flex;gap:6px">';
+    h+='<button class="btn sm" onclick="showAddVac(\'\')">+ Ferias</button>';
+    h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
+    h+='</div></div>';
     h+='<div class="people-grid">';
     people.forEach(function(p){
       var c=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);}).length;
-      h+='<div class="pchip" onclick="showPersonVacs(\''+p+'\')">'+
+      h+='<div class="pchip" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
          '<div class="pdot" style="background:'+pColor(p)+'"></div>'+
          '<div><div class="pname">'+p+'</div><div class="psub">'+c+' periodo'+(c!==1?'s':'')+' em '+curYear+'</div></div></div>';
     });
