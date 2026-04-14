@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Férias JUD3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0eeea;
+  --border: rgba(0,0,0,0.10);
+  --border-md: rgba(0,0,0,0.18);
+  --text: #1a1a18;
+  --text-2: #5a5a56;
+  --text-3: #9a9a94;
+  --accent: #1a1a18;
+  --green: #1a7a4a;
+  --green-bg: #e8f5ee;
+  --blue: #1a4a8a;
+  --blue-bg: #e8f0fa;
+  --amber: #8a5a0a;
+  --amber-bg: #faf0d8;
+  --red: #8a1a1a;
+  --red-bg: #fae8e8;
+  --yellow: #7a6a00;
+  --yellow-bg: #faf8d0;
+  --official-accent: #1a3a6a;
+  --sim-accent: #3a6a1a;
+  --r: 10px;
+  --r-sm: 6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+/* Layout */
+.app { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+/* Header */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 36px; height: 36px; background: var(--accent);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+}
+.logo-text { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+.logo-sub { font-size: 12px; color: var(--text-3); }
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* Mode badge */
+.mode-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: opacity .15s;
+}
+.mode-badge:hover { opacity: .8; }
+.mode-badge.official { background: #dce6f5; color: var(--official-accent); }
+.mode-badge.simulation { background: #dceedd; color: var(--sim-accent); }
+.mode-dot { width: 7px; height: 7px; border-radius: 50%; }
+.mode-badge.official .mode-dot { background: var(--official-accent); }
+.mode-badge.simulation .mode-dot { background: var(--sim-accent); }
+.sim-banner {
+  background: #f0f7ea; border: 1px solid #b8dba8; border-radius: var(--r-sm);
+  padding: 10px 14px; margin-bottom: 16px; font-size: 13px; color: var(--sim-accent);
+  display: flex; align-items: center; gap: 8px;
+}
+.sim-banner svg { flex-shrink: 0; }
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--r-sm); border: 1px solid var(--border-md);
+  background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; cursor: pointer; font-weight: 400; transition: background .12s, border-color .12s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--accent); color: #fff; border-color: transparent; }
+.btn.primary:hover { background: #2a2a28; }
+.btn.danger { background: var(--red-bg); color: var(--red); border-color: transparent; }
+.btn.danger:hover { background: #f5d8d8; }
+.btn.export { background: #e8f5ee; color: var(--green); border-color: transparent; }
+.btn.export:hover { background: #d8f0e4; }
+.btn.sm { padding: 4px 10px; font-size: 12px; }
+.btn:disabled { opacity: .4; cursor: default; }
+/* Year tabs */
+.year-tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+.ytab {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border);
+  font-size: 13px; cursor: pointer; color: var(--text-2); background: var(--surface);
+  font-family: 'DM Sans', sans-serif; transition: all .12s;
+}
+.ytab:hover { border-color: var(--border-md); color: var(--text); }
+.ytab.active { background: var(--accent); color: #fff; border-color: transparent; font-weight: 500; }
+/* Cards */
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px 16px; }
+.card-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.card-val { font-size: 26px; font-weight: 600; letter-spacing: -.02em; color: var(--text); }
+.card-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+.card.ok .card-val { color: var(--green); }
+.card.warn .card-val { color: var(--amber); }
+.card.danger .card-val { color: var(--red); }
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
+.leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+/* Tabs */
+.view-tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+.vtab {
+  padding: 8px 16px; font-size: 13px; cursor: pointer; color: var(--text-2);
+  background: none; border: none; border-bottom: 2px solid transparent;
+  font-family: 'DM Sans', sans-serif; margin-bottom: -1px; transition: all .12s;
+}
+.vtab:hover { color: var(--text); }
+.vtab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+/* Calendar */
+.month-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.month-label { font-size: 16px; font-weight: 600; min-width: 170px; text-align: center; letter-spacing: -.01em; }
+.cal-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 12px; }
+.cal-head { display: grid; grid-template-columns: repeat(7,1fr); background: var(--surface2); }
+.cal-head span { padding: 8px 0; text-align: center; font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+.cal-body { display: grid; grid-template-columns: repeat(7,1fr); }
+.day { min-height: 66px; padding: 6px 6px 4px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+.day:nth-child(7n) { border-right: none; }
+.day.empty { background: var(--surface2); cursor: default; }
+.day:not(.empty):hover { background: #f5f5f0; }
+.dn { font-size: 12px; font-weight: 500; color: var(--text-3); margin-bottom: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+.day.today .dn { background: var(--accent); color: #fff; border-radius: 50%; }
+.cbadge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 600; border-radius: 3px; padding: 1px 5px; margin-bottom: 2px; }
+.cb1 { background: var(--green-bg); color: var(--green); }
+.cb2 { background: var(--blue-bg); color: var(--blue); }
+.cb3 { background: var(--amber-bg); color: var(--amber); }
+.cb4 { background: var(--yellow-bg); color: var(--yellow); }
+.cbover { background: var(--red-bg); color: var(--red); }
+.dnames { font-size: 9px; color: var(--text-3); line-height: 1.4; word-break: break-word; }
+.sel-info {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm);
+  padding: 11px 14px; margin-bottom: 20px; font-size: 13px; color: var(--text-2); min-height: 42px;
+}
+/* Gantt */
+.gantt-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow-x: auto; margin-bottom: 20px; }
+.gantt-inner { min-width: 680px; padding: 14px 16px; }
+.gantt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.gname { width: 90px; font-size: 11px; color: var(--text-2); text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gtrack { flex: 1; height: 16px; position: relative; background: var(--surface2); border-radius: 3px; }
+.gbar { position: absolute; height: 12px; top: 2px; border-radius: 2px; transition: opacity .15s; }
+.gbar:hover { opacity: .7 !important; }
+.mr { display: flex; margin-bottom: 6px; }
+.mr-sp { width: 98px; flex-shrink: 0; }
+.mr-m { font-size: 9px; color: var(--text-3); text-align: center; overflow: hidden; }
+/* People grid */
+.people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr)); gap: 8px; margin-bottom: 20px; }
+.pchip {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm);
+  cursor: pointer; transition: border-color .12s, background .12s;
+}
+.pchip:hover { border-color: var(--border-md); background: var(--surface2); }
+.pdot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.pname { font-size: 12px; font-weight: 500; }
+.psub { font-size: 10px; color: var(--text-3); }
+/* Modal */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(10,10,8,.5); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px;
+}
+.modal {
+  background: var(--surface); border: 1px solid var(--border-md); border-radius: var(--r);
+  padding: 24px; width: 440px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.15);
+}
+.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; letter-spacing: -.01em; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 5px; font-weight: 500; }
+.field input, .field select {
+  width: 100%; padding: 8px 12px; border: 1px solid var(--border-md); border-radius: var(--r-sm);
+  font-size: 13px; background: var(--surface); color: var(--text); font-family: 'DM Sans', sans-serif;
+  transition: border-color .12s;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--accent); }
+.mbtns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+.vac-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+.vac-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 9px 12px; background: var(--surface2); border-radius: var(--r-sm);
+  font-size: 12px;
+}
+.vac-dates { font-weight: 500; color: var(--text); }
+.vac-days { color: var(--text-3); }
+/* Password modal */
+.pin-dots { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border-md); transition: background .15s; }
+.pin-dot.filled { background: var(--accent); border-color: var(--accent); }
+.pin-pad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.pin-key {
+  padding: 14px; text-align: center; border: 1px solid var(--border); border-radius: var(--r-sm);
+  font-size: 18px; cursor: pointer; background: var(--surface); font-family: 'DM Mono', monospace;
+  transition: background .1s;
+}
+.pin-key:hover { background: var(--surface2); }
+.pin-error { color: var(--red); text-align: center; font-size: 13px; margin-top: 8px; min-height: 20px; }
+/* Status bar */
+.statusbar { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+/* Warning notice in modal */
+.notice { background: var(--amber-bg); border-radius: var(--r-sm); padding: 10px 12px; font-size: 12px; color: var(--amber); margin-top: 10px; }
+.notice.danger { background: var(--red-bg); color: var(--red); }
+@media (max-width: 640px) {
+  .cards { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .cal-head span { font-size: 9px; padding: 6px 0; }
+  .dn { font-size: 11px; }
+  .dnames { font-size: 8px; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────────────────────
+const YEARS = [2026,2027,2028,2029,2030];
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const LIMIT = 4;
+const OFFICIAL_PIN = '1234'; // Altere para sua senha desejada
+const PCOLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7','#e11d48','#0891b2','#65a30d','#7c3aed','#0284c7','#b45309'];
+
+const DEFAULT_PEOPLE = ['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','LEONARDO','MARCOS','MARÍLIA','MAURÍCIO','NETO','RENAN','RODRIGO','THAYANE','VINICIUS','VIVIANE'];
+const DEFAULT_VACS = [
+  {n:'ALEX',s:'2026-04-22',d:17},{n:'ALEX',s:'2026-09-29',d:13},
+  {n:'BEATRICE',s:'2026-07-13',d:12},{n:'BEATRICE',s:'2026-10-13',d:15},
+  {n:'BRUNO',s:'2026-06-08',d:19},{n:'BRUNO',s:'2026-06-29',d:11},
+  {n:'CAMILA',s:'2026-04-06',d:13},{n:'CAMILA',s:'2026-11-03',d:17},
+  {n:'DANIEL',s:'2026-04-22',d:10},{n:'DANIEL',s:'2026-08-18',d:20},
+  {n:'EDUARDO',s:'2026-04-06',d:15},{n:'EDUARDO',s:'2026-10-13',d:15},
+  {n:'FABIANA',s:'2026-06-19',d:20},{n:'FABIANA',s:'2026-12-09',d:10},
+  {n:'LEONARDO',s:'2026-05-21',d:13},{n:'LEONARDO',s:'2026-08-03',d:17},
+  {n:'MARCOS',s:'2026-03-18',d:15},{n:'MARCOS',s:'2026-09-08',d:15},
+  {n:'MARÍLIA',s:'2026-10-13',d:15},
+  {n:'MAURÍCIO',s:'2026-07-15',d:15},{n:'MAURÍCIO',s:'2026-12-28',d:15},
+  {n:'NETO',s:'2026-01-05',d:12},{n:'NETO',s:'2026-07-13',d:18},
+  {n:'RENAN',s:'2026-02-19',d:18},{n:'RENAN',s:'2026-06-08',d:12},
+  {n:'RODRIGO',s:'2026-06-24',d:15},{n:'RODRIGO',s:'2026-11-25',d:15},
+  {n:'THAYANE',s:'2026-04-22',d:11},{n:'THAYANE',s:'2026-06-15',d:19},
+  {n:'VINICIUS',s:'2026-08-10',d:13},{n:'VINICIUS',s:'2026-11-23',d:17},
+  {n:'VIVIANE',s:'2026-07-13',d:12},{n:'VIVIANE',s:'2026-12-01',d:18}
+];
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let mode = 'simulation'; // 'official' | 'simulation'
+let officialData = { vacations: [...DEFAULT_VACS.map(v=>({...v}))], people: [...DEFAULT_PEOPLE] };
+let simData = null; // loaded from localStorage per-user
+
+let vacations = [];
+let people = [];
+let curYear = 2026, curMonth = (new Date()).getMonth(), curView = 'calendar';
+let lastSaved = null, statusMsg = '';
+let pinBuffer = '';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+const pColor = p => { const i = people.indexOf(p); return PCOLORS[Math.max(i,0) % PCOLORS.length]; };
+const addDays = (ds,n) => { const d=new Date(ds+'T00:00:00'); d.setDate(d.getDate()+n); return d; };
+const fmt = d => d.toISOString().slice(0,10);
+const parseD = s => new Date(s+'T00:00:00');
+const today = fmt(new Date());
+
+function buildDayMap(year) {
+  const m = {};
+  vacations.forEach(v => {
+    for(let i=0;i<v.d;i++){
+      const k = fmt(addDays(v.s,i));
+      if(k.slice(0,4)!==String(year)) continue;
+      if(!m[k]) m[k]=[];
+      m[k].push(v.n);
+    }
+  });
+  return m;
+}
+
+function getStats(year) {
+  const dm = buildDayMap(year);
+  let maxS=0, dOver=0, dAt4=0, totalD=0;
+  Object.values(dm).forEach(ns => {
+    if(ns.length>maxS) maxS=ns.length;
+    if(ns.length>LIMIT) dOver++;
+    if(ns.length===LIMIT) dAt4++;
+  });
+  vacations.forEach(v => {
+    const ys = v.s.slice(0,4); const ye = fmt(addDays(v.s,v.d-1)).slice(0,4);
+    if(ys===String(year)||ye===String(year)) totalD+=v.d;
+  });
+  return {maxS,dOver,dAt4,totalD};
+}
+
+// ─── Storage ─────────────────────────────────────────────────────────────────
+const OFFICIAL_KEY = 'ferias-jud3-official-v2';
+const SIM_KEY = 'ferias-jud3-sim-local';
+
+function saveOfficial() {
+  const payload = JSON.stringify({ vacations, people, savedAt: new Date().toISOString() });
+  localStorage.setItem(OFFICIAL_KEY, payload);
+  lastSaved = new Date();
+  statusMsg = 'Dados oficiais salvos ✓';
+  renderStatus();
+}
+
+function loadOfficial() {
+  try {
+    const raw = localStorage.getItem(OFFICIAL_KEY);
+    if(raw) { const d=JSON.parse(raw); officialData={vacations:d.vacations,people:d.people}; if(d.savedAt) lastSaved=new Date(d.savedAt); }
+  } catch(e) {}
+}
+
+function saveSim() {
+  localStorage.setItem(SIM_KEY, JSON.stringify({ vacations, people, savedAt: new Date().toISOString() }));
+  lastSaved = new Date();
+  statusMsg = 'Simulação salva localmente';
+  renderStatus();
+}
+
+function loadSim() {
+  try {
+    const raw = localStorage.getItem(SIM_KEY);
+    if(raw) { const d=JSON.parse(raw); simData={vacations:d.vacations,people:d.people}; }
+  } catch(e) {}
+}
+
+function resetSimToOfficial() {
+  simData = { vacations: officialData.vacations.map(v=>({...v})), people: [...officialData.people] };
+  localStorage.setItem(SIM_KEY, JSON.stringify({...simData, savedAt: new Date().toISOString()}));
+}
+
+function applyData(src) {
+  vacations = src.vacations.map(v=>({...v}));
+  people = src.people ? [...src.people] : [...DEFAULT_PEOPLE];
+}
+
+function saveData() {
+  if(mode==='official') saveOfficial();
+  else saveSim();
+}
+
+// ─── Export CSV / XLS ────────────────────────────────────────────────────────
+function exportXLS() {
+  const rows = [['Procurador','Dias de férias','Data de início']];
+  const sorted = [...vacations].sort((a,b)=>a.n.localeCompare(b.n)||a.s.localeCompare(b.s));
+  sorted.forEach(v => rows.push([v.n, v.d, v.s]));
+
+  // Build XLS-compatible HTML table (Excel opens it)
+  let tbl = '<table border="1">';
+  rows.forEach((r,i) => {
+    tbl += '<tr>';
+    r.forEach(c => { tbl += i===0 ? `<th style="background:#1a1a18;color:#fff;font-weight:bold">${c}</th>` : `<td>${c}</td>`; });
+    tbl += '</tr>';
+  });
+  tbl += '</table>';
+
+  const blob = new Blob([
+    '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>'+tbl+'</body></html>'
+  ], {type:'application/vnd.ms-excel;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const tag = mode==='simulation'?'_simulacao':'_oficial';
+  a.download = `ferias_jud3_${curYear}${tag}.xls`;
+  a.click();
+}
+
+function exportCSV() {
+  const rows = [['Procurador','Dias de férias','Data de início']];
+  const sorted = [...vacations].sort((a,b)=>a.n.localeCompare(b.n)||a.s.localeCompare(b.s));
+  sorted.forEach(v => rows.push([v.n, v.d, v.s]));
+  const csv = rows.map(r=>r.map(c=>`"${c}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const tag = mode==='simulation'?'_simulacao':'_oficial';
+  a.download = `ferias_jud3_${curYear}${tag}.csv`;
+  a.click();
+}
+
+// ─── Modal helpers ────────────────────────────────────────────────────────────
+let _modal = null;
+function openModal(html) {
+  closeModal();
+  const bg = document.createElement('div');
+  bg.className='modal-bg'; bg.id='modal-bg';
+  bg.innerHTML = `<div class="modal">${html}</div>`;
+  bg.addEventListener('click', e=>{ if(e.target===bg) closeModal(); });
+  document.body.appendChild(bg);
+  _modal = bg;
+}
+function closeModal(){ if(_modal){_modal.remove();_modal=null;} }
+
+// ─── PIN modal ───────────────────────────────────────────────────────────────
+function showPinModal() {
+  pinBuffer='';
+  openModal(`
+    <h3>Acesso ao modo oficial</h3>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:4px">Digite a senha de 4 dígitos para editar os dados oficiais.</p>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      ${[1,2,3,4,5,6,7,8,9,'','0','⌫'].map(k=>`<div class="pin-key" onclick="pinKey('${k}')">${k}</div>`).join('')}
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+    <div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button></div>`);
+}
+
+function pinKey(k) {
+  if(k==='') return;
+  if(k==='⌫') { pinBuffer=pinBuffer.slice(0,-1); }
+  else if(pinBuffer.length<4) { pinBuffer+=k; }
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('pd'+i);
+    if(el) el.className='pin-dot'+(i<pinBuffer.length?' filled':'');
+  }
+  if(pinBuffer.length===4) {
+    if(pinBuffer===OFFICIAL_PIN) {
+      closeModal();
+      mode='official';
+      applyData(officialData);
+      statusMsg='Modo oficial ativado';
+      render();
+    } else {
+      document.getElementById('pin-error').textContent='Senha incorreta. Tente novamente.';
+      pinBuffer='';
+      for(let i=0;i<4;i++){const el=document.getElementById('pd'+i);if(el)el.className='pin-dot';}
+    }
+  }
+}
+
+function switchMode(target) {
+  if(target==='official') { showPinModal(); return; }
+  if(mode==='official') {
+    if(!confirm('Sair do modo oficial e entrar em simulação?')) return;
+    mode='simulation';
+    loadSim();
+    if(!simData) resetSimToOfficial();
+    applyData(simData);
+    statusMsg='Modo simulação ativado';
+    render();
+  }
+}
+
+// ─── Add vacation ─────────────────────────────────────────────────────────────
+function showAddVac(personName) {
+  const opts = people.map(p=>`<option value="${p}"${p===personName?' selected':''}>${p}</option>`).join('');
+  openModal(`
+    <h3>Adicionar período de férias</h3>
+    <div class="field"><label>Procurador</label><select id="av-person">${opts}</select></div>
+    <div class="field"><label>Data de início</label><input type="date" id="av-start" value="${curYear}-${String(curMonth+1).padStart(2,'0')}-01"></div>
+    <div class="field"><label>Número de dias</label><input type="number" id="av-days" min="1" max="60" value="15"></div>
+    <div id="av-warn"></div>
+    <div class="mbtns">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn primary" onclick="confirmAddVac()">Adicionar</button>
+    </div>`);
+}
+
+function confirmAddVac() {
+  const person=document.getElementById('av-person').value;
+  const start=document.getElementById('av-start').value;
+  const days=parseInt(document.getElementById('av-days').value);
+  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  const tmpVacs=[...vacations,{n:person,s:start,d:days}];
+  const tmpMap={};
+  tmpVacs.forEach(v=>{for(let i=0;i<v.d;i++){const k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
+  let over=false;
+  for(let i=0;i<days;i++){const k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
+  if(over&&!confirm(`Atenção: este período ultrapassa o limite de ${LIMIT} simultâneos em algum dia. Continuar?`)) return;
+  vacations.push({n:person,s:start,d:days});
+  closeModal(); saveData(); render();
+}
+
+// ─── Person vacations ─────────────────────────────────────────────────────────
+function showPersonVacs(person) {
+  const pvacs = vacations.filter(v=>v.n===person).sort((a,b)=>a.s.localeCompare(b.s));
+  const items = pvacs.length ? pvacs.map(v=>{
+    const idx=vacations.indexOf(v);
+    return `<div class="vac-item">
+      <div><div class="vac-dates">${v.s} → ${fmt(addDays(v.s,v.d-1))}</div><div class="vac-days">${v.d} dias</div></div>
+      <button class="btn sm danger" onclick="removeVac(${idx})">Remover</button>
+    </div>`;
+  }).join('') : `<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período cadastrado.</div>`;
+  openModal(`
+    <h3 style="display:flex;align-items:center;gap:8px">
+      <span style="width:10px;height:10px;border-radius:50%;background:${pColor(person)};display:inline-block"></span>${person}
+    </h3>
+    <div class="vac-list">${items}</div>
+    <hr class="divider">
+    <div class="mbtns" style="justify-content:space-between">
+      <button class="btn primary" onclick="closeModal();showAddVac('${person}')">+ Adicionar período</button>
+      <button class="btn" onclick="closeModal()">Fechar</button>
+    </div>`);
+}
+
+function removeVac(idx) {
+  if(!confirm('Remover este período?')) return;
+  vacations.splice(idx,1);
+  closeModal(); saveData(); render();
+}
+
+// ─── People manager ───────────────────────────────────────────────────────────
+function showPeopleManager() {
+  const list = people.map(p=>`
+    <div class="vac-item">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${pColor(p)};flex-shrink:0"></span>
+        <span style="font-weight:500">${p}</span>
+      </div>
+      <button class="btn sm danger" onclick="removePerson('${p}')">Remover</button>
+    </div>`).join('');
+  openModal(`
+    <h3>Gerenciar procuradores</h3>
+    <div class="vac-list">${list}</div>
+    <hr class="divider">
+    <div class="field"><label>Adicionar novo procurador</label>
+      <input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>
+    <div class="mbtns">
+      <button class="btn" onclick="closeModal()">Fechar</button>
+      <button class="btn primary" onclick="confirmAddPerson()">Adicionar</button>
+    </div>`);
+}
+
+function confirmAddPerson() {
+  const nm=(document.getElementById('new-person').value||'').trim().toUpperCase();
+  if(!nm){alert('Digite o nome.');return;}
+  if(people.includes(nm)){alert('Já existe.');return;}
+  people.push(nm); people.sort();
+  closeModal(); saveData(); render();
+}
+
+function removePerson(p) {
+  if(!confirm(`Remover ${p} e todos os seus períodos?`)) return;
+  people=people.filter(x=>x!==p);
+  vacations=vacations.filter(v=>v.n!==p);
+  closeModal(); saveData(); render();
+}
+
+// ─── Reset sim ────────────────────────────────────────────────────────────────
+function confirmResetSim() {
+  if(!confirm('Redefinir simulação com os dados oficiais atuais? Suas alterações serão perdidas.')) return;
+  resetSimToOfficial();
+  applyData(simData);
+  statusMsg='Simulação redefinida com dados oficiais';
+  render();
+}
+
+// ─── Calendar ─────────────────────────────────────────────────────────────────
+function selectDay(ds) {
+  const names=(buildDayMap(parseInt(ds.slice(0,4)))[ds])||[];
+  const el=document.getElementById('sel-info'); if(!el) return;
+  const d=parseD(ds);
+  const str=d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(!names.length){el.innerHTML=`<strong>${str}</strong> — nenhum procurador de férias.`;return;}
+  const over=names.length>LIMIT, atLim=names.length===LIMIT;
+  const badge=over?`<span style="color:var(--red);font-weight:600"> ⚠ Limite ultrapassado!</span>`:atLim?`<span style="color:var(--amber);font-weight:500"> ⚠ Limite atingido</span>`:'';
+  el.innerHTML=`<strong>${str}</strong>${badge}<br><span style="color:var(--text)">${names.join(', ')}</span> <span style="color:var(--text-3)">(${names.length} em férias)</span>`;
+}
+
+function buildCal(year,month) {
+  const firstDay=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
+  const dm=buildDayMap(year);
+  let h='<div class="cal-head">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d=>`<span>${d}</span>`).join('')+'</div><div class="cal-body">';
+  for(let i=0;i<firstDay;i++) h+='<div class="day empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const ns=dm[ds]||[], c=ns.length, isT=ds===today, over=c>LIMIT;
+    const bc=c===0?'':over?'cbover':('cb'+Math.min(c,4));
+    h+=`<div class="day${isT?' today':''}" onclick="selectDay('${ds}')">`;
+    h+=`<div class="dn">${d}</div>`;
+    if(c>0) h+=`<div class="cbadge ${bc}">${c}${over?' ⚠':''}</div><div class="dnames">${ns.join(', ')}</div>`;
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+// ─── Gantt ────────────────────────────────────────────────────────────────────
+function buildGantt(year) {
+  const isLeap=year%4===0, total=isLeap?366:365;
+  const start=new Date(year,0,1);
+  const dm=buildDayMap(year);
+  const yv=vacations.filter(v=>{
+    const ys=parseInt(v.s.slice(0,4)), ye=parseInt(fmt(addDays(v.s,v.d-1)).slice(0,4));
+    return ys===year||ye===year;
+  });
+  const ap=[...new Set(yv.map(v=>v.n))].sort();
+  let h='<div class="gantt-inner">';
+  h+='<div class="mr"><div class="mr-sp"></div><div style="flex:1;display:flex">';
+  MONTHS.forEach((_,i)=>{const mo=new Date(year,i+1,0).getDate(); h+=`<div class="mr-m" style="width:${(mo/total*100).toFixed(2)}%">${MONTHS[i].slice(0,3)}</div>`;});
+  h+='</div></div>';
+  if(!ap.length){h+='<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhuma férias cadastrada para este ano.</div>';}
+  ap.forEach(p=>{
+    h+=`<div class="gantt-row"><div class="gname">${p}</div><div class="gtrack">`;
+    yv.filter(v=>v.n===p).forEach(v=>{
+      const s=parseD(v.s),e=addDays(v.s,v.d-1);
+      const sc=s<start?start:s, ec=e>new Date(year,11,31)?new Date(year,11,31):e;
+      const off=((sc-start)/(86400000))/total*100, w=((ec-sc)/86400000+1)/total*100;
+      h+=`<div class="gbar" style="left:${off.toFixed(2)}%;width:${w.toFixed(2)}%;background:${pColor(p)}" title="${p}: ${v.s} (${v.d}d)"></div>`;
+    });
+    h+='</div></div>';
+  });
+  h+='<div style="height:6px"></div>';
+  h+='<div class="gantt-row"><div class="gname" style="font-size:10px;color:var(--text-3)">Ocupação</div><div class="gtrack" style="height:20px">';
+  for(let d=0;d<total;d++){
+    const dt=new Date(year,0,1+d), k=fmt(dt), c=(dm[k]||[]).length;
+    if(!c) continue;
+    const over=c>LIMIT, col=c===1?'#10b981':c===2?'#3b82f6':c===3?'#f59e0b':(!over?'#fbbf24':'#dc2626');
+    h+=`<div style="position:absolute;left:${(d/total*100).toFixed(3)}%;width:calc(${(1/total*100).toFixed(3)}% + 1px);height:100%;background:${col};opacity:.85"></div>`;
+  }
+  h+='</div></div></div>';
+  return h;
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function renderStatus(){
+  const el=document.getElementById('statusbar');
+  if(el) el.textContent=lastSaved?`Última atualização: ${lastSaved.toLocaleString('pt-BR')} · ${statusMsg}`:statusMsg;
+}
+
+function render(){
+  const st=getStats(curYear);
+  const dm=buildDayMap(curYear);
+  const dim=new Date(curYear,curMonth+1,0).getDate();
+  let mOver=0,mAt4=0;
+  for(let d=1;d<=dim;d++){const k=`${curYear}-${String(curMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const c=(dm[k]||[]).length;if(c>LIMIT)mOver++;else if(c===LIMIT)mAt4++;}
+  const yv=vacations.filter(v=>v.s.startsWith(String(curYear)));
+  const ap=[...new Set(yv.map(v=>v.n))].length;
+  const isOfficial=mode==='official';
+
+  document.getElementById('app').innerHTML=`
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">JUD3</div>
+    <div><div class="logo-text">Controle de Férias</div><div class="logo-sub">Unidade JUD3 · ${YEARS[0]}–${YEARS[YEARS.length-1]}</div></div>
+  </div>
+  <div class="topbar-right">
+    <div class="mode-badge ${isOfficial?'official':'simulation'}" onclick="${isOfficial?"switchMode('simulation')":'showPinModal()'}">
+      <div class="mode-dot"></div>
+      ${isOfficial?'Modo Oficial':'Modo Simulação'}
+    </div>
+    <button class="btn export" onclick="showExportModal()">↓ Exportar</button>
+    ${isOfficial?`<button class="btn" onclick="showAddVac('')">+ Férias</button><button class="btn" onclick="showPeopleManager()">Procuradores</button>`:`<button class="btn" onclick="showAddVac('')">+ Férias (sim.)</button><button class="btn sm" onclick="confirmResetSim()">↺ Redefinir</button>`}
+  </div>
+</div>
+
+${!isOfficial?`<div class="sim-banner"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3a6a1a" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="#3a6a1a" stroke-width="1.4" stroke-linecap="round"/></svg>Você está em <strong style="margin:0 4px">modo simulação</strong> — suas alterações ficam salvas apenas neste navegador e não afetam os dados oficiais.</div>`:''}
+
+<div class="year-tabs">${YEARS.map(y=>`<button class="ytab${y===curYear?' active':''}" onclick="setYear(${y})">${y}</button>`).join('')}</div>
+
+<div class="cards">
+  <div class="card"><div class="card-label">Procuradores em ${curYear}</div><div class="card-val">${ap}</div><div class="card-sub">de ${people.length} no cadastro</div></div>
+  <div class="card ${st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok'}"><div class="card-label">Pico simultâneo</div><div class="card-val">${st.maxS}</div><div class="card-sub">limite: ${LIMIT}</div></div>
+  <div class="card ${st.dOver>0?'danger':'ok'}"><div class="card-label">Dias acima do limite</div><div class="card-val">${st.dOver}</div><div class="card-sub">${st.dAt4} dias no limite exato</div></div>
+  <div class="card"><div class="card-label">Total dias de férias</div><div class="card-val">${st.totalD}</div><div class="card-sub">em ${curYear}</div></div>
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em férias</div>
+  <div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em férias</div>
+  <div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em férias</div>
+  <div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em férias (limite)</div>
+  <div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite ⚠</div>
+</div>
+
+<div class="view-tabs">
+  <button class="vtab${curView==='calendar'?' active':''}" onclick="setView('calendar')">Calendário</button>
+  <button class="vtab${curView==='gantt'?' active':''}" onclick="setView('gantt')">Linha do tempo</button>
+  <button class="vtab${curView==='people'?' active':''}" onclick="setView('people')">Procuradores</button>
+</div>
+
+${curView==='calendar'?`
+<div class="month-nav">
+  <button class="btn" onclick="prevM()">←</button>
+  <div class="month-label">${MONTHS[curMonth]} ${curYear}</div>
+  <button class="btn" onclick="nextM()">→</button>
+  <span style="font-size:12px;color:var(--text-3);margin-left:6px">${mOver>0?`<span style="color:var(--red)">${mOver} dias acima do limite</span>`:mAt4>0?`<span style="color:var(--amber)">${mAt4} dias no limite</span>`:'✓ Mês sem conflitos'}</span>
+</div>
+<div class="cal-wrap">${buildCal(curYear,curMonth)}</div>
+<div class="sel-info" id="sel-info">Clique em um dia para ver os detalhes.</div>`:''}
+
+${curView==='gantt'?`<div class="gantt-wrap">${buildGantt(curYear)}</div>`:''}
+
+${curView==='people'?`
+<div class="people-grid">${people.map(p=>{
+  const c=vacations.filter(v=>v.n===p&&v.s.startsWith(String(curYear))).length;
+  return `<div class="pchip" onclick="showPersonVacs('${p}')"><div class="pdot" style="background:${pColor(p)}"></div><div><div class="pname">${p}</div><div class="psub">${c} período${c!==1?'s':''} em ${curYear}</div></div></div>`;
+}).join('')}</div>`:''}
+
+<div class="statusbar" id="statusbar">${lastSaved?`Última atualização: ${lastSaved.toLocaleString('pt-BR')} · ${statusMsg}`:statusMsg}</div>`;
+}
+
+// ─── Export modal ─────────────────────────────────────────────────────────────
+function showExportModal(){
+  openModal(`
+    <h3>Exportar dados</h3>
+    <p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Exporta todos os períodos cadastrados com três colunas: <strong>Procurador</strong>, <strong>Dias de férias</strong> e <strong>Data de início</strong>.</p>
+    ${mode==='simulation'?'<div class="notice">Você está em modo simulação — os dados exportados refletem sua simulação, não os dados oficiais.</div>':''}
+    <div class="mbtns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:20px">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn export" onclick="closeModal();exportCSV()">↓ Exportar CSV</button>
+        <button class="btn export" onclick="closeModal();exportXLS()">↓ Exportar Excel (.xls)</button>
+      </div>
+    </div>`);
+}
+
+// ─── Nav helpers ──────────────────────────────────────────────────────────────
+function setYear(y){curYear=y;render();}
+function setView(v){curView=v;render();}
+function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}render();}
+function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}render();}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+loadOfficial();
+loadSim();
+if(!simData) resetSimToOfficial();
+// Start in simulation mode
+mode='simulation';
+applyData(simData);
+statusMsg='Pronto';
+render();
+</script>
+</body>
+</html>
