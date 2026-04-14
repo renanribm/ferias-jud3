@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Férias JUD3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f4f0;--surface:#fff;--surface2:#f0eeea;
+  --border:rgba(0,0,0,.10);--border-md:rgba(0,0,0,.18);
+  --text:#1a1a18;--text-2:#5a5a56;--text-3:#9a9a94;
+  --accent:#1a1a18;
+  --green:#1a7a4a;--green-bg:#e8f5ee;
+  --blue:#1a4a8a;--blue-bg:#e8f0fa;
+  --amber:#8a5a0a;--amber-bg:#faf0d8;
+  --red:#8a1a1a;--red-bg:#fae8e8;
+  --yellow:#7a6a00;--yellow-bg:#faf8d0;
+  --admin-accent:#1a3a6a;--sim-accent:#3a6a1a;
+  --r:10px;--r-sm:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
+.logo-text{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.logo-sub{font-size:12px;color:var(--text-3)}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mode-switcher{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px;gap:2px}
+.mswitch-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:16px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text-3);background:transparent;transition:all .15s}
+.mswitch-btn:hover{color:var(--text-2)}
+.mswitch-btn.active.sim{background:var(--surface);color:var(--sim-accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mswitch-btn.active.adm{background:var(--surface);color:var(--admin-accent);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.mswitch-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;opacity:.5}
+.mswitch-btn.active .mswitch-dot{opacity:1}
+.sim-dot{background:var(--sim-accent)}
+.adm-dot{background:var(--admin-accent)}
+.sim-banner{background:#f0f7ea;border:1px solid #b8dba8;border-radius:var(--r-sm);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--sim-accent);display:flex;align-items:flex-start;gap:8px}
+.adm-banner{background:#edf2fb;border:1px solid #b8cef0;border-radius:var(--r-sm);padding:10px 14px;margin-bottom:16px;font-size:13px;color:var(--admin-accent);display:flex;align-items:flex-start;gap:8px}
+.sim-banner svg,.adm-banner svg{flex-shrink:0;margin-top:1px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--border-md);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;font-weight:400;transition:background .12s;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.btn.primary:hover{background:#2a2a28}
+.btn.danger{background:var(--red-bg);color:var(--red);border-color:transparent}
+.btn.export{background:#e8f5ee;color:var(--green);border-color:transparent}
+.btn.sm{padding:4px 10px;font-size:12px}
+.year-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
+.ytab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);font-size:13px;cursor:pointer;color:var(--text-2);background:var(--surface);font-family:'DM Sans',sans-serif;transition:all .12s}
+.ytab:hover{border-color:var(--border-md);color:var(--text)}
+.ytab.active{background:var(--accent);color:#fff;border-color:transparent;font-weight:500}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.card-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.card-val{font-size:26px;font-weight:600;letter-spacing:-.02em;color:var(--text)}
+.card-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+.card.ok .card-val{color:var(--green)}
+.card.warn .card-val{color:var(--amber)}
+.card.danger .card-val{color:var(--red)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2)}
+.leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.view-tabs{display:flex;gap:2px;margin-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.vtab{padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text-2);background:none;border:none;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif;margin-bottom:-1px;transition:all .12s;white-space:nowrap}
+.vtab:hover{color:var(--text)}
+.vtab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:500}
+.vtab.conflict-tab.active{color:var(--red);border-bottom-color:var(--red)}
+.vtab.conflict-tab:not(.active){color:var(--amber)}
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.month-label{font-size:16px;font-weight:600;min-width:170px;text-align:center;letter-spacing:-.01em}
+.cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2)}
+.cal-head span{padding:8px 0;text-align:center;font-size:11px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.cal-body{display:grid;grid-template-columns:repeat(7,1fr)}
+.day{min-height:66px;padding:6px 6px 4px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.day:nth-child(7n){border-right:none}
+.day.empty{background:var(--surface2);cursor:default}
+.day:not(.empty):hover{background:#f5f5f0}
+.dn{font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.day.today .dn{background:var(--accent);color:#fff;border-radius:50%}
+.cbadge{display:inline-flex;align-items:center;font-size:9px;font-weight:600;border-radius:3px;padding:1px 5px;margin-bottom:2px}
+.cb1{background:var(--green-bg);color:var(--green)}
+.cb2{background:var(--blue-bg);color:var(--blue)}
+.cb3{background:var(--amber-bg);color:var(--amber)}
+.cb4{background:var(--yellow-bg);color:var(--yellow)}
+.cbover{background:var(--red-bg);color:var(--red)}
+.dnames{font-size:9px;color:var(--text-3);line-height:1.4;word-break:break-word}
+.sel-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:20px;font-size:13px;color:var(--text-2);min-height:42px}
+.gantt-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;margin-bottom:20px}
+.gantt-inner{min-width:680px;padding:14px 16px}
+.gantt-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.gname{width:90px;font-size:11px;color:var(--text-2);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gtrack{flex:1;height:16px;position:relative;background:var(--surface2);border-radius:3px}
+.gbar{position:absolute;height:12px;top:2px;border-radius:2px}
+.mr{display:flex;margin-bottom:6px}
+.mr-sp{width:98px;flex-shrink:0}
+.mr-m{font-size:9px;color:var(--text-3);text-align:center;overflow:hidden}
+.people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px}
+.pchip{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:border-color .12s,background .12s}
+.pchip:hover{border-color:var(--border-md);background:var(--surface2)}
+.pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.pname{font-size:12px;font-weight:500}
+.psub{font-size:10px;color:var(--text-3)}
+.conflicts-wrap{margin-bottom:20px}
+.conflict-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);text-align:center;gap:12px}
+.conflict-ok-icon{width:52px;height:52px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:24px}
+.conflict-empty-title{font-size:15px;font-weight:600;color:var(--green)}
+.conflict-empty-sub{font-size:13px;color:var(--text-3)}
+.conflict-month-block{margin-bottom:20px}
+.conflict-month-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.conflict-item{display:flex;align-items:flex-start;gap:14px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:8px}
+.conflict-date-col{min-width:80px;flex-shrink:0}
+.conflict-day-num{font-size:28px;font-weight:600;letter-spacing:-.03em;color:var(--red);line-height:1}
+.conflict-weekday{font-size:11px;color:var(--text-3);margin-top:2px}
+.conflict-body{flex:1}
+.conflict-count-badge{display:inline-flex;align-items:center;gap:5px;background:var(--red-bg);color:var(--red);font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:7px}
+.conflict-names{display:flex;flex-wrap:wrap;gap:5px}
+.conflict-name-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 9px;font-size:12px;font-weight:500;cursor:pointer;transition:border-color .12s}
+.conflict-name-chip:hover{border-color:var(--border-md)}
+.conflict-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.conflict-summary-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;background:var(--red-bg);border-radius:var(--r-sm);border:1px solid rgba(138,26,26,.12)}
+.csb-item{font-size:13px;color:var(--red)}
+.csb-val{font-weight:600}
+.statusbar{font-size:11px;color:var(--text-3);margin-top:4px}
+.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,10,8,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.modal{background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:24px;width:440px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:16px;letter-spacing:-.01em}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--text-2);margin-bottom:5px;font-weight:500}
+.field input,.field select{width:100%;padding:8px 12px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-appearance:none;appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.vac-list{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.vac-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--surface2);border-radius:var(--r-sm);font-size:12px}
+.vac-dates{font-weight:500;color:var(--text)}
+.vac-days{color:var(--text-3)}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.notice{background:var(--amber-bg);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--amber);margin-top:10px}
+.pin-error{color:var(--red);font-size:12px;min-height:18px;margin-bottom:8px}
+#login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:99999;padding:24px}
+.login-box{background:var(--surface);border:1px solid var(--border-md);border-radius:16px;padding:40px 36px;width:380px;max-width:100%;box-shadow:0 24px 64px rgba(0,0,0,.10);display:flex;flex-direction:column;align-items:center}
+.login-mark{width:52px;height:52px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Mono',monospace;font-size:14px;font-weight:500;margin-bottom:20px}
+.login-title{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text-3);margin-bottom:28px;text-align:center}
+.login-field{width:100%;margin-bottom:14px}
+.login-field label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:6px}
+.login-field input{width:100%;padding:10px 14px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:14px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;letter-spacing:.12em;-webkit-appearance:none;appearance:none}
+.login-field input:focus{outline:none;border-color:var(--accent)}
+.login-error{font-size:12px;color:var(--red);min-height:18px;margin-bottom:12px;text-align:center}
+.login-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer}
+.login-footer{font-size:11px;color:var(--text-3);margin-top:20px;text-align:center}
+@media(max-width:640px){
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cal-head span{font-size:9px;padding:6px 0}
+  .dn{font-size:11px}
+  .dnames{font-size:8px}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-mark">JUD3</div>
+    <div class="login-title">Controle de Férias</div>
+    <div class="login-sub">PGM/SP JUD-3 &middot; Acesso restrito</div>
+    <div class="login-field">
+      <label for="login-input">Senha de acesso</label>
+      <input type="password" id="login-input" placeholder="********" autocomplete="off">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" id="login-btn">Entrar</button>
+    <div class="login-footer">Uso interno &middot; PGM/SP JUD-3</div>
+  </div>
+</div>
+
+<div class="app" id="app" style="display:none"></div>
+
+<!-- Firebase compat SDK (works in all browsers including Safari) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ── Firebase init ──────────────────────────────────────────────────────────────
+firebase.initializeApp({
+  apiKey:"AIzaSyAxz4zDAx48jQsl7LpPLeIl4SxzqT84R1U",
+  authDomain:"ferias-jud3.firebaseapp.com",
+  projectId:"ferias-jud3",
+  storageBucket:"ferias-jud3.firebasestorage.app",
+  messagingSenderId:"351958465671",
+  appId:"1:351958465671:web:383ec17d522c72f9970c22"
+});
+var _db = firebase.firestore();
+var _docRef = _db.collection("jud3").doc("oficial");
+
+// ── Constants ──────────────────────────────────────────────────────────────────
+var YEARS=[2026,2027,2028,2029,2030];
+var MONTHS=['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var LIMIT=4;
+var ACCESS_PASSWORD='PGMJUD3';
+var OFFICIAL_PIN='admin1';
+var SESSION_KEY='ferias-jud3-session';
+var SIM_KEY='ferias-jud3-sim-local';
+var PCOLORS=['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7','#e11d48','#0891b2','#65a30d','#7c3aed','#0284c7','#b45309'];
+
+var DEFAULT_PEOPLE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','LEONARDO','MARCOS','MARILIA','MAURICIO','NETO','RENAN','RODRIGO','THAYANE','VINICIUS','VIVIANE'];
+var DEFAULT_VACS=[
+  {n:'ALEX',s:'2026-04-22',d:17},{n:'ALEX',s:'2026-09-29',d:13},
+  {n:'BEATRICE',s:'2026-07-13',d:12},{n:'BEATRICE',s:'2026-10-13',d:15},
+  {n:'BRUNO',s:'2026-06-08',d:19},{n:'BRUNO',s:'2026-06-29',d:11},
+  {n:'CAMILA',s:'2026-04-06',d:13},{n:'CAMILA',s:'2026-11-03',d:17},
+  {n:'DANIEL',s:'2026-04-22',d:10},{n:'DANIEL',s:'2026-08-18',d:20},
+  {n:'EDUARDO',s:'2026-04-06',d:15},{n:'EDUARDO',s:'2026-10-13',d:15},
+  {n:'FABIANA',s:'2026-06-19',d:20},{n:'FABIANA',s:'2026-12-09',d:10},
+  {n:'LEONARDO',s:'2026-05-21',d:13},{n:'LEONARDO',s:'2026-08-03',d:17},
+  {n:'MARCOS',s:'2026-03-18',d:15},{n:'MARCOS',s:'2026-09-08',d:15},
+  {n:'MARILIA',s:'2026-10-13',d:15},
+  {n:'MAURICIO',s:'2026-07-15',d:15},{n:'MAURICIO',s:'2026-12-28',d:15},
+  {n:'NETO',s:'2026-01-05',d:12},{n:'NETO',s:'2026-07-13',d:18},
+  {n:'RENAN',s:'2026-02-19',d:18},{n:'RENAN',s:'2026-06-08',d:12},
+  {n:'RODRIGO',s:'2026-06-24',d:15},{n:'RODRIGO',s:'2026-11-25',d:15},
+  {n:'THAYANE',s:'2026-04-22',d:11},{n:'THAYANE',s:'2026-06-15',d:19},
+  {n:'VINICIUS',s:'2026-08-10',d:13},{n:'VINICIUS',s:'2026-11-23',d:17},
+  {n:'VIVIANE',s:'2026-07-13',d:12},{n:'VIVIANE',s:'2026-12-01',d:18}
+];
+
+// ── State ──────────────────────────────────────────────────────────────────────
+var mode='simulation';
+var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.slice()};
+var simData=null;
+var vacations=[],people=[];
+var curYear=2026,curMonth=new Date().getMonth(),curView='calendar';
+var lastSaved=null,statusMsg='';
+var _unsub=null;
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function pColor(p){var i=people.indexOf(p);return PCOLORS[Math.max(i,0)%PCOLORS.length];}
+function addDays(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d;}
+function fmt(d){
+  var y=d.getFullYear();
+  var m=String(d.getMonth()+1).padStart(2,'0');
+  var day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function parseD(s){return new Date(s+'T00:00:00');}
+function fmtBR(s){var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+var today=fmt(new Date());
+
+function buildDayMap(year){
+  var m={};
+  vacations.forEach(function(v){
+    for(var i=0;i<v.d;i++){
+      var k=fmt(addDays(v.s,i));
+      if(k.slice(0,4)!==String(year))continue;
+      if(!m[k])m[k]=[];
+      m[k].push(v.n);
+    }
+  });
+  return m;
+}
+
+function getStats(year){
+  var dm=buildDayMap(year);
+  var maxS=0,dOver=0,dAt4=0,totalD=0;
+  Object.keys(dm).forEach(function(k){
+    var ns=dm[k];
+    if(ns.length>maxS)maxS=ns.length;
+    if(ns.length>LIMIT)dOver++;
+    if(ns.length===LIMIT)dAt4++;
+  });
+  vacations.forEach(function(v){
+    var ys=v.s.slice(0,4),ye=fmt(addDays(v.s,v.d-1)).slice(0,4);
+    if(ys===String(year)||ye===String(year))totalD+=v.d;
+  });
+  return{maxS:maxS,dOver:dOver,dAt4:dAt4,totalD:totalD};
+}
+
+// ── Firebase ───────────────────────────────────────────────────────────────────
+function saveOfficial(){
+  statusMsg='Salvando...';renderStatus();
+  _docRef.set({
+    vacations:JSON.stringify(vacations),
+    people:JSON.stringify(people),
+    savedAt:new Date().toISOString()
+  }).then(function(){
+    lastSaved=new Date();
+    statusMsg='Dados oficiais salvos e sincronizados';
+    renderStatus();
+  }).catch(function(e){
+    statusMsg='Erro ao salvar: '+e.message;
+    renderStatus();
+  });
+}
+
+function loadOfficial(cb){
+  statusMsg='Carregando...';renderStatus();
+  _docRef.get().then(function(snap){
+    if(snap.exists){
+      var d=snap.data();
+      officialData={vacations:JSON.parse(d.vacations),people:JSON.parse(d.people)};
+      if(d.savedAt)lastSaved=new Date(d.savedAt);
+      statusMsg='Dados carregados';
+    }else{
+      officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.slice()};
+      _docRef.set({
+        vacations:JSON.stringify(officialData.vacations),
+        people:JSON.stringify(officialData.people),
+        savedAt:new Date().toISOString()
+      });
+      statusMsg='Dados iniciais publicados';
+    }
+    if(cb)cb();
+  }).catch(function(e){
+    statusMsg='Erro Firebase - usando cache';
+    try{var r=localStorage.getItem('ferias-jud3-cache');if(r){var d=JSON.parse(r);officialData={vacations:d.vacations,people:d.people};}}catch(ex){}
+    if(cb)cb();
+  });
+}
+
+function subscribeOfficial(){
+  if(_unsub)_unsub();
+  _unsub=_docRef.onSnapshot(function(snap){
+    if(!snap.exists)return;
+    var d=snap.data();
+    var inc={vacations:JSON.parse(d.vacations),people:JSON.parse(d.people)};
+    officialData=inc;
+    localStorage.setItem('ferias-jud3-cache',JSON.stringify(inc));
+    if(mode==='admin'){
+      applyData(officialData);
+      if(d.savedAt)lastSaved=new Date(d.savedAt);
+      statusMsg='Sincronizado';
+      render();
+    }
+  },function(err){console.warn('Firestore error:',err);});
+}
+
+// ── Sim storage ────────────────────────────────────────────────────────────────
+function saveSim(){
+  localStorage.setItem(SIM_KEY,JSON.stringify({vacations:vacations,people:people,savedAt:new Date().toISOString()}));
+  lastSaved=new Date();statusMsg='Simulacao salva localmente';renderStatus();
+}
+function loadSim(){
+  try{var r=localStorage.getItem(SIM_KEY);if(r){var d=JSON.parse(r);simData={vacations:d.vacations,people:d.people};}}catch(e){}
+}
+function resetSimToOfficial(){
+  simData={vacations:officialData.vacations.map(function(v){return Object.assign({},v);}),people:officialData.people.slice()};
+  localStorage.setItem(SIM_KEY,JSON.stringify({vacations:simData.vacations,people:simData.people,savedAt:new Date().toISOString()}));
+}
+function applyData(src){
+  vacations=src.vacations.map(function(v){return Object.assign({},v);});
+  people=src.people?src.people.slice():DEFAULT_PEOPLE.slice();
+}
+function saveData(){if(mode==='admin')saveOfficial();else saveSim();}
+
+// ── Export ─────────────────────────────────────────────────────────────────────
+function exportXLS(){
+  var rows=[['Procurador','Dias de ferias','Data de inicio']];
+  vacations.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
+  var tbl='<table border="1">';
+  rows.forEach(function(r,i){tbl+='<tr>';r.forEach(function(c){tbl+=i===0?'<th style="background:#1a1a18;color:#fff">'+c+'</th>':'<td>'+c+'</td>';});tbl+='</tr>';});
+  tbl+='</table>';
+  var blob=new Blob(['<html><head><meta charset="UTF-8"></head><body>'+tbl+'</body></html>'],{type:'application/vnd.ms-excel;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ferias_jud3_'+(mode==='admin'?'oficial':'simulacao')+'.xls';a.click();
+}
+function exportCSV(){
+  var rows=[['Procurador','Dias de ferias','Data de inicio']];
+  vacations.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+c+'"';}).join(';');}).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='ferias_jud3_'+(mode==='admin'?'oficial':'simulacao')+'.csv';a.click();
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+var _modal=null;
+function openModal(html){
+  closeModal();
+  var bg=document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML='<div class="modal">'+html+'</div>';
+  bg.addEventListener('click',function(e){if(e.target===bg)closeModal();});
+  document.body.appendChild(bg);_modal=bg;
+}
+function closeModal(){if(_modal){_modal.remove();_modal=null;}}
+
+// ── Login ──────────────────────────────────────────────────────────────────────
+function checkLogin(){
+  var input=document.getElementById('login-input');
+  var err=document.getElementById('login-error');
+  var val=input.value.trim();
+  if(val===ACCESS_PASSWORD){
+    sessionStorage.setItem(SESSION_KEY,'1');
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='';
+    err.textContent='';
+    bootDashboard();
+  }else{
+    err.textContent='Senha incorreta. Tente novamente.';
+    input.value='';input.focus();
+  }
+}
+
+// ── Admin PIN ──────────────────────────────────────────────────────────────────
+function showPinModal(){
+  openModal(
+    '<h3 style="display:flex;align-items:center;gap:10px">' +
+    '<span style="width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0">ADM</span>' +
+    'Modo Administrador</h3>' +
+    '<p style="font-size:13px;color:var(--text-2);margin:4px 0 18px">Digite a senha para acessar e editar os dados oficiais.</p>' +
+    '<div class="field"><label>Senha</label>' +
+    '<input type="password" id="pin-input" placeholder="********" autocomplete="off" style="letter-spacing:.1em"></div>' +
+    '<div class="pin-error" id="pin-error"></div>' +
+    '<div class="mbtns">' +
+    '<button class="btn" onclick="closeModal()">Cancelar</button>' +
+    '<button class="btn primary" onclick="confirmPin()">Entrar</button>' +
+    '</div>'
+  );
+  setTimeout(function(){var el=document.getElementById('pin-input');if(el)el.focus();},80);
+}
+
+function confirmPin(){
+  var input=document.getElementById('pin-input');
+  var val=input?input.value.trim():'';
+  if(val===OFFICIAL_PIN){
+    closeModal();
+    activateAdminMode();
+  }else{
+    var err=document.getElementById('pin-error');
+    if(err)err.textContent='Senha incorreta. Tente novamente.';
+    if(input){input.value='';input.focus();}
+  }
+}
+
+function activateAdminMode(){
+  mode='admin';
+  loadOfficial(function(){
+    applyData(officialData);
+    statusMsg='Modo administrador ativado';
+    render();
+    subscribeOfficial();
+  });
+}
+
+function switchMode(target){
+  if(target==='admin'){showPinModal();return;}
+  if(mode==='admin'){
+    if(!confirm('Sair do modo administrador e entrar em simulacao?'))return;
+    mode='simulation';
+    loadSim();
+    if(!simData)resetSimToOfficial();
+    applyData(simData);
+    statusMsg='Modo simulacao ativado';
+    render();
+  }
+}
+
+// ── Add vacation ───────────────────────────────────────────────────────────────
+function showAddVac(personName){
+  var opts=people.map(function(p){return '<option value="'+p+'"'+(p===personName?' selected':'')+'>'+p+'</option>';}).join('');
+  var mo=String(curMonth+1).padStart(2,'0');
+  openModal(
+    '<h3>Adicionar periodo de ferias</h3>'+
+    '<div class="field"><label>Procurador</label><select id="av-person">'+opts+'</select></div>'+
+    '<div class="field"><label>Data de inicio</label><input type="date" id="av-start" value="'+curYear+'-'+mo+'-01"></div>'+
+    '<div class="field"><label>Numero de dias</label><input type="number" id="av-days" min="1" max="60" value="15"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="confirmAddVac()">Adicionar</button></div>'
+  );
+}
+
+function confirmAddVac(){
+  var person=document.getElementById('av-person').value;
+  var start=document.getElementById('av-start').value;
+  var days=parseInt(document.getElementById('av-days').value);
+  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  var tmpVacs=vacations.concat([{n:person,s:start,d:days}]);
+  var tmpMap={};
+  tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
+  var over=false;
+  for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
+  if(over&&!confirm('Atencao: este periodo ultrapassa o limite de '+LIMIT+' simultaneos. Continuar?'))return;
+  vacations.push({n:person,s:start,d:days});
+  closeModal();saveData();render();
+}
+
+// ── Person vacations ───────────────────────────────────────────────────────────
+function showPersonVacs(person){
+  var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear);}).sort(function(a,b){return a.s.localeCompare(b.s);});
+  var items=pvacs.length?pvacs.map(function(v){
+    var idx=vacations.indexOf(v);
+    return '<div class="vac-item"><div><div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+'</div>'+
+           '<div class="vac-days">'+v.d+' dias</div></div>'+
+           '<button class="btn sm danger" onclick="removeVac('+idx+')">Remover</button></div>';
+  }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum periodo cadastrado.</div>';
+  openModal(
+    '<h3 style="display:flex;align-items:center;gap:8px">'+
+    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+' &mdash; '+curYear+'</h3>'+
+    '<div class="vac-list">'+items+'</div>'+
+    '<hr class="divider">'+
+    '<div class="mbtns" style="justify-content:space-between">'+
+    '<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar periodo</button>'+
+    '<button class="btn" onclick="closeModal()">Fechar</button></div>'
+  );
+}
+
+function removeVac(idx){
+  if(!confirm('Remover este periodo?'))return;
+  vacations.splice(idx,1);closeModal();saveData();render();
+}
+
+// ── People manager ─────────────────────────────────────────────────────────────
+function showPeopleManager(){
+  var list=people.map(function(p){
+    return '<div class="vac-item">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+      '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p)+';flex-shrink:0"></span>'+
+      '<span style="font-weight:500">'+p+'</span></div>'+
+      '<button class="btn sm danger" onclick="removePerson(\''+p+'\')">Remover</button></div>';
+  }).join('');
+  openModal(
+    '<h3>Gerenciar procuradores</h3>'+
+    '<div class="vac-list">'+list+'</div>'+
+    '<hr class="divider">'+
+    '<div class="field"><label>Adicionar novo procurador</label>'+
+    '<input type="text" id="new-person" placeholder="Nome em maiusculas" style="text-transform:uppercase"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
+    '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>'
+  );
+}
+
+function confirmAddPerson(){
+  var raw=document.getElementById('new-person').value||'';
+  var nm=raw.trim();
+  if(!nm){alert('Digite o nome.');return;}
+  if(nm!==nm.toUpperCase()){alert('O nome deve ser escrito em letras MAIUSCULAS.');return;}
+  nm=nm.toUpperCase();
+  if(people.indexOf(nm)>=0){alert('Ja existe.');return;}
+  people.push(nm);people.sort();
+  closeModal();saveData();render();
+}
+
+function removePerson(p){
+  if(!confirm('Remover '+p+' e todos os seus periodos?'))return;
+  people=people.filter(function(x){return x!==p;});
+  vacations=vacations.filter(function(v){return v.n!==p;});
+  closeModal();saveData();render();
+}
+
+function confirmResetSim(){
+  if(!confirm('Redefinir simulacao com os dados oficiais atuais?'))return;
+  resetSimToOfficial();applyData(simData);
+  statusMsg='Simulacao redefinida';render();
+}
+
+function showExportModal(){
+  openModal(
+    '<h3>Exportar dados</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Exporta todos os periodos com: <strong>Procurador</strong>, <strong>Dias de ferias</strong> e <strong>Data de inicio</strong>.</p>'+
+    (mode==='simulation'?'<div class="notice">Voce esta em modo simulacao &mdash; os dados exportados refletem sua simulacao.</div>':'')+
+    '<div class="mbtns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:20px">'+
+    '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<div style="display:flex;gap:8px">'+
+    '<button class="btn export" onclick="closeModal();exportCSV()">&#8595; Exportar CSV</button>'+
+    '<button class="btn export" onclick="closeModal();exportXLS()">&#8595; Exportar Excel</button>'+
+    '</div></div>'
+  );
+}
+
+// ── Calendar ───────────────────────────────────────────────────────────────────
+function selectDay(ds){
+  var names=(buildDayMap(parseInt(ds.slice(0,4)))[ds])||[];
+  var el=document.getElementById('sel-info');if(!el)return;
+  var d=parseD(ds);
+  var opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
+  var str=d.toLocaleDateString('pt-BR',opts);
+  if(!names.length){el.innerHTML='<strong>'+str+'</strong> &mdash; nenhum procurador de ferias.';return;}
+  var over=names.length>LIMIT,atLim=names.length===LIMIT;
+  var badge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
+  el.innerHTML='<strong>'+str+'</strong>'+badge+'<br><span style="color:var(--text)">'+names.join(', ')+'</span> <span style="color:var(--text-3)">('+names.length+' em ferias)</span>';
+}
+
+function buildCal(year,month){
+  var firstDay=new Date(year,month,1).getDay();
+  var dim=new Date(year,month+1,0).getDate();
+  var dm=buildDayMap(year);
+  var h='<div class="cal-head">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sab'].map(function(d){return '<span>'+d+'</span>';}).join('')+'</div><div class="cal-body">';
+  for(var i=0;i<firstDay;i++)h+='<div class="day empty"></div>';
+  for(var d=1;d<=dim;d++){
+    var ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var ns=dm[ds]||[],c=ns.length,isT=ds===today,over=c>LIMIT;
+    var bc=c===0?'':over?'cbover':'cb'+Math.min(c,4);
+    h+='<div class="day'+(isT?' today':'')+'" onclick="selectDay(\''+ds+'\')">';
+    h+='<div class="dn">'+d+'</div>';
+    if(c>0)h+='<div class="cbadge '+bc+'">'+c+(over?' !':'')+'</div><div class="dnames">'+ns.join(', ')+'</div>';
+    h+='</div>';
+  }
+  return h+'</div>';
+}
+
+// ── Gantt ──────────────────────────────────────────────────────────────────────
+function buildGantt(year){
+  var isLeap=year%4===0,total=isLeap?366:365;
+  var start=new Date(year,0,1);
+  var dm=buildDayMap(year);
+  var yv=vacations.filter(function(v){
+    var ys=parseInt(v.s.slice(0,4)),ye=parseInt(fmt(addDays(v.s,v.d-1)).slice(0,4));
+    return ys===year||ye===year;
+  });
+  var ap=[];
+  yv.forEach(function(v){if(ap.indexOf(v.n)<0)ap.push(v.n);});ap.sort();
+  var h='<div class="gantt-inner">';
+  h+='<div class="mr"><div class="mr-sp"></div><div style="flex:1;display:flex">';
+  MONTHS_PT.forEach(function(_,i){var mo=new Date(year,i+1,0).getDate();h+='<div class="mr-m" style="width:'+(mo/total*100).toFixed(2)+'%">'+MONTHS_PT[i].slice(0,3)+'</div>';});
+  h+='</div></div>';
+  if(!ap.length)h+='<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhuma ferias cadastrada para este ano.</div>';
+  ap.forEach(function(p){
+    h+='<div class="gantt-row"><div class="gname">'+p+'</div><div class="gtrack">';
+    yv.filter(function(v){return v.n===p;}).forEach(function(v){
+      var s=parseD(v.s),e=addDays(v.s,v.d-1);
+      var sc=s<start?start:s,ec=e>new Date(year,11,31)?new Date(year,11,31):e;
+      var off=((sc-start)/86400000)/total*100,w=((ec-sc)/86400000+1)/total*100;
+      h+='<div class="gbar" style="left:'+off.toFixed(2)+'%;width:'+w.toFixed(2)+'%;background:'+pColor(p)+'" title="'+p+': '+v.s+' ('+v.d+'d)"></div>';
+    });
+    h+='</div></div>';
+  });
+  h+='<div style="height:6px"></div>';
+  h+='<div class="gantt-row"><div class="gname" style="font-size:10px;color:var(--text-3)">Ocupacao</div><div class="gtrack" style="height:20px">';
+  for(var d=0;d<total;d++){
+    var dt=new Date(year,0,1+d),k=fmt(dt),c=(dm[k]||[]).length;
+    if(!c)continue;
+    var over=c>LIMIT,col=c===1?'#10b981':c===2?'#3b82f6':c===3?'#f59e0b':(!over?'#fbbf24':'#dc2626');
+    h+='<div style="position:absolute;left:'+(d/total*100).toFixed(3)+'%;width:calc('+(1/total*100).toFixed(3)+'% + 1px);height:100%;background:'+col+';opacity:.85"></div>';
+  }
+  h+='</div></div></div>';
+  return h;
+}
+
+// ── Conflicts ──────────────────────────────────────────────────────────────────
+function buildConflictsView(year){
+  var dm=buildDayMap(year);
+  var cDays=Object.keys(dm).filter(function(k){return dm[k].length>LIMIT;}).sort();
+  var cDaysFull=cDays.map(function(k){return{ds:k,ns:dm[k]};});
+  if(!cDays.length){
+    return '<div class="conflicts-wrap"><div class="conflict-empty">'+
+      '<div class="conflict-ok-icon">&#10003;</div>'+
+      '<div class="conflict-empty-title">Nenhum conflito em '+year+'</div>'+
+      '<div class="conflict-empty-sub">Todos os periodos respeitam o limite de '+LIMIT+' ferias simultaneas.</div>'+
+      '</div></div>';
+  }
+  var byMonth={};
+  cDaysFull.forEach(function(x){var m=parseInt(x.ds.slice(5,7))-1;if(!byMonth[m])byMonth[m]=[];byMonth[m].push(x);});
+  var maxStreak=1,streak=1;
+  for(var i=1;i<cDays.length;i++){
+    var prev=parseD(cDays[i-1]),curr=parseD(cDays[i]);
+    streak=((curr-prev)/86400000===1)?streak+1:1;
+    if(streak>maxStreak)maxStreak=streak;
+  }
+  var cPeople=[];
+  cDaysFull.forEach(function(x){x.ns.forEach(function(n){if(cPeople.indexOf(n)<0)cPeople.push(n);});});
+  cPeople.sort();
+  var h='<div class="conflicts-wrap">';
+  h+='<div class="conflict-summary-bar">'+
+    '<div class="csb-item"><span class="csb-val">'+cDays.length+'</span> dia'+(cDays.length>1?'s':'')+' com conflito</div>'+
+    '<div class="csb-item" style="opacity:.4">&#183;</div>'+
+    '<div class="csb-item"><span class="csb-val">'+Object.keys(byMonth).length+'</span> '+(Object.keys(byMonth).length>1?'meses afetados':'mes afetado')+'</div>'+
+    '<div class="csb-item" style="opacity:.4">&#183;</div>'+
+    '<div class="csb-item">Sequencia maxima: <span class="csb-val">'+maxStreak+' dia'+(maxStreak>1?'s':'')+' seguidos</span></div>'+
+    '<div class="csb-item" style="opacity:.4">&#183;</div>'+
+    '<div class="csb-item"><span class="csb-val">'+cPeople.length+'</span> procurador'+(cPeople.length>1?'es':'')+' envolvido'+(cPeople.length>1?'s':'')+'</div>'+
+    '</div>';
+  Object.keys(byMonth).sort().forEach(function(m){
+    var days=byMonth[m];
+    h+='<div class="conflict-month-block">';
+    h+='<div class="conflict-month-title">'+MONTHS_PT[parseInt(m)]+' '+year+' &mdash; '+days.length+' dia'+(days.length>1?'s':'')+'</div>';
+    days.forEach(function(x){
+      var d=parseD(x.ds);
+      var extra=x.ns.length-LIMIT;
+      h+='<div class="conflict-item">'+
+        '<div class="conflict-date-col">'+
+        '<div class="conflict-day-num">'+d.getDate()+'</div>'+
+        '<div class="conflict-weekday">'+d.toLocaleDateString('pt-BR',{weekday:'long'})+'</div>'+
+        '</div>'+
+        '<div class="conflict-body">'+
+        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' simultaneos &middot; '+extra+' acima do limite</div>'+
+        '<div class="conflict-names">'+
+        x.ns.map(function(n){return '<div class="conflict-name-chip" onclick="showPersonVacs(\''+n+'\')"><div class="conflict-dot" style="background:'+pColor(n)+'"></div>'+n+'</div>';}).join('')+
+        '</div></div></div>';
+    });
+    h+='</div>';
+  });
+  return h+'</div>';
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function renderStatus(){
+  var el=document.getElementById('statusbar');
+  if(el)el.textContent=lastSaved?'Ultima atualizacao: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg;
+}
+
+function render(){
+  var isAdmin=mode==='admin';
+  var st=getStats(curYear);
+  var dm=buildDayMap(curYear);
+  var dim=new Date(curYear,curMonth+1,0).getDate();
+  var mOver=0,mAt4=0;
+  for(var d=1;d<=dim;d++){
+    var k=curYear+'-'+String(curMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var c=(dm[k]||[]).length;
+    if(c>LIMIT)mOver++;else if(c===LIMIT)mAt4++;
+  }
+  var apSet={};
+  vacations.forEach(function(v){if(v.s.slice(0,4)===String(curYear))apSet[v.n]=1;});
+  var ap=Object.keys(apSet).length;
+
+  var h='';
+
+  // Topbar
+  h+='<div class="topbar">';
+  h+='<div class="logo"><div class="logo-mark">JUD3</div>';
+  h+='<div><div class="logo-text">Controle de Ferias</div>';
+  h+='<div class="logo-sub">PGM/SP JUD-3 &middot; '+YEARS[0]+'&ndash;'+YEARS[YEARS.length-1]+'</div></div></div>';
+  h+='<div class="topbar-right">';
+  h+='<div class="mode-switcher">';
+  h+='<button class="mswitch-btn'+(isAdmin?'':' active sim')+'" onclick="switchMode(\'simulation\')">';
+  h+='<span class="mswitch-dot sim-dot"></span>Simulacao</button>';
+  h+='<button class="mswitch-btn'+(isAdmin?' active adm':'')+'" onclick="showPinModal()">';
+  h+='<span class="mswitch-dot adm-dot"></span>Administrador</button>';
+  h+='</div>';
+  h+='<button class="btn export" onclick="showExportModal()">&#8595; Exportar</button>';
+  if(isAdmin){
+    h+='<button class="btn" onclick="showAddVac(\'\')">+ Ferias</button>';
+
+  }else{
+    
+    h+='<button class="btn sm" onclick="confirmResetSim()">&#8635; Redefinir</button>';
+  }
+  h+='</div></div>';
+
+  // Banner
+  if(!isAdmin){
+    h+='<div class="sim-banner">';
+    h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3a6a1a" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="#3a6a1a" stroke-width="1.4" stroke-linecap="round"/></svg>';
+    h+='<span>Voce esta em <strong>modo simulacao</strong> &mdash; suas alteracoes ficam salvas apenas neste navegador. Se preferir, <a href="#" onclick="event.preventDefault();showPinModal()" style="color:var(--sim-accent);font-weight:600;text-decoration:underline">acesse o Modo Administrador</a>.</span>';
+    h+='</div>';
+  }else{
+    h+='<div class="adm-banner">';
+    h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3" stroke="var(--admin-accent)" stroke-width="1.2"/><path d="M5 8l2.5 2.5L11 5.5" stroke="var(--admin-accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    h+='<span>Voce esta em <strong>modo administrador</strong> &mdash; alteracoes salvas e sincronizadas para todos. Se preferir, <a href="#" onclick="event.preventDefault();switchMode(\'simulation\')" style="color:var(--admin-accent);font-weight:600;text-decoration:underline">volte ao Modo Simulacao</a>.</span>';
+    h+='</div>';
+  }
+
+  // Year tabs
+  h+='<div class="year-tabs">';
+  YEARS.forEach(function(y){h+='<button class="ytab'+(y===curYear?' active':'')+'" onclick="setYear('+y+')">'+y+'</button>';});
+  h+='</div>';
+
+  // Cards
+  h+='<div class="cards">';
+  h+='<div class="card"><div class="card-label">Procuradores em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+people.length+' no cadastro</div></div>';
+  h+='<div class="card '+(st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok')+'"><div class="card-label">Pico simultaneo</div><div class="card-val">'+st.maxS+'</div><div class="card-sub">limite: '+LIMIT+'</div></div>';
+  h+='<div class="card '+(st.dOver>0?'danger':'ok')+'"><div class="card-label">Dias acima do limite</div><div class="card-val">'+st.dOver+'</div><div class="card-sub">'+st.dAt4+' dias no limite exato</div></div>';
+  h+='<div class="card"><div class="card-label">Total dias de ferias</div><div class="card-val">'+st.totalD+'</div><div class="card-sub">em '+curYear+'</div></div>';
+  h+='</div>';
+
+
+
+  // View tabs
+  var cLabel='Conflitos (+ de 4 ferias simult.)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
+  h+='<div class="view-tabs">';
+  h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendario</button>';
+  h+='<button class="vtab'+(curView==='gantt'?' active':'')+'" onclick="setView(\'gantt\')">Linha do tempo</button>';
+  h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Procuradores</button>';
+  h+='<button class="vtab conflict-tab'+(curView==='conflicts'?' active':'')+'" onclick="setView(\'conflicts\')">'+cLabel+'</button>';
+  h+='</div>';
+
+  // Calendar
+  if(curView==='calendar'){
+    var mStatus=mOver>0?'<span style="color:var(--red)">'+mOver+' dias acima do limite</span>':mAt4>0?'<span style="color:var(--amber)">'+mAt4+' dias no limite</span>':'&#10003; Nenhum dia acima do limite neste mes';
+    h+='<div class="month-nav">';
+    h+='<button class="btn" onclick="prevM()">&#8592;</button>';
+    h+='<div class="month-label">'+MONTHS_PT[curMonth]+' '+curYear+'</div>';
+    h+='<button class="btn" onclick="nextM()">&#8594;</button>';
+    h+='<span style="font-size:12px;color:var(--text-3);margin-left:6px">'+mStatus+'</span>';
+    h+='</div>';
+    h+='<div class="cal-wrap">'+buildCal(curYear,curMonth)+'</div>';
+    h+='<div class="sel-info" id="sel-info">Clique em um dia para ver os detalhes.</div>';
+    h+='<div class="legend">';
+    h+='<div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em ferias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em ferias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em ferias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em ferias (limite)</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
+    h+='</div>';
+  }
+  if(curView==='gantt')h+='<div class="gantt-wrap">'+buildGantt(curYear)+'</div>';
+  if(curView==='people'){
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+    h+='<span style="font-size:12px;color:var(--text-3)">Clique em um nome para ver e editar periodos de '+curYear+'</span>';
+    h+='<div style="display:flex;gap:6px">';
+    h+='<button class="btn sm" onclick="showAddVac(\'\')">+ Ferias</button>';
+    h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
+    h+='</div></div>';
+    h+='<div class="people-grid">';
+    people.forEach(function(p){
+      var c=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);}).length;
+      h+='<div class="pchip" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
+         '<div class="pdot" style="background:'+pColor(p)+'"></div>'+
+         '<div><div class="pname">'+p+'</div><div class="psub">'+c+' periodo'+(c!==1?'s':'')+' em '+curYear+'</div></div></div>';
+    });
+    h+='</div>';
+  }
+  if(curView==='conflicts')h+=buildConflictsView(curYear);
+
+  h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Ultima atualizacao: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg)+'</div>';
+
+  document.getElementById('app').innerHTML=h;
+}
+
+function setYear(y){curYear=y;render();}
+function setView(v){curView=v;render();}
+function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}render();}
+function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}render();}
+
+// ── Boot ───────────────────────────────────────────────────────────────────────
+function bootDashboard(){
+  document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="font-size:14px;color:var(--text-3)">Conectando...</div></div>';
+  loadOfficial(function(){
+    loadSim();
+    if(!simData)resetSimToOfficial();
+    mode='simulation';
+    applyData(simData);
+    statusMsg='Pronto';
+    render();
+    subscribeOfficial();
+  });
+}
+
+// Login events
+document.getElementById('login-btn').addEventListener('click',checkLogin);
+document.getElementById('login-input').addEventListener('keydown',function(e){if(e.key==='Enter')checkLogin();});
+
+if(sessionStorage.getItem(SESSION_KEY)==='1'){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='';
+  bootDashboard();
+}else{
+  document.getElementById('login-input').focus();
+}
+</script>
+</body>
+</html>
