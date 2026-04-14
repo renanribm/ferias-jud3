@@ -276,7 +276,8 @@ function getStats(year){
     var ys=v.s.slice(0,4),ye=fmt(addDays(v.s,v.d-1)).slice(0,4);
     if(ys===String(year)||ye===String(year))totalD+=v.d;
   });
-  return{maxS:maxS,dOver:dOver,dAt4:dAt4,totalD:totalD};
+  var daysWithVac=Object.keys(dm).length;
+  return{maxS:maxS,dOver:dOver,dAt4:dAt4,totalD:totalD,daysWithVac:daysWithVac};
 }
 
 // ── Firebase ───────────────────────────────────────────────────────────────────
@@ -359,7 +360,11 @@ function saveData(){if(mode==='admin')saveOfficial();else saveSim();}
 // ── Export ─────────────────────────────────────────────────────────────────────
 function exportXLS(year){
   var rows=[['Procurador','Dias de férias','Data de início']];
-  var src=year==='todos'?vacations:vacations.filter(function(v){return v.s.slice(0,4)===String(year);});
+  var src=year==='todos'?vacations:vacations.filter(function(v){
+    var vStart=v.s.slice(0,4);
+    var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
+    return vStart===String(year)||vEnd===String(year);
+  });
   src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
   var tbl='<table border="1">';
   rows.forEach(function(r,i){tbl+='<tr>';r.forEach(function(c){tbl+=i===0?'<th style="background:#1a1a18;color:#fff">'+c+'</th>':'<td>'+c+'</td>';});tbl+='</tr>';});
@@ -371,7 +376,11 @@ function exportXLS(year){
 }
 function exportCSV(year){
   var rows=[['Procurador','Dias de férias','Data de início']];
-  var src=year==='todos'?vacations:vacations.filter(function(v){return v.s.slice(0,4)===String(year);});
+  var src=year==='todos'?vacations:vacations.filter(function(v){
+    var vStart=v.s.slice(0,4);
+    var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
+    return vStart===String(year)||vEnd===String(year);
+  });
   src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
   var csv=rows.map(function(r){return r.map(function(c){return '"'+c+'"';}).join(';');}).join('\n');
   var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
@@ -573,7 +582,10 @@ function doExport(fmt){
 function showExportModal(){
   var yearOpts='<option value="todos">Todos os anos</option>';
   YEARS.forEach(function(y){
-    var count=vacations.filter(function(v){return v.s.slice(0,4)===String(y);}).length;
+    var count=vacations.filter(function(v){
+    var vs=v.s.slice(0,4),ve=fmt(addDays(v.s,v.d-1)).slice(0,4);
+    return vs===String(y)||ve===String(y);
+  }).length;
     yearOpts+='<option value="'+y+'"'+(y===curYear?' selected':'')+'>'+y+(count>0?' ('+count+' períodos)':' (sem dados)')+' </option>';
   });
   openModal(
@@ -718,7 +730,7 @@ function buildConflictsView(year){
 // ── Render ─────────────────────────────────────────────────────────────────────
 function renderStatus(){
   var el=document.getElementById('statusbar');
-  if(el)el.textContent=lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg;
+  if(el)el.textContent=lastSaved?'Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg;
 }
 
 function render(){
@@ -780,16 +792,16 @@ function render(){
 
   // Cards
   h+='<div class="cards">';
-  h+='<div class="card"><div class="card-label">Procuradores em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+people.length+' no cadastro</div></div>';
+  h+='<div class="card"><div class="card-label">Procuradores de férias em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+people.length+' no cadastro</div></div>';
   h+='<div class="card '+(st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok')+'"><div class="card-label">Pico simultâneo</div><div class="card-val">'+st.maxS+'</div><div class="card-sub">limite: '+LIMIT+'</div></div>';
   h+='<div class="card '+(st.dOver>0?'danger':'ok')+'"><div class="card-label">Dias acima do limite</div><div class="card-val">'+st.dOver+'</div><div class="card-sub">'+st.dAt4+' dias no limite exato</div></div>';
-  h+='<div class="card"><div class="card-label">Total dias de férias</div><div class="card-val">'+st.totalD+'</div><div class="card-sub">em '+curYear+'</div></div>';
+  h+='<div class="card"><div class="card-label">Dias com férias em '+curYear+'</div><div class="card-val">'+st.daysWithVac+'</div><div class="card-sub">dias com ao menos 1 procurador de férias</div></div>';
   h+='</div>';
 
 
 
   // View tabs
-  var cLabel='Conflitos (+ de 4 férias simult.)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
+  var cLabel='Conflitos (+ de 4 férias simultâneas)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
   h+='<div class="view-tabs">';
   h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendário</button>';
   h+='<button class="vtab'+(curView==='gantt'?' active':'')+'" onclick="setView(\'gantt\')">Linha do tempo</button>';
@@ -835,7 +847,7 @@ function render(){
   }
   if(curView==='conflicts')h+=buildConflictsView(curYear);
 
-  h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg)+'</div>';
+  h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg)+'</div>';
 
   document.getElementById('app').innerHTML=h;
 }
