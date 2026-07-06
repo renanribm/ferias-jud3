@@ -1539,23 +1539,47 @@ function recessoSetFor(personName,choice){
 }
 function recessoChangePerson(personName){
   var cur=recessoChoices[curRecessoYear]&&recessoChoices[curRecessoYear][personName];
+  var dates=recessoDates[curRecessoYear]||{};
+  var natalStr='semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
+  var anoNovoStr='semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+  // Grupo 1: trabalha Natal, recesso Ano Novo (val='ano_novo')
+  // Grupo 2: recesso Natal, trabalha Ano Novo (val='natal')
+  var cardStyle='display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;cursor:pointer;font-family:\'DM Sans\',sans-serif;margin-bottom:8px;transition:border-color .12s';
+  function makeCard(emoji,grupo,val,trabalhaStr,recessoStr){
+    return '<button style="'+cardStyle+'" onmouseover="this.style.borderColor=\'var(--border-md)\'" onmouseout="this.style.borderColor=\'var(--border)\'" onclick="recessoSetFor(\''+personName+'\',\''+val+'\')">'+
+      '<div style="font-size:13px;font-weight:600;margin-bottom:6px">'+emoji+' '+grupo+'</div>'+
+      '<div style="font-size:12px;color:var(--text-2);line-height:1.6">'+
+      '&#128336; Trabalha na '+trabalhaStr+'<br>'+
+      '&#127774; Recesso na '+recessoStr+
+      '</div></button>';
+  }
   if(!cur){
     openModal(
-      '<h3>Definir recesso de '+personName+'</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 16px">Selecione a semana de recesso para <strong>'+personName+'</strong> em '+curRecessoYear+':</p>'+
-      '<div class="mbtns" style="justify-content:flex-start;gap:8px">'+
-      '<button class="btn" onclick="recessoSetFor(\''+personName+'\',\'natal\')">&#127876; Grupo 2 — recesso na semana do Natal</button>'+
-      '<button class="btn" onclick="recessoSetFor(\''+personName+'\',\'ano_novo\')">&#127881; Grupo 1 — recesso na semana do Ano Novo</button>'+
-      '<button class="btn" onclick="closeModal()">Cancelar</button></div>'
+      '<h3>Escala de recesso — '+personName+'</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Selecione a escala de <strong>'+personName+'</strong> em '+curRecessoYear+':</p>'+
+      makeCard('&#127881;','Grupo 1','ano_novo',natalStr,anoNovoStr)+
+      makeCard('&#127876;','Grupo 2','natal',anoNovoStr,natalStr)+
+      '<div class="mbtns" style="margin-top:4px"><button class="btn" onclick="closeModal()">Cancelar</button></div>'
     );
   } else {
     var other=cur==='natal'?'ano_novo':'natal';
-    var otherLabel=cur==='natal'?'Semana do Ano Novo':'Semana do Natal';
+    var curGrupo=cur==='natal'?'Grupo 2':'Grupo 1';
+    var otherGrupo=cur==='natal'?'Grupo 1':'Grupo 2';
+    var curEmoji=cur==='natal'?'&#127876;':'&#127881;';
+    var otherEmoji=cur==='natal'?'&#127881;':'&#127876;';
+    var curTrab=cur==='natal'?anoNovoStr:natalStr;
+    var curRec=cur==='natal'?natalStr:anoNovoStr;
+    var othTrab=cur==='natal'?natalStr:anoNovoStr;
+    var othRec=cur==='natal'?anoNovoStr:natalStr;
     openModal(
-      '<h3>Alterar recesso de '+personName+'</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 16px">Mover <strong>'+personName+'</strong> para <strong>'+otherLabel+'</strong> em '+curRecessoYear+'?</p>'+
-      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn primary" onclick="recessoSetFor(\''+personName+'\',\''+other+'\')">Confirmar</button></div>'
+      '<h3>Alterar escala de '+personName+'</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 10px">Escala atual:</p>'+
+      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:14px">'+
+      '<div style="font-size:13px;font-weight:600;margin-bottom:6px">'+curEmoji+' '+curGrupo+'</div>'+
+      '<div style="font-size:12px;color:var(--text-2);line-height:1.6">&#128336; Trabalha na '+curTrab+'<br>&#127774; Recesso na '+curRec+'</div></div>'+
+      '<p style="font-size:13px;color:var(--text-2);margin-bottom:10px">Mover para:</p>'+
+      makeCard(otherEmoji,otherGrupo,other,othTrab,othRec)+
+      '<div class="mbtns" style="margin-top:4px"><button class="btn" onclick="closeModal()">Cancelar</button></div>'
     );
   }
 }
