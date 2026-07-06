@@ -1870,7 +1870,7 @@ function renderStatus(){
   if(!el)return;
   var txt=statusMsg;
   if(lastSaved){
-    txt='Última atualização:'+lastSaved.toLocaleString('pt-BR');
+    txt='Última atualização: '+lastSaved.toLocaleString('pt-BR');
     if(lastSavedBy)txt+=' — por '+lastSavedBy;
   }
   el.innerHTML=txt;
