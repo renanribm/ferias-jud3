@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3QgeD0iMiIgeT0iNSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjI1IiByeD0iNCIgZmlsbD0iIzFhN2E0YSIvPgogIDxyZWN0IHg9IjIiIHk9IjUiIHdpZHRoPSIyOCIgaGVpZ2h0PSIxMSIgcng9IjQiIGZpbGw9IiMxYTdhNGEiLz4KICA8cmVjdCB4PSIyIiB5PSIxMSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjUiIGZpbGw9IiMxYTdhNGEiLz4KICA8cmVjdCB4PSIyIiB5PSI1IiB3aWR0aD0iMjgiIGhlaWdodD0iMTEiIHJ4PSIwIiBmaWxsPSIjMTM4YTUwIi8+CiAgPHJlY3QgeD0iMiIgeT0iNSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjciIHJ4PSI0IiBmaWxsPSIjMTM4YTUwIi8+CiAgPHJlY3QgeD0iOCIgeT0iMiIgd2lkdGg9IjMiIGhlaWdodD0iNyIgcng9IjEuNSIgZmlsbD0iI2U4ZjVlZSIvPgogIDxyZWN0IHg9IjIxIiB5PSIyIiB3aWR0aD0iMyIgaGVpZ2h0PSI3IiByeD0iMS41IiBmaWxsPSIjZThmNWVlIi8+CiAgPHJlY3QgeD0iNiIgeT0iMTgiIHdpZHRoPSI1IiBoZWlnaHQ9IjQiIHJ4PSIxIiBmaWxsPSIjZmZmZmZmIi8+CiAgPHJlY3QgeD0iMTMuNSIgeT0iMTgiIHdpZHRoPSI1IiBoZWlnaHQ9IjQiIHJ4PSIxIiBmaWxsPSIjZmZmZmZmIi8+CiAgPHJlY3QgeD0iMjEiIHk9IjE4IiB3aWR0aD0iNSIgaGVpZ2h0PSI0IiByeD0iMSIgZmlsbD0iI2ZmZmZmZiIvPgogIDxyZWN0IHg9IjYiIHk9IjI0IiB3aWR0aD0iNSIgaGVpZ2h0PSI0IiByeD0iMSIgZmlsbD0iI2ZmZmZmZiIvPgogIDxyZWN0IHg9IjEzLjUiIHk9IjI0IiB3aWR0aD0iNSIgaGVpZ2h0PSI0IiByeD0iMSIgZmlsbD0iI2ZmZmZmZiIvPgo8L3N2Zz4=">
 <title>Férias JUD3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -20,15 +21,27 @@
   --admin-accent:#1a3a6a;--sim-accent:#3a6a1a;
   --r:10px;--r-sm:6px;
 }
+.preview-banner{position:sticky;top:0;z-index:100;background:#1a1a18;color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-radius:0 0 var(--r) var(--r);margin:-24px -20px 20px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.preview-banner-info{display:flex;flex-direction:column;gap:2px}
+.preview-banner-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+.preview-banner-sub{font-size:12px;opacity:.7}
+.preview-banner-conflict{color:#fbbf24;font-weight:600}
+.preview-banner-ok{color:#6ee7b7}
+.preview-banner-actions{display:flex;gap:8px;align-items:center}
+.btn-preview-confirm{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:var(--r-sm);border:none;background:#fff;color:#1a1a18;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer}
+.btn-preview-confirm:hover{background:#f0f0f0}
+.btn-preview-cancel{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.btn-preview-cancel:hover{background:rgba(255,255,255,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
 .app{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+@media(max-width:640px){.app{padding:16px 10px 80px}}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-mark{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'DM Mono',monospace;font-size:13px;font-weight:500}
 .logo-text{font-size:16px;font-weight:600;letter-spacing:-.01em}
 .logo-sub{font-size:12px;color:var(--text-3)}
-.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.topbar-right{display:flex;align-items:center;gap:8px} .btn-mobile-show{display:none}
 .mode-switcher{display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px;gap:2px}
 .mswitch-btn{display:inline-flex;align-items:center;gap:6px;padding:5px 13px;border-radius:16px;border:none;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text-3);background:transparent;transition:all .15s}
 .mswitch-btn:hover{color:var(--text-2)}
@@ -48,6 +61,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .btn.danger{background:var(--red-bg);color:var(--red);border-color:transparent}
 .btn.export{background:#e8f5ee;color:var(--green);border-color:transparent}
 .btn.sm{padding:4px 10px;font-size:12px}
+.welcome-banner{background:var(--blue-bg);border:1px solid #b8cef0;border-radius:var(--r-sm);padding:11px 16px;margin-bottom:16px;font-size:13px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.welcome-banner-text{display:flex;align-items:center;gap:8px}
+.welcome-banner-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fab{position:fixed;bottom:28px;right:24px;z-index:500;display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:24px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.18);transition:background .12s}
+.fab:hover{background:#2a2a28}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:600;background:#1a1a18;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 20px;border-radius:20px;white-space:nowrap;opacity:0;transition:opacity .3s ease;pointer-events:none}
+.toast.show{opacity:1}
 .year-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
 .ytab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);font-size:13px;cursor:pointer;color:var(--text-2);background:var(--surface);font-family:'DM Sans',sans-serif;transition:all .12s}
 .ytab:hover{border-color:var(--border-md);color:var(--text)}
@@ -72,23 +92,29 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .month-label{font-size:16px;font-weight:600;min-width:170px;text-align:center;letter-spacing:-.01em}
 .cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
-.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface2)}
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:#faf9f7}
 .cal-head span{padding:8px 0;text-align:center;font-size:11px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .cal-body{display:grid;grid-template-columns:repeat(7,1fr)}
 .day{min-height:66px;padding:6px 6px 4px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .day:nth-child(7n){border-right:none}
-.day.empty{background:var(--surface2);cursor:default}
+.day.empty{background:#faf9f7;cursor:default}
+.day.weekend{background:#faf9f7}
+.day.day-preview{background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308}
+.day.day-preview-conflict{background:#fee2e2;box-shadow:inset 0 0 0 2px #dc2626}
+.day.search-match{background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308}
+.day.hl-vac{background:#fefce8 !important;box-shadow:inset 0 0 0 2px #eab308;transition:background .6s ease,box-shadow .6s ease}
+.day.hl-vac-out{background:transparent !important;box-shadow:inset 0 0 0 0px #eab308;transition:background 1s ease,box-shadow 1s ease}
 .day:not(.empty):hover{background:#f5f5f0}
 .dn{font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
 .day.today .dn{background:var(--accent);color:#fff;border-radius:50%}
 .cbadge{display:inline-flex;align-items:center;font-size:9px;font-weight:600;border-radius:3px;padding:1px 5px;margin-bottom:2px}
 .cb1{background:var(--green-bg);color:var(--green)}
 .cb2{background:var(--blue-bg);color:var(--blue)}
-.cb3{background:var(--amber-bg);color:var(--amber)}
-.cb4{background:var(--yellow-bg);color:var(--yellow)}
+.cb3{background:var(--yellow-bg);color:var(--yellow)}
+.cb4{background:var(--amber-bg);color:var(--amber)}
 .cbover{background:var(--red-bg);color:var(--red)}
 .dnames{font-size:9px;color:var(--text-3);line-height:1.4;word-break:break-word}
-.sel-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:20px;font-size:13px;color:var(--text-2);min-height:42px}
+.sel-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:20px;font-size:13px;color:var(--text-2);min-height:42px;line-height:1.6}
 .gantt-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;margin-bottom:20px}
 .gantt-inner{min-width:680px;padding:14px 16px}
 .gantt-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
@@ -101,6 +127,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px}
 .pchip{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:border-color .12s,background .12s}
 .pchip:hover{border-color:var(--border-md);background:var(--surface2)}
+.pchip.mine{border:2px solid var(--accent);background:var(--surface)}
+.pchip.mine .pname{font-weight:600}
+.pchip.mine:hover{background:var(--surface2)}
 .pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .pname{font-size:12px;font-weight:500}
 .psub{font-size:10px;color:var(--text-3)}
@@ -125,14 +154,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .csb-item{font-size:13px;color:var(--red)}
 .csb-val{font-weight:600}
 .statusbar{font-size:11px;color:var(--text-3);margin-top:4px}
+.day.has-hol{border-left:3px solid #7c3aed;padding-left:4px}
+.day-top{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px}
+.hbadge{display:inline-block;font-size:7px;color:#7c3aed;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 30px);border:1px solid #7c3aed;border-radius:4px;padding:1px 4px;opacity:.7}
 .modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,10,8,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
-.modal{background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:24px;width:440px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal{background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:0;width:440px;max-width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.15);overflow:hidden}
 .modal h3{font-size:16px;font-weight:600;margin-bottom:16px;letter-spacing:-.01em}
+.modal-body{padding:24px 24px 0;overflow-y:auto;flex:1}
+.modal-footer{padding:14px 24px 20px;border-top:1px solid var(--border);flex-shrink:0;background:var(--surface)}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;color:var(--text-2);margin-bottom:5px;font-weight:500}
 .field input,.field select{width:100%;padding:8px 12px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-appearance:none;appearance:none}
 .field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
-.mbtns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.mbtns{display:flex;gap:8px;justify-content:flex-end}
 .vac-list{display:flex;flex-direction:column;gap:6px;margin:10px 0}
 .vac-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--surface2);border-radius:var(--r-sm);font-size:12px}
 .vac-dates{font-weight:500;color:var(--text)}
@@ -152,11 +186,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .login-error{font-size:12px;color:var(--red);min-height:18px;margin-bottom:12px;text-align:center}
 .login-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer}
 .login-footer{font-size:11px;color:var(--text-3);margin-top:20px;text-align:center}
+.pwd-wrap{position:relative;width:100%}
+.pwd-wrap input{width:100%;padding-right:40px}
+.pwd-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);font-size:12px;padding:2px 4px;font-family:'DM Sans',sans-serif}
+.pwd-toggle:hover{color:var(--text-2)}
 @media(max-width:640px){
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .cal-head span{font-size:9px;padding:6px 0}
-  .dn{font-size:11px}
-  .dnames{font-size:8px}
+  .cal-head span{font-size:8px;padding:5px 0}
+  .day{padding:3px 3px 2px;min-height:54px}
+  .dn{font-size:10px;width:18px;height:18px}
+  .dnames{font-size:7px;line-height:1.3}
+  .cbadge{font-size:8px;padding:1px 3px}
+  .gtrack{height:22px}
+  .gbar{height:18px;top:2px;border-radius:3px}
+  .btn-mobile-hide{display:none}
+  .btn-mobile-show{display:inline}
 }
 </style>
 </head>
@@ -169,7 +213,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
     <div class="login-sub">PGM/SP JUD-3 &middot; Acesso restrito</div>
     <div class="login-field">
       <label for="login-input">Senha de acesso</label>
-      <input type="password" id="login-input" placeholder="********" autocomplete="off">
+      <div class="pwd-wrap">
+        <input type="password" id="login-input" placeholder="********" autocomplete="off">
+        <button class="pwd-toggle" type="button" onclick="togglePwd('login-input',this)" tabindex="-1">Exibir</button>
+      </div>
     </div>
     <div class="login-error" id="login-error"></div>
     <button class="login-btn" id="login-btn">Entrar</button>
@@ -201,13 +248,94 @@ var YEARS=[2026,2027,2028,2029,2030];
 var MONTHS=['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var LIMIT=4;
-var ACCESS_PASSWORD='PGMJUD3';
-var OFFICIAL_PIN='admin1';
+var VAC_LIMIT=30; // max vacation days per person per year
+var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
+var OFFICIAL_PIN='admin1'; // senha master
 var SESSION_KEY='ferias-jud3-session';
-var SIM_KEY='ferias-jud3-sim-local';
+var HISTORY_MAX=10;
+var _histRef=_db.collection("jud3").doc("historico");
+// Senhas individuais derivadas dinamicamente dos procuradores ativos — não ficam hardcoded
+function getAdminPasswords(){return people.filter(function(p){return p.ate===null;}).map(function(p){return p.n;});}
 var PCOLORS=['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7','#e11d48','#0891b2','#65a30d','#7c3aed','#0284c7','#b45309'];
 
-var DEFAULT_PEOPLE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','LEONARDO','MARCOS','MARILIA','MAURICIO','NETO','RENAN','RODRIGO','THAYANE','VINICIUS','VIVIANE'];
+// ── Holidays ───────────────────────────────────────────────────────────────────
+function calcEaster(y){
+  var a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,
+      f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),
+      h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,
+      l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),
+      mo=Math.floor((h+l-7*m+114)/31),
+      dy=((h+l-7*m+114)%31)+1;
+  return new Date(y,mo-1,dy);
+}
+function easterPlus(y,n){var d=calcEaster(y);d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fixedDate(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function dateShift(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+function buildHolidayMap(y){
+  var map={};
+  function add(ds,label,type){if(ds&&!map[ds])map[ds]={label:label,type:type};}
+
+  // Fixed national/state/municipal holidays
+  var fixedHols=[
+    [1,1,'Confraternização Universal'],
+    [1,25,'Aniversário de São Paulo'],
+    [4,21,'Tiradentes'],
+    [5,1,'Dia Mundial do Trabalho'],
+    [7,9,'Data Magna do Estado de SP'],
+    [9,7,'Independência do Brasil'],
+    [10,12,'Nossa Senhora Aparecida'],
+    [11,2,'Finados'],
+    [11,15,'Proclamação da República'],
+    [11,20,'Consciência Negra'],
+    [12,25,'Natal']
+  ];
+  fixedHols.forEach(function(f){add(fixedDate(y,f[0],f[1]),f[2],'holiday');});
+
+  // Mobile holidays
+  var paixao=easterPlus(y,-2);
+  var corpus=easterPlus(y,60);
+  add(paixao,'Paixão de Cristo','holiday');
+  add(corpus,'Corpus Christi','holiday');
+
+  // Carnival (pontos facultativos)
+  add(easterPlus(y,-48),'Carnaval — Segunda-feira','optional');
+  add(easterPlus(y,-47),'Carnaval — Terça-feira','optional');
+  add(easterPlus(y,-46),'Quarta-feira de Cinzas (até 12h)','optional');
+
+  // Fixed pontos facultativos
+  add(fixedDate(y,10,30),'Dia do Servidor Público','optional');
+  add(fixedDate(y,12,24),'Véspera de Natal','optional');
+  add(fixedDate(y,12,31),'Véspera de Ano-Novo','optional');
+
+  // Suspensions: bridge days — only when holiday falls on Thu (bridge Fri) or Tue (bridge Mon)
+  // Collect all holidays to check
+  var allHolDates=[];
+  fixedHols.forEach(function(f){allHolDates.push(fixedDate(y,f[0],f[1]));});
+  allHolDates.push(paixao);
+  allHolDates.push(corpus);
+
+  allHolDates.forEach(function(ds){
+    var dow=new Date(ds+'T00:00:00').getDay(); // 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+    if(dow===4){add(dateShift(ds,1),'Suspensão de Expediente','suspended');}  // Thu -> bridge Fri
+    if(dow===2){add(dateShift(ds,-1),'Suspensão de Expediente','suspended');} // Tue -> bridge Mon
+  });
+
+  return map;
+}
+// Cache per year
+var _holidayCache={};
+function getHolidayMap(y){if(!_holidayCache[y])_holidayCache[y]=buildHolidayMap(y);return _holidayCache[y];}
+function getHoliday(ds){return getHolidayMap(parseInt(ds.slice(0,4)))[ds]||null;}
+
+var DEFAULT_PEOPLE=[
+  {n:'ALEX',desde:2026,ate:null},{n:'BEATRICE',desde:2026,ate:null},{n:'BRUNO',desde:2026,ate:null},
+  {n:'CAMILA',desde:2026,ate:null},{n:'DANIEL',desde:2026,ate:null},{n:'EDUARDO',desde:2026,ate:null},
+  {n:'FABIANA',desde:2026,ate:null},{n:'LEONARDO',desde:2026,ate:null},{n:'MARCOS',desde:2026,ate:null},
+  {n:'MARILIA',desde:2026,ate:null},{n:'MAURICIO',desde:2026,ate:null},{n:'NETO',desde:2026,ate:null},
+  {n:'RENAN',desde:2026,ate:null},{n:'RODRIGO',desde:2026,ate:null},{n:'THAYANE',desde:2026,ate:null},
+  {n:'VINICIUS',desde:2026,ate:null},{n:'VIVIANE',desde:2026,ate:null}
+];
 var DEFAULT_VACS=[
   {n:'ALEX',s:'2026-04-22',d:17},{n:'ALEX',s:'2026-09-29',d:13},
   {n:'BEATRICE',s:'2026-07-13',d:12},{n:'BEATRICE',s:'2026-10-13',d:15},
@@ -229,17 +357,23 @@ var DEFAULT_VACS=[
 ];
 
 // ── State ──────────────────────────────────────────────────────────────────────
-var mode='simulation';
-var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.slice()};
-var simData=null;
+var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
 var vacations=[],people=[];
 var curYear=2026,curMonth=new Date().getMonth(),curView='calendar';
-var lastSaved=null,statusMsg='';
+var lastSaved=null,lastSavedBy=null,statusMsg='';
 var _unsub=null;
 var _appReady=false;
+var currentAdminUser=null;
+// Preview state
+var previewVac=null; // {n, s, d} — vacation being previewed, not yet saved
+var _welcomeDismissed=false; // shown once per session
+var calSearch=''; // calendar search filter
+var _calReturnPerson=null; // person to return to after viewing calendar
+var _calReturnTimer=null; // auto-clear timer for return button
+var _hlLegendPerson=null; // person shown in temporary highlight legend
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-function pColor(p){var i=people.indexOf(p);return PCOLORS[Math.max(i,0)%PCOLORS.length];}
+function pColor(name){var i=people.findIndex(function(p){return p.n===name;});return PCOLORS[Math.max(i,0)%PCOLORS.length];}
 function addDays(ds,n){var d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d;}
 function fmt(d){
   var y=d.getFullYear();
@@ -282,19 +416,47 @@ function getStats(year){
 }
 
 // ── Firebase ───────────────────────────────────────────────────────────────────
-function saveOfficial(){
+function saveOfficial(toastMsg){
+  if(!toastMsg)toastMsg='✓ Alteração salva com sucesso';
   statusMsg='Salvando...';renderStatus();
-  _docRef.set({
+  var now=new Date();
+  var savedBy=currentAdminUser||'ADMIN';
+  var snapshot={
     vacations:JSON.stringify(vacations),
     people:JSON.stringify(people),
-    savedAt:new Date().toISOString()
-  }).then(function(){
-    lastSaved=new Date();
-    statusMsg='Dados oficiais salvos e sincronizados';
-    renderStatus();
-  }).catch(function(e){
-    statusMsg='Erro ao salvar: '+e.message;
-    renderStatus();
+    savedAt:now.toISOString(),
+    savedBy:savedBy
+  };
+  // Push to history before overwriting
+  _histRef.get().then(function(snap){
+    var hist=[];
+    if(snap.exists&&snap.data().snapshots){try{hist=JSON.parse(snap.data().snapshots);}catch(e){hist=[];}}
+    // Read current official to snapshot PREVIOUS state (what is being replaced)
+    _docRef.get().then(function(curSnap){
+      if(curSnap.exists){
+        var cd=curSnap.data();
+        var prevSnap={vacations:cd.vacations,people:cd.people,savedAt:cd.savedAt||now.toISOString(),savedBy:cd.savedBy||'ADMIN'};
+        hist.unshift(prevSnap);
+        if(hist.length>HISTORY_MAX)hist=hist.slice(0,HISTORY_MAX);
+        _histRef.set({snapshots:JSON.stringify(hist)}).catch(function(){});
+      }
+      // Save new official
+      _docRef.set(snapshot).then(function(){
+        lastSaved=now;lastSavedBy=savedBy;
+        statusMsg='Dados oficiais salvos';
+        renderStatus();showToast(toastMsg);
+      }).catch(function(e){statusMsg='Erro ao salvar: '+e.message;renderStatus();});
+    }).catch(function(){
+      _docRef.set(snapshot).then(function(){
+        lastSaved=now;lastSavedBy=savedBy;
+        statusMsg='Dados oficiais salvos';renderStatus();showToast(toastMsg);
+      }).catch(function(e){statusMsg='Erro ao salvar: '+e.message;renderStatus();});
+    });
+  }).catch(function(){
+    _docRef.set(snapshot).then(function(){
+      lastSaved=now;lastSavedBy=savedBy;
+      statusMsg='Dados oficiais salvos';renderStatus();showToast(toastMsg);
+    }).catch(function(e){statusMsg='Erro ao salvar: '+e.message;renderStatus();});
   });
 }
 
@@ -303,22 +465,24 @@ function loadOfficial(cb){
   _docRef.get().then(function(snap){
     if(snap.exists){
       var d=snap.data();
-      officialData={vacations:JSON.parse(d.vacations),people:JSON.parse(d.people)};
+      officialData={vacations:JSON.parse(d.vacations),people:migratePeople(JSON.parse(d.people))};
       if(d.savedAt)lastSaved=new Date(d.savedAt);
+      if(d.savedBy)lastSavedBy=d.savedBy;
       statusMsg='Dados carregados';
     }else{
-      officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.slice()};
+      officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
       _docRef.set({
         vacations:JSON.stringify(officialData.vacations),
         people:JSON.stringify(officialData.people),
-        savedAt:new Date().toISOString()
+        savedAt:new Date().toISOString(),
+        savedBy:'SISTEMA'
       });
       statusMsg='Dados iniciais publicados';
     }
     if(cb)cb();
   }).catch(function(e){
     statusMsg='Erro Firebase — usando cache';
-    try{var r=localStorage.getItem('ferias-jud3-cache');if(r){var d=JSON.parse(r);officialData={vacations:d.vacations,people:d.people};}}catch(ex){}
+    try{var r=localStorage.getItem('ferias-jud3-cache');if(r){var d=JSON.parse(r);officialData={vacations:d.vacations,people:migratePeople(d.people)};}}catch(ex){}
     if(cb)cb();
   });
 }
@@ -328,67 +492,303 @@ function subscribeOfficial(){
   _unsub=_docRef.onSnapshot(function(snap){
     if(!snap.exists)return;
     var d=snap.data();
-    var inc={vacations:JSON.parse(d.vacations),people:JSON.parse(d.people)};
+    var inc={vacations:JSON.parse(d.vacations),people:migratePeople(JSON.parse(d.people))};
     officialData=inc;
     localStorage.setItem('ferias-jud3-cache',JSON.stringify(inc));
-    if(mode==='admin'){
-      applyData(officialData);
-      if(d.savedAt)lastSaved=new Date(d.savedAt);
-      statusMsg='Sincronizado';
-      render();
-    }
+    applyData(officialData);
+    if(d.savedAt)lastSaved=new Date(d.savedAt);
+    if(d.savedBy)lastSavedBy=d.savedBy;
+    statusMsg='Sincronizado';
+    render();
   },function(err){console.warn('Firestore error:',err);});
 }
 
 // ── Sim storage ────────────────────────────────────────────────────────────────
-function saveSim(){
-  localStorage.setItem(SIM_KEY,JSON.stringify({vacations:vacations,people:people,savedAt:new Date().toISOString()}));
-  lastSaved=new Date();statusMsg='Simulação salva localmente';renderStatus();
-}
-function loadSim(){
-  try{var r=localStorage.getItem(SIM_KEY);if(r){var d=JSON.parse(r);simData={vacations:d.vacations,people:d.people};}}catch(e){}
-}
-function resetSimToOfficial(){
-  simData={vacations:officialData.vacations.map(function(v){return Object.assign({},v);}),people:officialData.people.slice()};
-  localStorage.setItem(SIM_KEY,JSON.stringify({vacations:simData.vacations,people:simData.people,savedAt:new Date().toISOString()}));
+function migratePeople(raw){
+  if(!raw||!raw.length)return DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);});
+  return raw.map(function(p){
+    if(typeof p==='string')return {n:p,desde:YEARS[0],ate:null};
+    return Object.assign({},p);
+  });
 }
 function applyData(src){
   vacations=src.vacations.map(function(v){return Object.assign({},v);});
-  people=src.people?src.people.slice():DEFAULT_PEOPLE.slice();
+  people=migratePeople(src.people);
 }
-function saveData(){if(mode==='admin')saveOfficial();else saveSim();}
+
+// Returns names of people active in a given year
+function activePeopleForYear(year){
+  return people.filter(function(p){
+    return p.desde<=year&&(p.ate===null||p.ate>=year);
+  }).map(function(p){return p.n;});
+}
+function saveData(msg){saveOfficial(msg||'✓ Férias salvas com sucesso');}
+
+function showToast(msg){
+  var t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.className='toast';document.body.appendChild(t);}
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(function(){t.classList.remove('show');},2800);
+}
+
+// ── History ────────────────────────────────────────────────────────────────────
+function diffSnapshots(curr, prev){
+  // curr and prev are {vacations: [...], people: [...]}
+  var lines=[];
+  var currVacs=JSON.parse(curr.vacations);
+  var prevVacs=prev?JSON.parse(prev.vacations):[];
+  var currPeople=migratePeople(JSON.parse(curr.people));
+  var prevPeople=prev?migratePeople(JSON.parse(prev.people)):[];
+
+  // Vacation key for comparison
+  function vacKey(v){return v.n+'|'+v.s+'|'+v.d;}
+  var currKeys=currVacs.map(vacKey);
+  var prevKeys=prevVacs.map(vacKey);
+
+  // Added vacations (in curr but not prev)
+  currVacs.forEach(function(v){
+    if(prevKeys.indexOf(vacKey(v))<0)
+      lines.push({type:'add',text:'+ Férias adicionadas: '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
+  });
+  // Removed vacations (in prev but not curr)
+  prevVacs.forEach(function(v){
+    if(currKeys.indexOf(vacKey(v))<0)
+      lines.push({type:'rem',text:'− Férias removidas: '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
+  });
+
+  // People changes
+  var currNames=currPeople.map(function(p){return p.n;});
+  var prevNames=prevPeople.map(function(p){return p.n;});
+  currPeople.forEach(function(p){
+    if(prevNames.indexOf(p.n)<0)
+      lines.push({type:'add',text:'+ Procurador adicionado: '+p.n});
+  });
+  prevPeople.forEach(function(p){
+    if(currNames.indexOf(p.n)<0)
+      lines.push({type:'rem',text:'− Procurador removido: '+p.n});
+  });
+  // Status changes (active/inactive)
+  currPeople.forEach(function(cp){
+    var pp=prevPeople.find(function(x){return x.n===cp.n;});
+    if(pp){
+      if(pp.ate!==cp.ate){
+        if(cp.ate!==null&&pp.ate===null)
+          lines.push({type:'rem',text:'− '+cp.n+' desativado (saída: '+cp.ate+')'});
+        if(cp.ate===null&&pp.ate!==null)
+          lines.push({type:'add',text:'+ '+cp.n+' reativado'});
+      }
+    }
+  });
+
+  if(!lines.length)lines.push({type:'neutral',text:'Nenhuma alteração detectada'});
+  return lines;
+}
+
+function showHistoryModal(){
+  openTallModal(
+    '<h3>Histórico de versões</h3><div id="hist-body" style="font-size:13px;color:var(--text-3);padding:8px 0">Carregando...</div>',
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button></div>'
+  );
+  _histRef.get().then(function(snap){
+    var el=document.getElementById('hist-body');if(!el)return;
+    var hist=[];
+    if(snap.exists&&snap.data().snapshots){try{hist=JSON.parse(snap.data().snapshots);}catch(e){hist=[];}}
+    if(!hist.length){
+      el.innerHTML='<span style="color:var(--text-3)">Nenhuma versão anterior encontrada.</span>';
+      return;
+    }
+    // Build rows — compare each snapshot to the next one (which is older)
+    var rows=hist.map(function(s,i){
+      var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
+      var by=s.savedBy||'—';
+      var next=hist[i+1]||null; // older snapshot to compare against
+      var diffs=diffSnapshots(s,next);
+      var diffColor={add:'var(--green)',rem:'var(--red)',neutral:'var(--text-3)'};
+      var diffHtml=diffs.map(function(d){
+        return '<div style="font-size:11px;color:'+diffColor[d.type]+';padding:1px 0">'+d.text+'</div>';
+      }).join('');
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">'+
+        '<div>'+
+        '<div style="font-size:13px;font-weight:500">#'+(i+1)+' &mdash; '+dt+'</div>'+
+        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Salvo por: <strong>'+by+'</strong></div>'+
+        '</div>'+
+        '<button class="btn sm" onclick="confirmRestore('+i+')">Restaurar</button>'+
+        '</div>'+
+        '<div style="margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--r-sm)">'+diffHtml+'</div>'+
+        '</div>';
+    }).join('');
+    el.innerHTML=rows;
+  }).catch(function(){
+    var el=document.getElementById('hist-body');
+    if(el)el.innerHTML='Erro ao carregar histórico.';
+  });
+}
+
+function confirmRestore(idx){
+  _histRef.get().then(function(snap){
+    if(!snap.exists)return;
+    var hist=[];
+    try{hist=JSON.parse(snap.data().snapshots);}catch(e){return;}
+    var s=hist[idx];if(!s)return;
+    var vacs=JSON.parse(s.vacations);
+    var peops=migratePeople(JSON.parse(s.people));
+    var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
+    var by=s.savedBy||'—';
+    var vacCount=vacs.length;
+    var peopCount=peops.length;
+    var activeNames=peops.filter(function(p){return p.ate===null;}).map(function(p){return p.n;}).join(', ');
+    openModal(
+      '<h3>Confirmar restauração</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Você está prestes a restaurar a versão salva em <strong>'+dt+'</strong> por <strong>'+by+'</strong>. O estado atual será substituído pelo seguinte:</p>'+
+      '<div style="background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;margin-bottom:14px">'+
+      '<div style="margin-bottom:6px"><span style="color:var(--text-3)">Períodos de férias:</span> <strong>'+vacCount+' registro'+(vacCount!==1?'s':'')+' no total</strong></div>'+
+      '<div><span style="color:var(--text-3)">Procuradores ativos:</span> <strong>'+activeNames+'</strong></div>'+
+      '</div>'+
+      '<div style="background:var(--amber-bg);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--amber);margin-bottom:16px">'+
+      'Todos os dados atuais — períodos de férias e lista de procuradores — serão substituídos por esta versão. Esta ação não pode ser desfeita diretamente, mas a versão atual será salva no histórico antes da restauração.'+
+      '</div>'+
+      '<div class="mbtns" style="justify-content:space-between">'+
+      '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn primary" onclick="_doRestore('+idx+')">Confirmar restauração</button>'+
+      '</div>'
+    );
+  }).catch(function(){alert('Erro ao carregar versão.');});
+}
+
+window._doRestore=function(idx){
+  adminConfirm(function(){
+    _histRef.get().then(function(snap){
+      if(!snap.exists)return;
+      var hist=[];
+      try{hist=JSON.parse(snap.data().snapshots);}catch(e){return;}
+      var s=hist[idx];if(!s)return;
+      vacations=JSON.parse(s.vacations);
+      people=migratePeople(JSON.parse(s.people));
+      saveOfficial('✓ Versão restaurada com sucesso');
+      render();
+    }).catch(function(){alert('Erro ao restaurar versão.');});
+  });
+};
 
 // ── Export ─────────────────────────────────────────────────────────────────────
+function buildConflictRows(year){
+  var dm=buildDayMap(year);
+  var cDays=Object.keys(dm).filter(function(k){return dm[k].length>LIMIT;}).sort();
+  return cDays;
+}
+
 function exportXLS(year){
-  var rows=[['Procurador','Dias de férias','Data de início']];
-  var src=year==='todos'?vacations:vacations.filter(function(v){
-    var vStart=v.s.slice(0,4);
-    var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
-    return vStart===String(year)||vEnd===String(year);
+  var years=year==='todos'?YEARS:[parseInt(year)];
+  var modeLabel='Dados Oficiais';
+  var tbl='<html><head><meta charset="UTF-8"></head><body>';
+
+  years.forEach(function(y){
+    var src=vacations.filter(function(v){
+      var vStart=v.s.slice(0,4);
+      var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
+      return vStart===String(y)||vEnd===String(y);
+    });
+    if(!src.length)return;
+    src=src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);});
+
+    // Conflict check for this year
+    var cDays=buildConflictRows(y);
+    var conflictStatus=cDays.length>0?
+      'ATENÇÃO: '+cDays.length+' dia(s) com mais de '+LIMIT+' férias simultâneas em '+y+'.':
+      'Sem conflitos: todos os períodos respeitam o limite de '+LIMIT+' férias simultâneas em '+y+'.';
+
+    tbl+='<h2 style="font-family:Arial">Controle de Férias — PGM/SP JUD-3 — '+y+' ('+modeLabel+')</h2>';
+    tbl+='<p style="font-family:Arial;color:'+(cDays.length>0?'#8a1a1a':'#1a7a4a')+'"><b>'+conflictStatus+'</b></p>';
+
+    if(cDays.length>0){
+      tbl+='<p style="font-family:Arial;color:#8a1a1a">Dias em conflito: ';
+      tbl+=cDays.map(function(d){
+        var dm2=buildDayMap(y);
+        return fmtBR(d)+' ('+dm2[d].join(', ')+')';
+      }).join(' | ');
+      tbl+='</p>';
+    }
+
+    tbl+='<table border="1" style="font-family:Arial;border-collapse:collapse;margin-top:8px">';
+    tbl+='<tr><th style="background:#1a1a18;color:#fff;padding:6px 10px">Procurador</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Dias de férias</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Data de início</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Data de término</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Conflito?</th></tr>';
+
+    src.forEach(function(v){
+      // Check if this vacation overlaps any conflict day
+      var hasConflict=false;
+      for(var i=0;i<v.d;i++){
+        var k=fmt(addDays(v.s,i));
+        if(cDays.indexOf(k)>=0){hasConflict=true;break;}
+      }
+      var rowColor=hasConflict?'background:#fae8e8':'';
+      tbl+='<tr style="'+rowColor+'">';
+      tbl+='<td style="padding:5px 10px">'+v.n+'</td>';
+      tbl+='<td style="padding:5px 10px;text-align:center">'+v.d+'</td>';
+      tbl+='<td style="padding:5px 10px">'+fmtBR(v.s)+'</td>';
+      tbl+='<td style="padding:5px 10px">'+fmtBR(fmt(addDays(v.s,v.d-1)))+'</td>';
+      tbl+='<td style="padding:5px 10px;text-align:center;color:'+(hasConflict?'#8a1a1a':'#1a7a4a')+'">'+(hasConflict?'⚠ Sim':'✓ Não')+'</td>';
+      tbl+='</tr>';
+    });
+    tbl+='</table><br><br>';
   });
-  src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
-  var tbl='<table border="1">';
-  rows.forEach(function(r,i){tbl+='<tr>';r.forEach(function(c){tbl+=i===0?'<th style="background:#1a1a18;color:#fff">'+c+'</th>':'<td>'+c+'</td>';});tbl+='</tr>';});
-  tbl+='</table>';
-  var blob=new Blob(['<html><head><meta charset="UTF-8"></head><body>'+tbl+'</body></html>'],{type:'application/vnd.ms-excel;charset=utf-8'});
+
+  tbl+='</body></html>';
+  var blob=new Blob([tbl],{type:'application/vnd.ms-excel;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   var ysuffix=year==='todos'?'todos_os_anos':String(year);
-  a.download='ferias_jud3_'+ysuffix+'_'+(mode==='admin'?'oficial':'simulação')+'.xls';a.click();
+  a.download='ferias_jud3_'+ysuffix+'_'+'oficial'+'.xls';
+  a.click();
 }
+
 function exportCSV(year){
-  var rows=[['Procurador','Dias de férias','Data de início']];
-  var src=year==='todos'?vacations:vacations.filter(function(v){
-    var vStart=v.s.slice(0,4);
-    var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
-    return vStart===String(year)||vEnd===String(year);
+  var years=year==='todos'?YEARS:[parseInt(year)];
+  var modeLabel='Dados Oficiais';
+  var lines=[];
+
+  years.forEach(function(y){
+    var src=vacations.filter(function(v){
+      var vStart=v.s.slice(0,4);
+      var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
+      return vStart===String(y)||vEnd===String(y);
+    });
+    if(!src.length)return;
+    src=src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);});
+
+    var cDays=buildConflictRows(y);
+    var conflictStatus=cDays.length>0?
+      'ATENCAO: '+cDays.length+' dia(s) com mais de '+LIMIT+' ferias simultaneas em '+y:
+      'Sem conflitos em '+y+': limite de '+LIMIT+' ferias simultaneas respeitado';
+
+    lines.push('"Controle de Ferias - PGM/SP JUD-3 - '+y+' ('+modeLabel+')"');
+    lines.push('"'+conflictStatus+'"');
+    if(cDays.length>0){
+      var dm2=buildDayMap(y);
+      lines.push('"Dias em conflito: '+cDays.map(function(d){return fmtBR(d)+' ('+dm2[d].join('+')+')';}).join(' | ')+'"');
+    }
+    lines.push('');
+    lines.push('"Procurador";"Dias de ferias";"Data de inicio";"Data de termino";"Conflito?"');
+    src.forEach(function(v){
+      var hasConflict=false;
+      for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(cDays.indexOf(k)>=0){hasConflict=true;break;}}
+      lines.push('"'+v.n+'";"'+v.d+'";"'+fmtBR(v.s)+'";"'+fmtBR(fmt(addDays(v.s,v.d-1)))+'";"'+(hasConflict?'SIM':'NAO')+'"');
+    });
+    lines.push('');lines.push('');
   });
-  src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);}).forEach(function(v){rows.push([v.n,v.d,v.s]);});
-  var csv=rows.map(function(r){return r.map(function(c){return '"'+c+'"';}).join(';');}).join('\n');
-  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+
+  var csv=lines.join('\n');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   var ysuffix=year==='todos'?'todos_os_anos':String(year);
-  a.download='ferias_jud3_'+ysuffix+'_'+(mode==='admin'?'oficial':'simulação')+'.csv';a.click();
+  a.download='ferias_jud3_'+ysuffix+'_'+'oficial'+'.csv';
+  a.click();
 }
+
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
 var _modal=null;
@@ -396,95 +796,274 @@ function openModal(html){
   closeModal();
   var bg=document.createElement('div');
   bg.className='modal-bg';
-  bg.innerHTML='<div class="modal">'+html+'</div>';
+  bg.innerHTML='<div class="modal" style="padding:24px;overflow-y:auto">'+html+'</div>';
+  bg.addEventListener('click',function(e){if(e.target===bg)closeModal();});
+  document.body.appendChild(bg);_modal=bg;
+}
+function openTallModal(bodyHtml, footerHtml){
+  closeModal();
+  var bg=document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML='<div class="modal"><div class="modal-body">'+bodyHtml+'</div><div class="modal-footer">'+footerHtml+'</div></div>';
   bg.addEventListener('click',function(e){if(e.target===bg)closeModal();});
   document.body.appendChild(bg);_modal=bg;
 }
 function closeModal(){if(_modal){_modal.remove();_modal=null;}}
+
+// ── Password toggle ────────────────────────────────────────────────────────────
+function togglePwd(inputId,btn){
+  var el=document.getElementById(inputId);
+  if(!el)return;
+  var show=el.type==='password';
+  el.type=show?'text':'password';
+  btn.textContent=show?'Ocultar':'Exibir';
+}
 
 // ── Login ──────────────────────────────────────────────────────────────────────
 function checkLogin(){
   var input=document.getElementById('login-input');
   var err=document.getElementById('login-error');
   var val=input.value.trim();
-  if(val===ACCESS_PASSWORD){
-    sessionStorage.setItem(SESSION_KEY,'1');
+  var normalize=function(s){return s.normalize?s.normalize('NFD').replace(/[\u0300-\u036f]/g,''):s;};
+  var normVal=normalize(val);
+  var matched=null;
+  if(val===OFFICIAL_PIN){matched='ADMIN';}
+  else if(val===ACCESS_PASSWORD){matched='VIEWER';}
+  else{
+    // Match against default people names, accent-insensitive
+    DEFAULT_PEOPLE.forEach(function(p){if(normVal===normalize(p.n))matched=p.n;});
+  }
+  if(matched){
+    sessionStorage.setItem(SESSION_KEY,matched);
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='';
     err.textContent='';
-    bootDashboard();
+    bootDashboard(matched);
   }else{
     err.textContent='Senha incorreta. Tente novamente.';
     input.value='';input.focus();
   }
 }
 
-// ── Admin PIN ──────────────────────────────────────────────────────────────────
-function showPinModal(){
+
+function logout(){
   openModal(
-    '<h3 style="display:flex;align-items:center;gap:10px">' +
-    '<span style="width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0">ADM</span>' +
-    'Modo Administrador</h3>' +
-    '<p style="font-size:13px;color:var(--text-2);margin:4px 0 18px">Digite a senha para acessar e editar os dados oficiais.</p>' +
-    '<div class="field"><label>Senha</label>' +
-    '<input type="password" id="pin-input" placeholder="********" autocomplete="off" style="letter-spacing:.1em"></div>' +
-    '<div class="pin-error" id="pin-error"></div>' +
-    '<div class="mbtns">' +
-    '<button class="btn" onclick="closeModal()">Cancelar</button>' +
-    '<button class="btn primary" onclick="confirmPin()">Entrar</button>' +
+    '<h3>Sair da sessão</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Deseja encerrar a sessão?</p>'+
+    '<div class="mbtns">'+
+    '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="closeModal();sessionStorage.removeItem(\''+SESSION_KEY+'\');location.reload()">Sair</button>'+
     '</div>'
   );
-  setTimeout(function(){var el=document.getElementById('pin-input');if(el)el.focus();},80);
 }
 
-function confirmPin(){
-  var input=document.getElementById('pin-input');
-  var val=input?input.value.trim():'';
-  if(val===OFFICIAL_PIN){
-    closeModal();
-    activateAdminMode();
-  }else{
-    var err=document.getElementById('pin-error');
-    if(err)err.textContent='Senha incorreta. Tente novamente.';
-    if(input){input.value='';input.focus();}
-  }
+// ── Permissions ────────────────────────────────────────────────────────────────
+function isMaster(){return currentAdminUser==='ADMIN';}
+function canEditVac(person){
+  if(isMaster())return true;
+  return currentAdminUser===person;
+}
+function showPermissionDenied(person){
+  openModal(
+    '<h3>Sem permissão</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 14px;line-height:1.6">Cada procurador pode editar apenas os seus próprios períodos de férias. As férias de <strong>'+person+'</strong> só podem ser alteradas por ele(a) mesmo(a).</p>'+
+    '<div style="background:var(--blue-bg);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--blue);margin-bottom:16px">'+
+    'Para visualizar como o calendário ficaria com alterações nos períodos de outros procuradores, utilize o botão <strong>Testar período</strong> no seu próprio perfil.'+
+    '</div>'+
+    '<div class="mbtns"><button class="btn primary" onclick="closeModal()">Entendi</button></div>'
+  );
 }
 
-function activateAdminMode(){
-  mode='admin';
-  loadOfficial(function(){
-    applyData(officialData);
-    statusMsg='Modo administrador ativado';
-    render();
-    subscribeOfficial();
+function dismissWelcome(){_welcomeDismissed=true;render();}
+function goToMyVacations(){
+  _welcomeDismissed=true;
+  var user=currentAdminUser;
+  // Build list: years with data + next year without data
+  var yearsToShow=[];
+  var foundEmpty=false;
+  YEARS.forEach(function(y){
+    var pvacs=vacations.filter(function(v){return v.n===user&&v.s.slice(0,4)===String(y);});
+    var daysUsed=pvacs.reduce(function(s,v){return s+v.d;},0);
+    var hasData=pvacs.length>0;
+    if(hasData||!foundEmpty){
+      yearsToShow.push({year:y,periods:pvacs.length,days:daysUsed});
+      if(!hasData)foundEmpty=true;
+    }
   });
+  var initials=user.slice(0,1);
+  var rows=yearsToShow.map(function(item){
+    var badge=item.periods===0?
+      '<span style="font-size:11px;background:var(--blue-bg);color:var(--blue);padding:2px 8px;border-radius:10px;margin-left:6px">Nenhum período</span>':'';
+    var daysColor=item.days>VAC_LIMIT?'var(--red)':item.days===VAC_LIMIT?'var(--amber)':'var(--text-3)';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:0.5px solid var(--border)">'+
+      '<div>'+
+      '<div style="font-size:14px;font-weight:500;display:flex;align-items:center">'+item.year+badge+'</div>'+
+      '<div style="font-size:12px;color:'+daysColor+';margin-top:2px">'+
+      (item.periods>0?item.periods+' período'+(item.periods!==1?'s':'')+' &middot; ':'')+
+      '<span style="color:'+daysColor+'">'+item.days+'/'+VAC_LIMIT+' dias</span></div>'+
+      '</div>'+
+      '<button class="btn sm" onclick="closeModal();_openYearVacs('+item.year+')">Ver</button>'+
+      '</div>';
+  }).join('');
+  openTallModal(
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">'+
+    '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:500;flex-shrink:0">'+initials+'</div>'+
+    '<div><div style="font-size:15px;font-weight:600">Minhas férias</div>'+
+    '<div style="font-size:12px;color:var(--text-3)">'+user+' &mdash; selecione o ano</div></div>'+
+    '</div>'+
+    '<div style="margin:14px -24px 0;border-top:0.5px solid var(--border)">'+rows+'</div>',
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button></div>'
+  );
+  window._openYearVacs=function(year){
+    curYear=year;
+    curView='people';
+    render();
+    setTimeout(function(){showPersonVacs(user);},80);
+  };
 }
 
-function switchMode(target){
-  if(target==='admin'){showPinModal();return;}
-  if(mode==='admin'){
-    if(!confirm('Sair do modo administrador e entrar em simulação?'))return;
-    mode='simulation';
-    loadSim();
-    if(!simData)resetSimToOfficial();
-    applyData(simData);
-    statusMsg='Modo simulação ativado';
-    render();
-  }
+// ── Preview system ─────────────────────────────────────────────────────────────
+function showTestPeriod(personName){
+  var mo=String(curMonth+1).padStart(2,'0');
+  var who=personName||(currentAdminUser&&currentAdminUser!=='ADMIN'?currentAdminUser:'');
+  var active=activePeopleForYear(curYear);
+  var personField=isMaster()?
+    '<div class="field"><label>Procurador</label><select id="tp-person">'+active.map(function(p){return '<option value="'+p+'"'+(p===who?' selected':'')+'>'+p+'</option>';}).join('')+'</select></div>':
+    '<div class="field"><label>Procurador</label><input type="text" value="'+who+'" disabled style="background:var(--surface2);color:var(--text-2)"></div>';
+  var applyWho=isMaster()?"document.getElementById('tp-person').value":"'"+who+"'";
+  openModal(
+    '<h3>Testar período</h3>'+
+    '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 4px;line-height:1.6;text-align:justify">Visualize como o calendário ficará com o período que você está pensando, sem salvar ainda.</p>'+
+    '<p style="font-size:12px;color:var(--text-3);margin:0 0 14px;line-height:1.6;text-align:justify">Se já decidiu o período e quiser salvar diretamente, <a href="#" onclick="event.preventDefault();closeModal();showAddVac(\''+who+'\')" style="color:var(--blue);font-weight:500;text-decoration:underline">adicione as férias</a>.</p>'+
+    personField+
+    '<div class="field"><label>Data de início</label><input type="date" id="tp-start" value="'+curYear+'-'+mo+'-01"></div>'+
+    '<div class="field"><label>Número de dias</label><input type="number" id="tp-days" min="1" max="60" value="15"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="applyPreviewFromModal()">Ver no calendário</button></div>'
+  );
+}
+
+function applyPreviewFromModal(){
+  var personEl=document.getElementById('tp-person');
+  var person=personEl?personEl.value:(document.querySelector('#tp-person, [id="tp-person-hidden"]')||{value:''}).value||currentAdminUser;
+  // fallback: read from disabled input
+  if(!person){var inp=document.querySelector('input[disabled][value]');if(inp)person=inp.value;}
+  applyPreview(person);
+}
+
+function applyPreview(person){
+  var start=document.getElementById('tp-start').value;
+  var days=parseInt(document.getElementById('tp-days').value);
+  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  previewVac={n:person,s:start,d:days};
+  closeModal();
+  curYear=parseInt(start.slice(0,4));
+  curMonth=parseInt(start.slice(5,7))-1;
+  curView='calendar';
+  render();
+  // Scroll to calendar on mobile
+  setTimeout(function(){
+    var nav=document.querySelector('.month-nav');
+    if(nav){var top=nav.getBoundingClientRect().top+window.pageYOffset-135;window.scrollTo({top:top,behavior:'smooth'});}
+  },80);
+  // Highlight preview cells after render
+  setTimeout(function(){
+    var cells=document.querySelectorAll('.day[data-date]');
+    cells.forEach(function(el){
+      if(el.classList.contains('day-preview')){
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){el.style.background='#fef9c3';el.style.boxShadow='inset 0 0 0 2px #eab308';});
+        });
+      }
+    });
+  },80);
+}
+
+function cancelPreview(){
+  previewVac=null;
+  render();
+}
+
+function confirmPreview(){
+  if(!previewVac)return;
+  var pv=previewVac;
+  // Check conflicts
+  var tmpVacs=vacations.concat([{n:pv.n,s:pv.s,d:pv.d}]);
+  var tmpMap={};
+  tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
+  var over=false;
+  for(var i=0;i<pv.d;i++){var k=fmt(addDays(pv.s,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
+  if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Confirmar mesmo assim?'))return;
+  previewVac=null;
+  adminConfirm(function(){vacations.push({n:pv.n,s:pv.s,d:pv.d});saveData();render();});
 }
 
 // ── Add vacation ───────────────────────────────────────────────────────────────
 function showAddVac(personName){
-  var opts=people.map(function(p){return '<option value="'+p+'"'+(p===personName?' selected':'')+'>'+p+'</option>';}).join('');
+  var active=activePeopleForYear(curYear);
   var mo=String(curMonth+1).padStart(2,'0');
+  var defaultStart=curYear+'-'+mo+'-01';
+  var hintPerson=(!isMaster()&&currentAdminUser)?currentAdminUser:(personName||'');
+  var hint=
+    '<p style="font-size:12px;color:var(--text-3);margin:-6px 0 4px;line-height:1.6;text-align:justify">Esta ação salvará as férias nos dados oficiais, visíveis para todos.</p>'+
+    '<p style="font-size:12px;color:var(--text-3);margin:0 0 14px;line-height:1.6;text-align:justify">Se preferir visualizar como o calendário ficará antes de confirmar, <a href="#" onclick="event.preventDefault();closeModal();showTestPeriod(\''+hintPerson+'\')" style="color:var(--blue);font-weight:500;text-decoration:underline">teste o período primeiro</a>.</p>';
+  // Non-master: can only add to themselves
+  if(!isMaster()){
+    var self=currentAdminUser;
+    openModal(
+      '<h3>Adicionar férias</h3>'+hint+
+      '<div class="field"><label>Procurador</label><input type="text" value="'+self+'" disabled style="background:var(--surface2);color:var(--text-2)"></div>'+
+      '<div class="field"><label>Data de início</label><input type="date" id="av-start" value="'+defaultStart+'"></div>'+
+      '<div class="field"><label>Número de dias</label><input type="number" id="av-days" min="1" max="60" value="15"></div>'+
+      '<input type="hidden" id="av-person" value="'+self+'">'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn primary" onclick="confirmAddVac()">Adicionar</button></div>'
+    );
+    return;
+  }
+  var opts=active.map(function(p){return '<option value="'+p+'"'+(p===personName?' selected':'')+'>'+p+'</option>';}).join('');
   openModal(
-    '<h3>Adicionar período de férias</h3>'+
+    '<h3>Adicionar férias</h3>'+hint+
     '<div class="field"><label>Procurador</label><select id="av-person">'+opts+'</select></div>'+
-    '<div class="field"><label>Data de início</label><input type="date" id="av-start" value="'+curYear+'-'+mo+'-01"></div>'+
+    '<div class="field"><label>Data de início</label><input type="date" id="av-start" value="'+defaultStart+'"></div>'+
     '<div class="field"><label>Número de dias</label><input type="number" id="av-days" min="1" max="60" value="15"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmAddVac()">Adicionar</button></div>'
   );
+}
+
+function adminConfirm(cb){
+  openModal(
+    '<h3>Confirmar alteração</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Logado como <strong>'+(currentAdminUser||'ADMIN')+'</strong>. Para confirmar e salvar para todos, digite sua senha.</p>'+
+    '<div class="field"><label>Sua senha</label>'+
+    '<div class="pwd-wrap"><input type="password" id="adm-confirm-pwd" placeholder="********" autocomplete="off" style="letter-spacing:.1em"><button class="pwd-toggle" type="button" onclick="togglePwd(\'adm-confirm-pwd\',this)" tabindex="-1">Exibir</button></div></div>'+
+    '<div class="pin-error" id="adm-confirm-err"></div>'+
+    '<div class="mbtns" style="justify-content:flex-end">'+
+    '<div style="display:flex;gap:8px">'+
+    '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="_adminConfirmCheck()">Confirmar</button>'+
+    '</div></div>'
+  );
+  setTimeout(function(){var el=document.getElementById('adm-confirm-pwd');if(el)el.focus();},80);
+  window._adminCb=cb;
+  window._adminConfirmCheck=function(){
+    var input=document.getElementById('adm-confirm-pwd');
+    var val=input?input.value.trim():'';
+    var normalize=function(s){return s.normalize?s.normalize('NFD').replace(/[\u0300-\u036f]/g,''):s;};
+    var expected=currentAdminUser||'ADMIN';
+    var ok=(expected==='ADMIN'&&val===OFFICIAL_PIN)||(normalize(val)===normalize(expected));
+    if(ok){closeModal();window._adminCb();}
+    else{
+      var err=document.getElementById('adm-confirm-err');
+      if(err)err.textContent='Senha incorreta. Use a mesma senha utilizada no login.';
+      if(input){input.value='';input.focus();}
+    }
+  };
+  setTimeout(function(){
+    var el=document.getElementById('adm-confirm-pwd');
+    if(el)el.addEventListener('keydown',function(e){if(e.key==='Enter')window._adminConfirmCheck();});
+  },90);
 }
 
 function confirmAddVac(){
@@ -498,78 +1077,200 @@ function confirmAddVac(){
   var over=false;
   for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
   if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Continuar?'))return;
-  vacations.push({n:person,s:start,d:days});
-  closeModal();saveData();render();
+  closeModal();adminConfirm(function(){vacations.push({n:person,s:start,d:days});saveData();render();});
 }
 
 // ── Person vacations ───────────────────────────────────────────────────────────
 function showPersonVacs(person){
+  var canEdit=canEditVac(person);
   var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear);}).sort(function(a,b){return a.s.localeCompare(b.s);});
   var items=pvacs.length?pvacs.map(function(v){
     var idx=vacations.indexOf(v);
-    return '<div class="vac-item"><div><div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+'</div>'+
-           '<div class="vac-days">'+v.d+' dias</div></div>'+
-           '<button class="btn sm danger" onclick="removeVac('+idx+')">Remover</button></div>';
+    var startYear=parseInt(v.s.slice(0,4)),startMonth=parseInt(v.s.slice(5,7))-1;
+    var viewBtn='<button class="btn sm" onclick="closeModal();calSearch=\'\';_setReturnPerson(\''+person+'\');goToCalendarDate('+startYear+','+startMonth+',\''+v.s+'\','+v.d+',8000)">Ver no calendário</button>';
+    var actionRow=canEdit?
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'+
+      viewBtn+
+      '<div style="display:flex;gap:6px">'+
+      '<button class="btn sm" onclick="editVac('+idx+',\''+person+'\')">Editar</button>'+
+      '<button class="btn sm danger" onclick="removeVac('+idx+',\''+person+'\')">Remover</button>'+
+      '</div></div>':
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'+
+      viewBtn+
+      '<span style="font-size:11px;color:var(--text-3);font-style:italic">somente leitura</span>'+
+      '</div>';
+    return '<div class="vac-item" style="flex-direction:column;align-items:stretch">'+
+           '<div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+' <span style="color:var(--text-3);font-weight:400">('+v.d+' dias)</span></div>'+
+           actionRow+'</div>';
   }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período cadastrado.</div>';
+  var addBtn=canEdit?
+    '<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar férias</button>':
+    '<button class="btn" onclick="showPermissionDenied(\''+person+'\')">+ Adicionar férias</button>';
+  var testBtn='<button class="btn" onclick="closeModal();showTestPeriod(\''+person+'\')">&#128197; Testar período</button>';
+  var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
+  var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
+  var daysLabel='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--surface2);color:'+daysColor+'">'+daysUsed+' / '+VAC_LIMIT+' dias em '+curYear+'</span>';
+  var bodyHtml=
+    '<h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<span style="display:flex;align-items:center;gap:8px">'+
+    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+'</span>'+
+    daysLabel+'</h3>'+
+    (!canEdit?'<div style="background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--text-3);margin-bottom:12px">Você está visualizando as férias de '+person+'. Apenas '+person+' pode editar seus próprios períodos.</div>':'')+
+    '<div class="vac-list">'+items+'</div>';
+  var footerHtml=
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
+    '<div style="display:flex;gap:6px">'+addBtn+(canEdit?testBtn:'')+'</div>'+
+    '<button class="btn" onclick="closeModal()">Fechar</button></div>';
+  openTallModal(bodyHtml, footerHtml);
+}
+
+function editVac(idx, person){
+  if(!canEditVac(person)){showPermissionDenied(person);return;}
+  var v=vacations[idx];
+  if(!v)return;
   openModal(
-    '<h3 style="display:flex;align-items:center;gap:8px">'+
-    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+' &mdash; '+curYear+'</h3>'+
-    '<div class="vac-list">'+items+'</div>'+
-    '<hr class="divider">'+
+    '<h3>Editar período de férias</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:14px"><strong>'+person+'</strong></p>'+
+    '<div class="field"><label>Data de início</label><input type="date" id="ev-start" value="'+v.s+'"></div>'+
+    '<div class="field"><label>Número de dias</label><input type="number" id="ev-days" min="1" max="60" value="'+v.d+'"></div>'+
     '<div class="mbtns" style="justify-content:space-between">'+
-    '<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar período</button>'+
-    '<button class="btn" onclick="closeModal()">Fechar</button></div>'
+    '<button class="btn" onclick="showPersonVacs(\''+person+'\')">Cancelar</button>'+
+    '<button class="btn primary" onclick="confirmEditVac('+idx+',\''+person+'\')">Salvar</button>'+
+    '</div>'
   );
 }
 
-function removeVac(idx){
-  if(!confirm('Remover este período?'))return;
-  vacations.splice(idx,1);closeModal();saveData();render();
+function confirmEditVac(idx, person){
+  var start=document.getElementById('ev-start').value;
+  var days=parseInt(document.getElementById('ev-days').value);
+  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  var tmpVacs=vacations.filter(function(_,i){return i!==idx;}).concat([{n:person,s:start,d:days}]);
+  var tmpMap={};
+  tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
+  var over=false;
+  for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
+  if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Continuar?'))return;
+  function doEdit(){vacations[idx]={n:person,s:start,d:days};saveData('✓ Período atualizado');render();showPersonVacs(person);}
+  closeModal();adminConfirm(doEdit);
 }
 
-// ── People manager ─────────────────────────────────────────────────────────────
+function removeVac(idx, person){
+  if(!canEditVac(person)){showPermissionDenied(person);return;}
+  openModal(
+    '<h3>Remover período</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Tem certeza que deseja remover este período de férias? Esta ação não pode ser desfeita.</p>'+
+    '<div class="mbtns">'+
+    '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn danger" onclick="closeModal();_doRemoveVac('+idx+',\''+person+'\')">Remover</button>'+
+    '</div>'
+  );
+}
+window._doRemoveVac=function(idx,person){
+  adminConfirm(function(){vacations.splice(idx,1);closeModal();saveData('✓ Período removido');render();});
+};
 function showPeopleManager(){
-  var list=people.map(function(p){
+  var active=people.filter(function(p){return p.ate===null;});
+  var inactive=people.filter(function(p){return p.ate!==null;});
+  var listActive=active.map(function(p){
     return '<div class="vac-item">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
-      '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p)+';flex-shrink:0"></span>'+
-      '<span style="font-weight:500">'+p+'</span></div>'+
-      '<button class="btn sm danger" onclick="removePerson(\''+p+'\')">Remover</button></div>';
+      '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
+      '<div><span style="font-weight:500">'+p.n+'</span>'+
+      '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+p.desde+'</span></div></div>'+
+      '<div style="display:flex;gap:6px">'+
+      '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
+      '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
   }).join('');
-  openModal(
+  var listInactive=inactive.length?'<div style="margin-top:14px"><div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Inativos</div>'+
+    inactive.map(function(p){
+      return '<div class="vac-item" style="opacity:.6">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+        '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
+        '<div><span style="font-weight:500">'+p.n+'</span>'+
+        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.desde+'–'+p.ate+'</span></div></div>'+
+        '<div style="display:flex;gap:6px">'+
+        '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
+        '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
+    }).join('')+'</div>':'';
+  var bodyHtml=
     '<h3>Gerenciar procuradores</h3>'+
-    '<div class="vac-list">'+list+'</div>'+
+    '<div class="vac-list">'+listActive+listInactive+'</div>'+
     '<hr class="divider">'+
     '<div class="field"><label>Adicionar novo procurador</label>'+
     '<input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>'+
+    '<div class="field"><label>Ano de entrada na unidade</label>'+
+    '<input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>';
+  var footerHtml=
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
-    '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>'
-  );
+    '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
+  openTallModal(bodyHtml, footerHtml);
+}
+
+function deactivatePerson(name){
+  var yearOut=parseInt(prompt('Em qual ano '+name+' saiu da unidade?',curYear));
+  if(!yearOut||isNaN(yearOut))return;
+  function doDeactivate(){
+    var p=people.find(function(x){return x.n===name;});
+    if(p)p.ate=yearOut;
+    closeModal();saveData('✓ Procurador desativado');render();
+  }
+  adminConfirm(doDeactivate);
+}
+
+function reactivatePerson(name){
+  function doReactivate(){
+    var p=people.find(function(x){return x.n===name;});
+    if(p)p.ate=null;
+    closeModal();saveData('✓ Procurador reativado');render();
+  }
+  adminConfirm(doReactivate);
 }
 
 function confirmAddPerson(){
   var raw=document.getElementById('new-person').value||'';
-  var nm=raw.trim();
+  var nm=raw.trim().toUpperCase();
   if(!nm){alert('Digite o nome.');return;}
-  if(nm!==nm.toUpperCase()){alert('O nome deve ser escrito em letras MAIÚSCULAS.');return;}
-  nm=nm.toUpperCase();
-  if(people.indexOf(nm)>=0){alert('Já existe.');return;}
-  people.push(nm);people.sort();
-  closeModal();saveData();render();
+  if(people.find(function(p){return p.n===nm;})){alert('Já existe.');return;}
+  var desde=parseInt(document.getElementById('new-desde').value)||curYear;
+  function doAdd(){people.push({n:nm,desde:desde,ate:null});people.sort(function(a,b){return a.n.localeCompare(b.n);});saveData('✓ Procurador adicionado');render();}
+  closeModal();adminConfirm(doAdd);
 }
 
-function removePerson(p){
-  if(!confirm('Remover '+p+' e todos os seus períodos?'))return;
-  people=people.filter(function(x){return x!==p;});
-  vacations=vacations.filter(function(v){return v.n!==p;});
-  closeModal();saveData();render();
+function removePerson(name){
+  openModal(
+    '<h3 style="color:var(--red)">⚠ Exclusão permanente</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:12px 0 10px;line-height:1.6">Você está prestes a excluir <strong>'+name+'</strong> do sistema. Esta ação irá apagar <strong>todos os dados deste procurador em todos os anos</strong>, incluindo o histórico completo de férias, e <strong>não poderá ser desfeita</strong>.</p>'+
+    '<div style="background:var(--amber-bg);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--amber);margin-bottom:14px;line-height:1.6">'+
+    'Se o procurador foi transferido ou saiu da unidade, utilize o botão <strong>Desativar</strong> em vez deste. A desativação preserva todo o histórico e remove o procurador apenas dos anos seguintes à saída.'+
+    '</div>'+
+    '<div class="field"><label>Para confirmar, digite sua senha</label>'+
+    '<input type="password" id="remove-pwd" placeholder="********" autocomplete="off" style="letter-spacing:.1em"></div>'+
+    '<div class="pin-error" id="remove-pwd-err"></div>'+
+    '<div class="mbtns" style="justify-content:space-between">'+
+    '<button class="btn" onclick="closeModal();showPeopleManager()">Cancelar</button>'+
+    '<button class="btn danger" onclick="_confirmRemovePerson(\''+name+'\')">Excluir permanentemente</button>'+
+    '</div>'
+  );
+  setTimeout(function(){var el=document.getElementById('remove-pwd');if(el)el.focus();},80);
 }
 
-function confirmResetSim(){
-  if(!confirm('Redefinir simulação com os dados oficiais atuais?'))return;
-  resetSimToOfficial();applyData(simData);
-  statusMsg='Simulação redefinida';render();
-}
+window._confirmRemovePerson=function(name){
+  var input=document.getElementById('remove-pwd');
+  var val=input?input.value.trim():'';
+  var expected=currentAdminUser||'ADMIN';
+  var ok=(expected==='ADMIN'&&val===OFFICIAL_PIN)||(val===expected);
+  if(!ok){
+    var err=document.getElementById('remove-pwd-err');
+    if(err)err.textContent='Senha incorreta. Use a mesma senha utilizada no login.';
+    if(input){input.value='';input.focus();}
+    return;
+  }
+  people=people.filter(function(p){return p.n!==name;});
+  vacations=vacations.filter(function(v){return v.n!==name;});
+  closeModal();saveData('✓ Procurador removido');render();
+};
+
+function confirmResetSim(){} // kept for safety, no-op
 
 function doExport(fmt){
   var sel=document.getElementById('exp-year');
@@ -593,7 +1294,7 @@ function showExportModal(){
     '<h3>Exportar dados</h3>'+
     '<p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Exporta os períodos com tres colunas: <strong>Procurador</strong>, <strong>Dias de férias</strong> e <strong>Data de início</strong>.</p>'+
     '<div class="field"><label>Ano a exportar</label><select id="exp-year">'+yearOpts+'</select></div>'+
-    (mode==='simulation'?'<div class="notice">Você está em modo simulação &mdash; os dados exportados refletem sua simulação.</div>':'')+
+    ''+ // export always uses official data
     '<div class="mbtns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:20px">'+
     '<button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<div style="display:flex;gap:8px">'+
@@ -610,14 +1311,33 @@ function selectDay(ds){
   var d=parseD(ds);
   var opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
   var str=d.toLocaleDateString('pt-BR',opts);
-  if(!names.length){el.innerHTML='<strong>'+str+'</strong> &mdash; nenhum procurador de férias.';return;}
-  var over=names.length>LIMIT,atLim=names.length===LIMIT;
-  var badge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
-  el.innerHTML='<strong>'+str+'</strong>'+badge+'<br><span style="color:var(--text)">'+names.join(', ')+'</span> <span style="color:var(--text-3)">('+names.length+' em férias)</span>';
+  var hol=getHoliday(ds);
+  var lines=[];
+  // Line 1: date
+  lines.push('<div style="font-weight:600">'+str+'</div>');
+  // Line 2: holiday badge (if any)
+  if(hol){
+    var holLabel=hol.type==='holiday'?'Feriado':hol.type==='optional'?'Ponto facultativo':'Suspensão de expediente';
+    var holText=hol.type==='suspended'?holLabel:holLabel+': '+hol.label;
+    lines.push('<div><span style="font-size:11px;font-weight:500;background:#f3eeff;color:#7c3aed;border:1px solid #c4b5fd;padding:2px 8px;border-radius:4px;display:inline-block">'+holText+'</span></div>');
+  }
+  // Line 3: people on vacation
+  if(!names.length){
+    lines.push('<div style="color:var(--text-3);font-size:12px">Nenhum procurador de férias.</div>');
+  }else{
+    var over=names.length>LIMIT,atLim=names.length===LIMIT;
+    var limitBadge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
+    var nameLinks=names.map(function(n){
+      return '<a href="#" onclick="event.preventDefault();setView(\'people\');setTimeout(function(){showPersonVacs(\''+n+'\');},80)" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>';
+    }).join(', ');
+    lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Procuradores de férias:</span> '+nameLinks+limitBadge+' <span style="color:var(--text-3)">('+names.length+')</span></div>');
+  }
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'+lines.join('')+'</div>';
 }
 
 function buildCal(year,month){
-  var firstDay=new Date(year,month,1).getDay();
+  var firstDayRaw=new Date(year,month,1).getDay(); // 0=Sun
+  var firstDay=firstDayRaw; // Sun=0, already correct
   var dim=new Date(year,month+1,0).getDate();
   var dm=buildDayMap(year);
   var h='<div class="cal-head">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sab'].map(function(d){return '<span>'+d+'</span>';}).join('')+'</div><div class="cal-body">';
@@ -626,7 +1346,24 @@ function buildCal(year,month){
     var ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var ns=dm[ds]||[],c=ns.length,isT=ds===today,over=c>LIMIT;
     var bc=c===0?'':over?'cbover':'cb'+Math.min(c,4);
-    h+='<div class="day'+(isT?' today':'')+'" onclick="selectDay(\''+ds+'\')">';
+    var hol=getHoliday(ds);
+    var dow=new Date(year,month,d).getDay();
+    var isWeekend=(dow===0||dow===6);
+    // Check if this day is in preview
+    var inPreview=false,previewConflict=false;
+    if(previewVac){
+      for(var pi=0;pi<previewVac.d;pi++){
+        if(fmt(addDays(previewVac.s,pi))===ds){
+          inPreview=true;
+          // Conflict if existing count >= LIMIT
+          if((ns.length)>=LIMIT)previewConflict=true;
+          break;
+        }
+      }
+    }
+    var dayCls='day'+(isT?' today':'')+(hol?' has-hol':'')+(isWeekend?' weekend':'')+(inPreview?(previewConflict?' day-preview-conflict':' day-preview'):'');
+    if(calSearch&&ns.some(function(n){return n.toLowerCase().indexOf(calSearch.toLowerCase())>=0;}))dayCls+=' search-match';
+    h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
     if(c>0)h+='<div class="cbadge '+bc+'">'+c+(over?' !':'')+'</div><div class="dnames">'+ns.join(', ')+'</div>';
     h+='</div>';
@@ -656,7 +1393,9 @@ function buildGantt(year){
       var s=parseD(v.s),e=addDays(v.s,v.d-1);
       var sc=s<start?start:s,ec=e>new Date(year,11,31)?new Date(year,11,31):e;
       var off=((sc-start)/86400000)/total*100,w=((ec-sc)/86400000+1)/total*100;
-      h+='<div class="gbar" style="left:'+off.toFixed(2)+'%;width:'+w.toFixed(2)+'%;background:'+pColor(p)+'" title="'+p+': '+fmtBR(v.s)+' ('+v.d+'d)"></div>';
+      var startMonth=parseD(v.s).getMonth();
+      var startYear=parseInt(v.s.slice(0,4));
+      h+='<div class="gbar" onclick="showGanttBar(\''+p+'\',\''+v.s+'\','+v.d+','+startYear+','+startMonth+')" style="left:'+off.toFixed(2)+'%;width:'+w.toFixed(2)+'%;background:'+pColor(p)+';cursor:pointer"></div>';
     });
     h+='</div></div>';
   });
@@ -665,7 +1404,7 @@ function buildGantt(year){
   for(var d=0;d<total;d++){
     var dt=new Date(year,0,1+d),k=fmt(dt),c=(dm[k]||[]).length;
     if(!c)continue;
-    var over=c>LIMIT,col=c===1?'#10b981':c===2?'#3b82f6':c===3?'#f59e0b':(!over?'#fbbf24':'#dc2626');
+    var over=c>LIMIT,col=c===1?'#10b981':c===2?'#3b82f6':c===3?'#fbbf24':(!over?'#f59e0b':'#dc2626');
     h+='<div style="position:absolute;left:'+(d/total*100).toFixed(3)+'%;width:calc('+(1/total*100).toFixed(3)+'% + 1px);height:100%;background:'+col+';opacity:.85"></div>';
   }
   h+='</div></div></div>';
@@ -731,11 +1470,16 @@ function buildConflictsView(year){
 // ── Render ─────────────────────────────────────────────────────────────────────
 function renderStatus(){
   var el=document.getElementById('statusbar');
-  if(el)el.textContent=lastSaved?'Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg;
+  if(!el)return;
+  var txt=statusMsg;
+  if(lastSaved){
+    txt='Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR');
+    if(lastSavedBy)txt+=' — por '+lastSavedBy;
+  }
+  el.innerHTML=txt;
 }
 
 function render(){
-  var isAdmin=mode==='admin';
   var st=getStats(curYear);
   var dm=buildDayMap(curYear);
   var dim=new Date(curYear,curMonth+1,0).getDate();
@@ -746,10 +1490,34 @@ function render(){
     if(c>LIMIT)mOver++;else if(c===LIMIT)mAt4++;
   }
   var apSet={};
-  vacations.forEach(function(v){if(v.s.slice(0,4)===String(curYear))apSet[v.n]=1;});
+  Object.keys(dm).forEach(function(k){dm[k].forEach(function(n){apSet[n]=1;});});
   var ap=Object.keys(apSet).length;
 
   var h='';
+
+  // Preview banner (fixed top, shown when preview is active)
+  if(previewVac){
+    var pvStart=fmtBR(previewVac.s);
+    var pvEnd=fmtBR(fmt(addDays(previewVac.s,previewVac.d-1)));
+    // Count conflicts
+    var pvConflicts=0;
+    for(var pi=0;pi<previewVac.d;pi++){
+      var pk=fmt(addDays(previewVac.s,pi));
+      if((dm[pk]||[]).length>=LIMIT)pvConflicts++;
+    }
+    var pvStatus=pvConflicts>0?
+      '<span class="preview-banner-conflict">⚠ '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' com conflito</span>':
+      '<span class="preview-banner-ok">✓ Sem conflitos</span>';
+    h+='<div class="preview-banner">';
+    h+='<div class="preview-banner-info">';
+    h+='<div class="preview-banner-title">&#128197; Pré-visualização — '+previewVac.n+' &nbsp;'+pvStatus+'</div>';
+    h+='<div class="preview-banner-sub">'+pvStart+' → '+pvEnd+' &middot; '+previewVac.d+' dias &middot; As células amarelas mostram o período. Vermelho indica conflito com o limite.</div>';
+    h+='</div>';
+    h+='<div class="preview-banner-actions">';
+    h+='<button class="btn-preview-cancel" onclick="cancelPreview()">Descartar</button>';
+    h+='<button class="btn-preview-confirm" onclick="confirmPreview()">Confirmar e salvar</button>';
+    h+='</div></div>';
+  }
 
   // Topbar
   h+='<div class="topbar">';
@@ -757,33 +1525,63 @@ function render(){
   h+='<div><div class="logo-text">Controle de Férias</div>';
   h+='<div class="logo-sub">PGM/SP JUD-3 &middot; '+YEARS[0]+'&ndash;'+YEARS[YEARS.length-1]+'</div></div></div>';
   h+='<div class="topbar-right">';
-  h+='<div class="mode-switcher">';
-  h+='<button class="mswitch-btn'+(isAdmin?'':' active sim')+'" onclick="switchMode(\'simulation\')">';
-  h+='<span class="mswitch-dot sim-dot"></span>Simulação</button>';
-  h+='<button class="mswitch-btn'+(isAdmin?' active adm':'')+'" onclick="showPinModal()">';
-  h+='<span class="mswitch-dot adm-dot"></span>Administrador</button>';
+  h+='<button class="btn export" onclick="showExportModal()"><span class="btn-mobile-hide">&#8595; Exportar</span><span class="btn-mobile-show">&#8595;</span></button>';
+  if(isMaster())h+='<button class="btn" onclick="showHistoryModal()">&#128336; Histórico</button>';
+  h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px">';
+  h+='<span style="font-size:12px;font-weight:500;color:var(--text-2)">'+(currentAdminUser==='ADMIN'?'Master':currentAdminUser)+'</span>';
+  h+='<button class="btn sm" style="padding:3px 10px;font-size:11px" onclick="logout()">Sair</button>';
   h+='</div>';
-  h+='<button class="btn export" onclick="showExportModal()">&#8595; Exportar</button>';
-  if(isAdmin){
-    h+='<button class="btn" onclick="showAddVac(\'\')">+ Ferias</button>';
-
-  }else{
-    
-    h+='<button class="btn sm" onclick="confirmResetSim()">&#8635; Redefinir</button>';
-  }
   h+='</div></div>';
 
-  // Banner
-  if(!isAdmin){
-    h+='<div class="sim-banner">';
-    h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#3a6a1a" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="#3a6a1a" stroke-width="1.4" stroke-linecap="round"/></svg>';
-    h+='<span>Você está em <strong>Modo Simulação</strong> &mdash; suas alterações ficam salvas apenas neste navegador. Se preferir, <a href="#" onclick="event.preventDefault();showPinModal()" style="color:var(--sim-accent);font-weight:600;text-decoration:underline">acesse o Modo Administrador</a>.</span>';
+  // Welcome banner — shown once per session for non-master users
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac&&!_welcomeDismissed){
+    h+='<div class="welcome-banner">';
+    h+='<div class="welcome-banner-text">';
+    h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="var(--blue)" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="var(--blue)" stroke-width="1.4" stroke-linecap="round"/></svg>';
+    h+='<span>Olá, <strong>'+currentAdminUser+'</strong> — para adicionar ou editar seus períodos de férias, acesse a aba <strong>Procuradores</strong> e selecione o ano desejado.</span>';
     h+='</div>';
-  }else{
-    h+='<div class="adm-banner">';
-    h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="3" stroke="var(--admin-accent)" stroke-width="1.2"/><path d="M5 8l2.5 2.5L11 5.5" stroke="var(--admin-accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    h+='<span>Você está em <strong>Modo Administrador</strong> &mdash; alterações salvas e sincronizadas para todos. Se preferir, <a href="#" onclick="event.preventDefault();switchMode(\'simulation\')" style="color:var(--admin-accent);font-weight:600;text-decoration:underline">volte ao Modo Simulação</a>.</span>';
-    h+='</div>';
+    h+='<div class="welcome-banner-actions">';
+    h+='<button class="btn sm primary" onclick="goToMyVacations()">Ver minhas férias</button>';
+    h+='<button class="btn sm" onclick="dismissWelcome()">Dispensar</button>';
+    h+='</div></div>';
+  }
+
+  // Feature 1 — próximas férias indicator for logged-in user
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac){
+    var todayD=parseD(today);
+    // Check if currently on vacation
+    var activeVac=null;
+    vacations.forEach(function(v){
+      if(v.n!==currentAdminUser)return;
+      var start=parseD(v.s),end=addDays(v.s,v.d-1);
+      if(start<=todayD&&todayD<=end){activeVac=v;}
+    });
+    if(activeVac){
+      var daysLeft=Math.round((addDays(activeVac.s,activeVac.d-1)-todayD)/86400000);
+      var endDate=fmtBR(fmt(addDays(activeVac.s,activeVac.d-1)));
+      var color='var(--green)',bg='var(--green-bg)',border='#b8dba8';
+      if(daysLeft<=3){color='var(--amber)';bg='var(--amber-bg)';border='#f0d090';}
+      var msg=daysLeft===0?'Suas férias terminam hoje! ('+endDate+')':
+        'Você está de férias — falta'+(daysLeft===1?'':'m')+' <strong>'+daysLeft+' dia'+(daysLeft>1?'s':'')+' </strong>para o fim ('+endDate+')';
+      h+='<div style="background:'+bg+';border:1px solid '+border+';border-radius:var(--r-sm);padding:9px 14px;margin-bottom:16px;font-size:13px;color:'+color+'">&#127958; '+msg+'</div>';
+    } else {
+      // Check upcoming vacations
+      var nextVac=null;
+      vacations.forEach(function(v){
+        if(v.n!==currentAdminUser)return;
+        var start=parseD(v.s);
+        if(start>todayD){if(!nextVac||start<parseD(nextVac.s))nextVac=v;}
+      });
+      if(nextVac){
+        var daysUntil=Math.round((parseD(nextVac.s)-todayD)/86400000);
+        var endDate=fmtBR(fmt(addDays(nextVac.s,nextVac.d-1)));
+        var msg='',color='var(--green)',bg='var(--green-bg)',border='#b8dba8';
+        if(daysUntil===0){msg='Suas férias começam hoje! ('+fmtBR(nextVac.s)+' → '+endDate+')';}
+        else if(daysUntil<=7){msg='Suas férias começam em <strong>'+daysUntil+' dia'+(daysUntil>1?'s':'')+' </strong>('+fmtBR(nextVac.s)+' → '+endDate+')';color='var(--amber)';bg='var(--amber-bg)';border='#f0d090';}
+        else if(daysUntil<=30){msg='Suas próximas férias começam em <strong>'+daysUntil+' dias</strong> ('+fmtBR(nextVac.s)+' → '+endDate+')';}
+        if(msg)h+='<div style="background:'+bg+';border:1px solid '+border+';border-radius:var(--r-sm);padding:9px 14px;margin-bottom:16px;font-size:13px;color:'+color+'">&#128197; '+msg+'</div>';
+      }
+    }
   }
 
   // Year tabs
@@ -793,7 +1591,7 @@ function render(){
 
   // Cards
   h+='<div class="cards">';
-  h+='<div class="card"><div class="card-label">Procuradores de férias em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+people.length+' no cadastro</div></div>';
+  h+='<div class="card"><div class="card-label">Procuradores com férias em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+activePeopleForYear(curYear).length+' ativos em '+curYear+'</div></div>';
   h+='<div class="card '+(st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok')+'"><div class="card-label">Pico simultâneo</div><div class="card-val">'+st.maxS+'</div><div class="card-sub">limite: '+LIMIT+'</div></div>';
   h+='<div class="card '+(st.dOver>0?'danger':'ok')+'"><div class="card-label">Dias acima do limite</div><div class="card-val">'+st.dOver+'</div><div class="card-sub">'+st.dAt4+' dias no limite exato</div></div>';
   h+='<div class="card"><div class="card-label">Dias com férias em '+curYear+'</div><div class="card-val">'+st.daysWithVac+'</div><div class="card-sub">dias com ao menos 1 procurador de férias</div></div>';
@@ -805,8 +1603,8 @@ function render(){
   var cLabel='Conflitos (+ de 4 férias simultâneas)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
   h+='<div class="view-tabs">';
   h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendário</button>';
-  h+='<button class="vtab'+(curView==='gantt'?' active':'')+'" onclick="setView(\'gantt\')">Linha do tempo</button>';
   h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Procuradores</button>';
+  h+='<button class="vtab'+(curView==='gantt'?' active':'')+'" onclick="setView(\'gantt\')">Linha do tempo</button>';
   h+='<button class="vtab conflict-tab'+(curView==='conflicts'?' active':'')+'" onclick="setView(\'conflicts\')">'+cLabel+'</button>';
   h+='</div>';
 
@@ -818,39 +1616,96 @@ function render(){
     h+='<div class="month-label">'+MONTHS_PT[curMonth]+' '+curYear+'</div>';
     h+='<button class="btn" onclick="nextM()">&#8594;</button>';
     h+='<span style="font-size:12px;color:var(--text-3);margin-left:6px">'+mStatus+'</span>';
+    if(_calReturnPerson)h+='<button class="btn sm primary" style="margin-left:auto;white-space:nowrap" onclick="var p=_calReturnPerson;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}setView(\'people\');setTimeout(function(){showPersonVacs(p);},80)">&#8592; Retornar para as férias de '+_calReturnPerson+'</button>';
+    h+='</div>';
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
+    h+='<span style="font-size:12px;color:var(--text-3);white-space:nowrap">Destacar férias de</span>';
+    var searchOpts='<option value="">...</option>'+activePeopleForYear(curYear).map(function(p){return '<option value="'+p+'"'+(calSearch===p?' selected':'')+'>'+p+'</option>';}).join('');
+    h+='<select onchange="calSearch=this.value;if(this.value){var vv=vacations.filter(function(v){return v.n===this.value&&v.s.slice(0,4)===String(curYear);}.bind(this));if(vv.length){vv.sort(function(a,b){return a.s.localeCompare(b.s);});curMonth=parseInt(vv[0].s.slice(5,7))-1;}}render()" style="padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);min-width:140px">'+searchOpts+'</select>';
+    if(calSearch){
+      var personVacsAll=vacations.filter(function(v){return v.n===calSearch;}).sort(function(a,b){return a.s.localeCompare(b.s);});
+      var personVacsYear=personVacsAll.filter(function(v){return v.s.slice(0,4)===String(curYear);});
+      if(personVacsAll.length===0){
+        h+='<span style="font-size:12px;color:var(--text-3)">Sem férias cadastradas.</span>';
+      } else if(personVacsYear.length===0){
+        var lastVac=personVacsAll[personVacsAll.length-1];
+        var lastYear=lastVac.s.slice(0,4);
+        var firstVacOfLastYear=personVacsAll.filter(function(v){return v.s.slice(0,4)===lastYear;})[0];
+        var lastMo=parseInt(firstVacOfLastYear.s.slice(5,7))-1;
+        h+='<span style="font-size:12px;color:var(--text-3)">Sem férias marcadas em '+curYear+'. '+
+           '<a href="#" onclick="event.preventDefault();curYear=parseInt(\''+lastYear+'\');curMonth='+lastMo+';render()" style="color:var(--blue)">Ver em '+lastYear+'</a></span>';
+      } else {
+        h+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">';
+        personVacsYear.forEach(function(v){
+          var y=parseInt(v.s.slice(0,4)),mo=parseInt(v.s.slice(5,7))-1;
+          var active=y===curYear&&mo===curMonth;
+          var label=fmtBR(v.s).slice(0,5)+' → '+fmtBR(fmt(addDays(v.s,v.d-1))).slice(0,5)+' ('+v.d+' dias)';
+          h+='<button class="btn sm'+(active?' primary':'')+'" onclick="curYear='+y+';curMonth='+mo+';render()">'+label+'</button>';
+        });
+        h+='</div>';
+      }
+    }
     h+='</div>';
     h+='<div class="cal-wrap">'+buildCal(curYear,curMonth)+'</div>';
     h+='<div class="sel-info" id="sel-info">Clique em um dia para ver os detalhes.</div>';
     h+='<div class="legend">';
     h+='<div class="leg"><div class="leg-dot" style="background:#10b981"></div>1 em férias</div>';
     h+='<div class="leg"><div class="leg-dot" style="background:#3b82f6"></div>2 em férias</div>';
-    h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>3 em férias</div>';
-    h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>4 em férias (limite)</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#fbbf24"></div>3 em férias</div>';
+    h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>4 em férias (limite)</div>';
     h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
+    h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;border-left:3px solid #7c3aed;flex-shrink:0"></div>Feriado / Sem expediente</div>';
+    if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Férias de '+calSearch+'</div>';
+    if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
+    h+='<div class="leg" id="_hl-leg" style="display:none"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">Férias de</span></div>';
     h+='</div>';
   }
   if(curView==='gantt')h+='<div class="gantt-wrap">'+buildGantt(curYear)+'</div>';
   if(curView==='people'){
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
-    h+='<span style="font-size:12px;color:var(--text-3)">Clique em um nome para ver e editar períodos de '+curYear+'</span>';
+    var peopleSubtitle=isMaster()?
+      'Clique em um nome para ver e editar períodos de '+curYear:
+      'Clique no seu nome para editar seus períodos. Clique nos demais para visualizar.';
+    h+='<span style="font-size:12px;color:var(--text-3)">'+peopleSubtitle+'</span>';
     h+='<div style="display:flex;gap:6px">';
-    h+='<button class="btn sm" onclick="showAddVac(\'\')">+ Ferias</button>';
-    h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
+    h+='<button class="btn sm primary" onclick="showAddVac(\''+( !isMaster()?currentAdminUser:'')+'\')">+ Adicionar férias</button>';
+    h+='<button class="btn sm" onclick="showTestPeriod(\''+ (!isMaster()?currentAdminUser:'')+'\')">&#128197; Testar período</button>';
+    if(isMaster())h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
     h+='</div></div>';
     h+='<div class="people-grid">';
-    people.forEach(function(p){
-      var c=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);}).length;
-      h+='<div class="pchip" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
+    activePeopleForYear(curYear).forEach(function(p){
+      var pvacs=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);});
+      var c=pvacs.length;
+      var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
+      var isMe=p===currentAdminUser&&currentAdminUser!=='ADMIN';
+      var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--text-3)';
+      h+='<div class="pchip'+(isMe?' mine':'')+'" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
          '<div class="pdot" style="background:'+pColor(p)+'"></div>'+
-         '<div><div class="pname">'+p+'</div><div class="psub">'+c+' período'+(c!==1?'s':'')+' em '+curYear+'</div></div></div>';
+         '<div>'+
+         '<div class="pname">'+p+(isMe?' <span style="font-size:10px;font-weight:400;color:var(--text-3)">(você)</span>':'')+'</div>'+
+         '<div class="psub">'+c+' período'+(c!==1?'s':'')+' em '+curYear+'</div>'+
+         '<div class="psub" style="color:'+daysColor+'">'+daysUsed+'/'+VAC_LIMIT+' dias utilizados</div>'+
+         '</div></div>';
     });
     h+='</div>';
   }
   if(curView==='conflicts')h+=buildConflictsView(curYear);
 
-  h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR')+' - '+statusMsg:statusMsg)+'</div>';
+  var statusTxt=statusMsg;
+  if(lastSaved){
+    statusTxt='Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR');
+    if(lastSavedBy)statusTxt+=' — por '+lastSavedBy;
+  }
+  h+='<div class="statusbar" id="statusbar">'+statusTxt+'</div>';
+
+  // Floating "Minhas Férias" button — always visible for non-master, non-preview
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac){
+    h+='<button class="fab" onclick="goToMyVacations()">&#128197; Minhas Férias</button>';
+  }
 
   document.getElementById('app').innerHTML=h;
+  // Scroll to top on mobile when switching views
+  if(window.innerWidth<=640)window.scrollTo({top:0,behavior:'instant'});
 }
 
 // ── Hash routing ───────────────────────────────────────────────────────────────
@@ -871,23 +1726,94 @@ window.addEventListener('popstate',function(e){
 });
 
 function setYear(y){curYear=y;_pushState();render();}
-function setView(v){curView=v;_pushState();render();}
+function setView(v){if(v!=='calendar'){calSearch='';_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;_pushState();render();}
+function _setReturnPerson(p){
+  _calReturnPerson=p;
+  if(_calReturnTimer)clearTimeout(_calReturnTimer);
+  _calReturnTimer=setTimeout(function(){_calReturnPerson=null;_calReturnTimer=null;render();},30000);
+}
+function showGanttBar(person, vacStart, vacDays, year, month){
+  var endDate=fmt(addDays(vacStart,vacDays-1));
+  openModal(
+    '<h3 style="display:flex;align-items:center;gap:8px">'+
+    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block;flex-shrink:0"></span>'+
+    person+'</h3>'+
+    '<div style="margin:12px 0;font-size:13px;color:var(--text-2)">'+
+    '<div style="margin-bottom:6px">&#128197; '+fmtBR(vacStart)+' &rarr; '+fmtBR(endDate)+'</div>'+
+    '<div style="color:var(--text-3)">'+vacDays+' dias</div>'+
+    '</div>'+
+    '<div class="mbtns" style="justify-content:space-between">'+
+    '<button class="btn" onclick="closeModal()">Fechar</button>'+
+    '<button class="btn primary" onclick="closeModal();goToCalendarDate('+year+','+month+',\''+vacStart+'\','+vacDays+')">Ver no calendário</button>'+
+    '</div>'
+  );
+}
+function goToCalendarDate(year,month,vacStart,vacDays,hlDuration){
+  curYear=year;curMonth=month;curView='calendar';render();
+  // Scroll to calendar on mobile
+  setTimeout(function(){
+    var nav=document.querySelector('.month-nav');
+    if(nav){var top=nav.getBoundingClientRect().top+window.pageYOffset-135;window.scrollTo({top:top,behavior:'smooth'});}
+  },60);
+  if(!vacStart||!vacDays)return;
+  var holdMs=hlDuration||2200;
+  setTimeout(function(){
+    var cells=document.querySelectorAll('.day[data-date]');
+    var toHL=[];
+    for(var i=0;i<vacDays;i++){toHL.push(fmt(addDays(vacStart,i)));}
+    var hlCells=[];
+    cells.forEach(function(el){
+      if(toHL.indexOf(el.dataset.date)>=0){hlCells.push(el);}
+    });
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        hlCells.forEach(function(el){el.classList.add('hl-vac');});
+        // Show legend entry
+        if(_calReturnPerson){
+          _hlLegendPerson=_calReturnPerson;
+          var leg=document.getElementById('_hl-leg');
+          var legTxt=document.getElementById('_hl-leg-text');
+          if(leg){leg.style.display='flex';}
+          if(legTxt){legTxt.textContent='Férias de '+_hlLegendPerson;}
+        }
+        setTimeout(function(){
+          hlCells.forEach(function(el){
+            el.classList.remove('hl-vac');
+            el.classList.add('hl-vac-out');
+          });
+          setTimeout(function(){
+            hlCells.forEach(function(el){el.classList.remove('hl-vac-out');});
+            // Hide legend entry
+            _hlLegendPerson=null;
+            var leg=document.getElementById('_hl-leg');
+            if(leg)leg.style.display='none';
+          },1100);
+        },holdMs);
+      });
+    });
+  },60);
+}
 function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}_pushState();render();}
 function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}_pushState();render();}
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
-function bootDashboard(){
+function bootDashboard(user){
+  if(user)currentAdminUser=user==='VIEWER'?null:user;
   document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="font-size:14px;color:var(--text-3)">Conectando...</div></div>';
   loadOfficial(function(){
-    loadSim();
-    if(!simData)resetSimToOfficial();
-    mode='simulation';
-    applyData(simData);
+    applyData(officialData);
+    // Re-validate user — match ignoring accents so MARILIA matches MÁRILIA etc.
+    if(currentAdminUser&&currentAdminUser!=='ADMIN'){
+      var normalize=function(s){return s.normalize?s.normalize('NFD').replace(/[\u0300-\u036f]/g,''):s;};
+      var normUser=normalize(currentAdminUser);
+      var matched=getAdminPasswords().find(function(p){return normalize(p)===normUser;});
+      if(matched){currentAdminUser=matched;}else{currentAdminUser=null;}
+    }
     if(location.hash)_applyHash(location.hash);
     _appReady=true;
     _replaceState();
-    statusMsg='Pronto';
     render();
+    window.scrollTo(0,0);
     subscribeOfficial();
   });
 }
@@ -896,10 +1822,11 @@ function bootDashboard(){
 document.getElementById('login-btn').addEventListener('click',checkLogin);
 document.getElementById('login-input').addEventListener('keydown',function(e){if(e.key==='Enter')checkLogin();});
 
-if(sessionStorage.getItem(SESSION_KEY)==='1'){
+var _storedUser=sessionStorage.getItem(SESSION_KEY);
+if(_storedUser){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='';
-  bootDashboard();
+  bootDashboard(_storedUser);
 }else{
   document.getElementById('login-input').focus();
 }
