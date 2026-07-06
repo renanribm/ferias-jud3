@@ -1832,7 +1832,7 @@ function render(){
   h+='<div class="cards">';
   h+='<div class="card"><div class="card-label">Procuradores com férias em '+curYear+'</div><div class="card-val">'+ap+'</div><div class="card-sub">de '+activePeopleForYear(curYear).length+' ativos em '+curYear+'</div></div>';
   h+='<div class="card '+(st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok')+'"><div class="card-label">Pico simultâneo</div><div class="card-val">'+st.maxS+'</div><div class="card-sub">limite: '+LIMIT+'</div></div>';
-  h+='<div class="card '+(st.dOver>0?'danger':'ok')+'"><div class="card-label">Dias acima do limite</div><div class="card-val">'+st.dOver+'</div><div class="card-sub">'+st.dAt4+' dias no limite exato</div></div>';
+  h+='<div class="card '+(st.dOver>0?'danger':'ok')+'"><div class="card-label">Dias acima do limite</div><div class="card-val">'+st.dOver+'</div><div class="card-sub">'+st.dAt4+' '+(st.dAt4===1?'dia':'dias')+' no limite exato</div></div>';
   h+='<div class="card"><div class="card-label">Dias com férias em '+curYear+'</div><div class="card-val">'+st.daysWithVac+'</div><div class="card-sub">dias com ao menos 1 procurador de férias</div></div>';
   h+='</div>';
 
@@ -1849,7 +1849,7 @@ function render(){
 
   // Calendar
   if(curView==='calendar'){
-    var mStatus=mOver>0?'<span style="color:var(--red)">'+mOver+' dias acima do limite</span>':mAt4>0?'<span style="color:var(--amber)">'+mAt4+' dias no limite</span>':'&#10003; Nenhum dia acima do limite neste mês';
+    var mStatus=mOver>0?'<span style="color:var(--red)">'+mOver+' '+(mOver===1?'dia':'dias')+' acima do limite</span>':mAt4>0?'<span style="color:var(--amber)">'+mAt4+' '+(mAt4===1?'dia':'dias')+' no limite</span>':'&#10003; Nenhum dia acima do limite neste mês';
     h+='<div class="month-nav">';
     h+='<button class="btn" onclick="prevM()">&#8592;</button>';
     h+='<div class="month-label">'+MONTHS_PT[curMonth]+' '+curYear+'</div>';
