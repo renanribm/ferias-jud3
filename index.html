@@ -1820,6 +1820,16 @@ function buildPanel(year){
   });
   upcoming.sort(function(a,b){return a.s.localeCompare(b.s);});
 
+  // Returns in next 30 days
+  var returning=[];
+  vacations.forEach(function(v){
+    var endStr=fmt(addDays(v.s,v.d-1));
+    var end=new Date(endStr+'T00:00:00');
+    var diff=(end-now)/86400000;
+    if(diff>0&&diff<=30)returning.push({n:v.n,end:endStr});
+  });
+  returning.sort(function(a,b){return a.end.localeCompare(b.end);});
+
 
   var h='';
 
@@ -1849,6 +1859,20 @@ function buildPanel(year){
   }else{
     h+='<div class="card-val" style="font-size:20px">0</div>';
     h+='<div class="card-sub">Sem saídas nos próximos 30 dias</div>';
+  }
+  h+='</div>';
+
+  // Próximos retornos
+  h+='<div class="card">';
+  h+='<div class="card-label">Próximos retornos (30 dias)</div>';
+  if(returning.length){
+    h+='<div class="card-val">'+returning.length+'</div>';
+    h+='<div class="card-sub">';
+    returning.forEach(function(r){h+=r.n+' · '+fmtBR(r.end)+'<br>';});
+    h+='</div>';
+  }else{
+    h+='<div class="card-val" style="font-size:20px">0</div>';
+    h+='<div class="card-sub">Sem retornos nos próximos 30 dias</div>';
   }
   h+='</div>';
 
@@ -1885,7 +1909,7 @@ function buildPanel(year){
 
   // ── Heatmap mensal compacto ──
   h+='<div style="margin-bottom:28px">';
-  h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Ocupação mensal — '+year+'</div>';
+  h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Pico de férias por mês — '+year+'</div>';
   h+='<div style="display:flex;gap:4px;align-items:flex-end">';
   MONTHS_PT.forEach(function(mName,mi){
     var maxInMonth=0;
@@ -1905,9 +1929,6 @@ function buildPanel(year){
   });
   h+='</div></div>';
 
-  // ── Linha do tempo ──
-  h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:12px">Linha do tempo — '+year+'</div>';
-  h+='<div class="gantt-wrap">'+buildGantt(year)+'</div>';
 
   return h;
 }
