@@ -1585,44 +1585,54 @@ function buildRecessoView(year){
   var active=activePeopleForYear(year);
   var isMe=currentAdminUser&&currentAdminUser!=='ADMIN';
   var myChoice=isMe?choices[currentAdminUser]:null;
-  var natalGroup=active.filter(function(p){return choices[p]==='natal';});
-  var anoNovoGroup=active.filter(function(p){return choices[p]==='ano_novo';});
+  // Grupo 1: trabalha Natal, recesso Ano Novo (choice='ano_novo')
+  // Grupo 2: recesso Natal, trabalha Ano Novo (choice='natal')
+  var grupo1=active.filter(function(p){return choices[p]==='ano_novo';});
+  var grupo2=active.filter(function(p){return choices[p]==='natal';});
   var pending=active.filter(function(p){return !choices[p];});
+
+  // Monta descrição de cada grupo com ou sem datas
+  var natalStr=dates.natal?'de '+dates.natal:'na semana do Natal';
+  var anoNovoStr=dates.ano_novo?'de '+dates.ano_novo:'na semana do Ano Novo';
+  var desc1='trabalha '+natalStr+' &middot; recesso '+anoNovoStr;
+  var desc2='recesso '+natalStr+' &middot; trabalha '+anoNovoStr;
+
   var h='';
 
-  // CTA para quem ainda não escolheu
+  // CTA para quem ainda não indicou preferência
   if(isMe&&!myChoice){
-    h+='<div class="recesso-cta">';
-    h+='<div><div style="font-size:14px;font-weight:500">Registre sua preferência para o recesso de '+year+'</div>';
-    h+='<div style="font-size:12px;color:var(--text-3);margin-top:3px">Você precisará confirmar com sua senha.</div></div>';
-    h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-    h+='<button class="btn" onclick="recessoChoose(\'natal\')">&#127876; Semana do Natal</button>';
-    h+='<button class="btn" onclick="recessoChoose(\'ano_novo\')">&#127881; Semana do Ano Novo</button>';
+    h+='<div style="background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:18px 20px;margin-bottom:20px">';
+    h+='<div style="font-size:14px;font-weight:500;margin-bottom:4px">Indique sua preferência de escala em '+year+'</div>';
+    h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Você precisará confirmar com sua senha.</div>';
+    h+='<div style="display:flex;flex-direction:column;gap:8px">';
+    h+='<button class="btn" style="justify-content:flex-start;text-align:left" onclick="recessoChoose(\'ano_novo\')"><strong style="min-width:58px">Grupo 1</strong><span style="color:var(--text-2)">'+desc1+'</span></button>';
+    h+='<button class="btn" style="justify-content:flex-start;text-align:left" onclick="recessoChoose(\'natal\')"><strong style="min-width:58px">Grupo 2</strong><span style="color:var(--text-2)">'+desc2+'</span></button>';
     h+='</div></div>';
   }
-  // Indicador de escolha atual para procurador
+
+  // Indicador de preferência atual para procurador
   if(isMe&&myChoice){
-    var myLabel=myChoice==='natal'?'Semana do Natal':'Semana do Ano Novo';
-    var otherVal=myChoice==='natal'?'ano_novo':'natal';
-    var otherLabel=myChoice==='natal'?'Semana do Ano Novo':'Semana do Natal';
-    h+='<div style="background:var(--green-bg);border:1px solid #b8dba8;border-radius:var(--r-sm);padding:11px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">';
-    h+='<span style="font-size:13px;color:var(--green)">Sua escolha em '+year+': <strong>'+myLabel+'</strong></span>';
-    h+='<button class="btn sm" onclick="recessoChoose(\''+otherVal+'\')">Alterar para '+otherLabel+'</button>';
-    h+='</div>';
+    var myGrupo=myChoice==='ano_novo'?'Grupo 1':'Grupo 2';
+    var myDesc=myChoice==='ano_novo'?desc1:desc2;
+    var otherVal=myChoice==='ano_novo'?'natal':'ano_novo';
+    var otherGrupo=myChoice==='ano_novo'?'Grupo 2':'Grupo 1';
+    var otherDesc=myChoice==='ano_novo'?desc2:desc1;
+    h+='<div style="background:var(--green-bg);border:1px solid #b8dba8;border-radius:var(--r-sm);padding:11px 16px;margin-bottom:20px">';
+    h+='<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">';
+    h+='<div><div style="font-size:13px;color:var(--green);font-weight:600">Sua preferência: '+myGrupo+'</div>';
+    h+='<div style="font-size:12px;color:var(--green);margin-top:2px">'+myDesc+'</div></div>';
+    h+='<button class="btn sm" onclick="recessoChoose(\''+otherVal+'\')">Alterar para '+otherGrupo+'</button>';
+    h+='</div></div>';
   }
 
   // Dois grupos
   h+='<div class="recesso-cols">';
-  ['natal','ano_novo'].forEach(function(grupo){
-    var isNatal=grupo==='natal';
-    var groupPeople=isNatal?natalGroup:anoNovoGroup;
-    var title=isNatal?'&#127876; Semana do Natal':'&#127881; Semana do Ano Novo';
-    var dateStr=isNatal?dates.natal:dates.ano_novo;
+  [{key:'ao_novo_fixed',val:'ano_novo',num:'Grupo 1',people:grupo1,desc:desc1},{key:'natal',val:'natal',num:'Grupo 2',people:grupo2,desc:desc2}].forEach(function(g){
     h+='<div class="recesso-group">';
-    h+='<div class="recesso-group-title">'+title+'</div>';
-    h+='<div class="recesso-group-dates">'+(dateStr||'&nbsp;')+'</div>';
-    if(groupPeople.length){
-      groupPeople.forEach(function(p){
+    h+='<div class="recesso-group-title">'+g.num+'</div>';
+    h+='<div class="recesso-group-dates" style="margin-bottom:12px">'+g.desc+'</div>';
+    if(g.people.length){
+      g.people.forEach(function(p){
         var mine=p===currentAdminUser;
         h+='<span class="recesso-chip'+(mine?' mine':'')+(isMaster()?' clickable':'')+'"'+(isMaster()?' onclick="recessoChangePerson(\''+p+'\')" title="Clique para alterar"':'')+'>'+
            '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+
@@ -1630,7 +1640,7 @@ function buildRecessoView(year){
            '</span>';
       });
     }else{
-      h+='<div style="font-size:12px;color:var(--text-3);padding:6px 0">Nenhuma escolha ainda.</div>';
+      h+='<div style="font-size:12px;color:var(--text-3);padding:6px 0">Nenhuma preferência ainda.</div>';
     }
     h+='</div>';
   });
@@ -1639,7 +1649,7 @@ function buildRecessoView(year){
   // Pendentes
   if(pending.length){
     h+='<div class="recesso-pending">';
-    h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Aguardando escolha ('+pending.length+')</div>';
+    h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Aguardando indicação ('+pending.length+')</div>';
     pending.forEach(function(p){
       h+='<span class="recesso-chip'+(isMaster()?' clickable':'')+'"'+(isMaster()?' onclick="recessoChangePerson(\''+p+'\')"':'')+'>'+
          '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+'</span>';
@@ -1650,7 +1660,7 @@ function buildRecessoView(year){
   // Rodapé master
   if(isMaster()){
     h+='<div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
-    h+='<span style="font-size:12px;color:var(--text-3)">'+natalGroup.length+' Natal &middot; '+anoNovoGroup.length+' Ano Novo &middot; '+pending.length+' pendente'+(pending.length!==1?'s':'')+'</span>';
+    h+='<span style="font-size:12px;color:var(--text-3)">'+grupo1.length+' no Grupo 1 &middot; '+grupo2.length+' no Grupo 2 &middot; '+pending.length+' pendente'+(pending.length!==1?'s':'')+'</span>';
     h+='<button class="btn sm" onclick="showRecessoDatesModal('+year+')">&#9998; Definir datas das semanas</button>';
     h+='</div>';
   }
