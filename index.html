@@ -1620,8 +1620,8 @@ function buildRecessoView(year){
 
   var h='<div class="recesso-cols">';
 
-  [{emoji:'&#127876;',label:'Grupo 1',val:'ano_novo',people:grupo1,desc:desc1},
-   {emoji:'&#127881;',label:'Grupo 2',val:'natal',   people:grupo2,desc:desc2}
+  [{emoji:'&#127881;',label:'Grupo 1',val:'ano_novo',people:grupo1,desc:desc1},
+   {emoji:'&#127876;',label:'Grupo 2',val:'natal',   people:grupo2,desc:desc2}
   ].forEach(function(g){
     var isMine=myChoice===g.val;
     var otherVal=g.val==='ano_novo'?'natal':'ano_novo';
