@@ -202,6 +202,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .btn-mobile-hide{display:none}
   .btn-mobile-show{display:inline}
 }
+.section-toggle{display:flex;gap:4px;margin-bottom:20px}
+.stab{padding:6px 18px;border-radius:20px;border:1px solid var(--border);font-size:13px;cursor:pointer;color:var(--text-2);background:var(--surface);font-family:'DM Sans',sans-serif;transition:all .12s}
+.stab:hover{border-color:var(--border-md);color:var(--text)}
+.stab.active{background:var(--accent);color:#fff;border-color:transparent;font-weight:500}
+.recesso-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:600px){.recesso-cols{grid-template-columns:1fr}}
+.recesso-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.recesso-group-title{font-size:14px;font-weight:600;margin-bottom:3px}
+.recesso-group-dates{font-size:12px;color:var(--text-3);margin-bottom:12px}
+.recesso-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;font-size:12px;font-weight:500;margin:3px 3px 0 0}
+.recesso-chip.mine{border-color:var(--accent);background:#f0f0ea}
+.recesso-chip.clickable{cursor:pointer}
+.recesso-chip.clickable:hover{border-color:var(--border-md);background:#e8e8e2}
+.recesso-pending{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-top:4px}
+.recesso-cta{background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -242,6 +257,7 @@ firebase.initializeApp({
 });
 var _db = firebase.firestore();
 var _docRef = _db.collection("jud3").doc("oficial");
+var _recessoRef = _db.collection("jud3").doc("recesso");
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 var YEARS=[2026,2027,2028,2029,2030];
@@ -363,6 +379,10 @@ var curYear=2026,curMonth=new Date().getMonth(),curView='calendar';
 var lastSaved=null,lastSavedBy=null,statusMsg='';
 var _unsub=null;
 var currentAdminUser=null;
+var curSection='ferias';
+var curRecessoYear=(new Date().getFullYear()>=2026&&new Date().getFullYear()<=2030)?new Date().getFullYear():2026;
+var recessoChoices={};
+var recessoDates={};
 // Preview state
 var previewVac=null; // {n, s, d} — vacation being previewed, not yet saved
 var _welcomeDismissed=false; // shown once per session
@@ -522,6 +542,38 @@ function activePeopleForYear(year){
   }).map(function(p){return p.n;});
 }
 function saveData(msg){saveOfficial(msg||'✓ Férias salvas com sucesso');}
+
+// ── Recesso Firebase ────────────────────────────────────────────────────────────
+function saveRecesso(){
+  var savedBy=currentAdminUser||'ADMIN';
+  _recessoRef.set({
+    choices:JSON.stringify(recessoChoices),
+    dates:JSON.stringify(recessoDates),
+    savedAt:new Date().toISOString(),
+    savedBy:savedBy
+  }).then(function(){
+    showToast('✓ Recesso salvo');
+  }).catch(function(e){showToast('Erro ao salvar recesso: '+e.message);});
+}
+function loadRecesso(cb){
+  _recessoRef.get().then(function(snap){
+    if(snap.exists){
+      var d=snap.data();
+      try{recessoChoices=JSON.parse(d.choices||'{}');}catch(e){recessoChoices={};}
+      try{recessoDates=JSON.parse(d.dates||'{}');}catch(e){recessoDates={};}
+    }
+    if(cb)cb();
+  }).catch(function(){if(cb)cb();});
+}
+function subscribeRecesso(){
+  _recessoRef.onSnapshot(function(snap){
+    if(!snap.exists)return;
+    var d=snap.data();
+    try{recessoChoices=JSON.parse(d.choices||'{}');}catch(e){recessoChoices={};}
+    try{recessoDates=JSON.parse(d.dates||'{}');}catch(e){recessoDates={};}
+    if(curSection==='recesso')render();
+  },function(err){console.warn('Recesso sync error:',err);});
+}
 
 function showToast(msg){
   var t=document.getElementById('_toast');
@@ -1466,6 +1518,145 @@ function buildConflictsView(year){
   return h+'</div>';
 }
 
+// ── Recesso UI ─────────────────────────────────────────────────────────────────
+function setSection(s){curSection=s;render();}
+function setRecessoYear(y){curRecessoYear=y;render();}
+
+function recessoChoose(choice){
+  requireAdminConfirm(function(){
+    if(!recessoChoices[curRecessoYear])recessoChoices[curRecessoYear]={};
+    recessoChoices[curRecessoYear][currentAdminUser]=choice;
+    saveRecesso();render();
+  });
+}
+function recessoSetFor(personName,choice){
+  closeModal();
+  requireAdminConfirm(function(){
+    if(!recessoChoices[curRecessoYear])recessoChoices[curRecessoYear]={};
+    recessoChoices[curRecessoYear][personName]=choice;
+    saveRecesso();render();
+  });
+}
+function recessoChangePerson(personName){
+  var cur=recessoChoices[curRecessoYear]&&recessoChoices[curRecessoYear][personName];
+  if(!cur){
+    openModal(
+      '<h3>Definir recesso de '+personName+'</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 16px">Selecione a semana de recesso para <strong>'+personName+'</strong> em '+curRecessoYear+':</p>'+
+      '<div class="mbtns" style="justify-content:flex-start;gap:8px">'+
+      '<button class="btn primary" onclick="recessoSetFor(\''+personName+'\',\'natal\')">Semana do Natal</button>'+
+      '<button class="btn" onclick="recessoSetFor(\''+personName+'\',\'ano_novo\')">Semana do Ano Novo</button>'+
+      '<button class="btn" onclick="closeModal()">Cancelar</button></div>'
+    );
+  } else {
+    var other=cur==='natal'?'ano_novo':'natal';
+    var otherLabel=cur==='natal'?'Semana do Ano Novo':'Semana do Natal';
+    openModal(
+      '<h3>Alterar recesso de '+personName+'</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 16px">Mover <strong>'+personName+'</strong> para <strong>'+otherLabel+'</strong> em '+curRecessoYear+'?</p>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn primary" onclick="recessoSetFor(\''+personName+'\',\''+other+'\')">Confirmar</button></div>'
+    );
+  }
+}
+function showRecessoDatesModal(year){
+  var dates=recessoDates[year]||{};
+  openModal(
+    '<h3>Datas do recesso '+year+'</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:4px 0 16px">Informe as datas de cada semana (exibição informativa).</p>'+
+    '<div class="field"><label>Semana do Natal</label><input type="text" id="rd-natal" placeholder="ex: 23 a 27/dez" value="'+(dates.natal||'')+'"></div>'+
+    '<div class="field"><label>Semana do Ano Novo</label><input type="text" id="rd-anonovo" placeholder="ex: 30/dez a 03/jan" value="'+(dates.ano_novo||'')+'"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="saveRecessoDatesConfirm('+year+')">Salvar</button></div>'
+  );
+}
+function saveRecessoDatesConfirm(year){
+  var n=(document.getElementById('rd-natal').value||'').trim();
+  var a=(document.getElementById('rd-anonovo').value||'').trim();
+  if(!recessoDates[year])recessoDates[year]={};
+  if(n)recessoDates[year].natal=n;else delete recessoDates[year].natal;
+  if(a)recessoDates[year].ano_novo=a;else delete recessoDates[year].ano_novo;
+  closeModal();saveRecesso();render();
+}
+
+function buildRecessoView(year){
+  var choices=recessoChoices[year]||{};
+  var dates=recessoDates[year]||{};
+  var active=activePeopleForYear(year);
+  var isMe=currentAdminUser&&currentAdminUser!=='ADMIN';
+  var myChoice=isMe?choices[currentAdminUser]:null;
+  var natalGroup=active.filter(function(p){return choices[p]==='natal';});
+  var anoNovoGroup=active.filter(function(p){return choices[p]==='ano_novo';});
+  var pending=active.filter(function(p){return !choices[p];});
+  var h='';
+
+  // CTA para quem ainda não escolheu
+  if(isMe&&!myChoice){
+    h+='<div class="recesso-cta">';
+    h+='<div><div style="font-size:14px;font-weight:500">Registre sua preferência para o recesso de '+year+'</div>';
+    h+='<div style="font-size:12px;color:var(--text-3);margin-top:3px">Você precisará confirmar com sua senha.</div></div>';
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    h+='<button class="btn primary" onclick="recessoChoose(\'natal\')">&#127876; Semana do Natal</button>';
+    h+='<button class="btn" onclick="recessoChoose(\'ano_novo\')">&#127881; Semana do Ano Novo</button>';
+    h+='</div></div>';
+  }
+  // Indicador de escolha atual para procurador
+  if(isMe&&myChoice){
+    var myLabel=myChoice==='natal'?'Semana do Natal':'Semana do Ano Novo';
+    var otherVal=myChoice==='natal'?'ano_novo':'natal';
+    var otherLabel=myChoice==='natal'?'Semana do Ano Novo':'Semana do Natal';
+    h+='<div style="background:var(--green-bg);border:1px solid #b8dba8;border-radius:var(--r-sm);padding:11px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">';
+    h+='<span style="font-size:13px;color:var(--green)">Sua escolha em '+year+': <strong>'+myLabel+'</strong></span>';
+    h+='<button class="btn sm" onclick="recessoChoose(\''+otherVal+'\')">Alterar para '+otherLabel+'</button>';
+    h+='</div>';
+  }
+
+  // Dois grupos
+  h+='<div class="recesso-cols">';
+  ['natal','ano_novo'].forEach(function(grupo){
+    var isNatal=grupo==='natal';
+    var groupPeople=isNatal?natalGroup:anoNovoGroup;
+    var title=isNatal?'&#127876; Semana do Natal':'&#127881; Semana do Ano Novo';
+    var dateStr=isNatal?dates.natal:dates.ano_novo;
+    h+='<div class="recesso-group">';
+    h+='<div class="recesso-group-title">'+title+'</div>';
+    h+='<div class="recesso-group-dates">'+(dateStr||'&nbsp;')+'</div>';
+    if(groupPeople.length){
+      groupPeople.forEach(function(p){
+        var mine=p===currentAdminUser;
+        h+='<span class="recesso-chip'+(mine?' mine':'')+(isMaster()?' clickable':'')+'"'+(isMaster()?' onclick="recessoChangePerson(\''+p+'\')" title="Clique para alterar"':'')+'>'+
+           '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+
+           (isMaster()?' <span style="font-size:10px;color:var(--text-3);margin-left:2px">&#8646;</span>':'')+
+           '</span>';
+      });
+    }else{
+      h+='<div style="font-size:12px;color:var(--text-3);padding:6px 0">Nenhuma escolha ainda.</div>';
+    }
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Pendentes
+  if(pending.length){
+    h+='<div class="recesso-pending">';
+    h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Aguardando escolha ('+pending.length+')</div>';
+    pending.forEach(function(p){
+      h+='<span class="recesso-chip'+(isMaster()?' clickable':'')+'"'+(isMaster()?' onclick="recessoChangePerson(\''+p+'\')"':'')+'>'+
+         '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+'</span>';
+    });
+    h+='</div>';
+  }
+
+  // Rodapé master
+  if(isMaster()){
+    h+='<div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
+    h+='<span style="font-size:12px;color:var(--text-3)">'+natalGroup.length+' Natal &middot; '+anoNovoGroup.length+' Ano Novo &middot; '+pending.length+' pendente'+(pending.length!==1?'s':'')+'</span>';
+    h+='<button class="btn sm" onclick="showRecessoDatesModal('+year+')">&#9998; Definir datas das semanas</button>';
+    h+='</div>';
+  }
+  return h;
+}
+
 // ── Render ─────────────────────────────────────────────────────────────────────
 function renderStatus(){
   var el=document.getElementById('statusbar');
@@ -1583,10 +1774,26 @@ function render(){
     }
   }
 
-  // Year tabs
-  h+='<div class="year-tabs">';
-  YEARS.forEach(function(y){h+='<button class="ytab'+(y===curYear?' active':'')+'" onclick="setYear('+y+')">'+y+'</button>';});
+  // Section toggle
+  h+='<div class="section-toggle">';
+  h+='<button class="stab'+(curSection==='ferias'?' active':'')+'" onclick="setSection(\'ferias\')">Férias</button>';
+  h+='<button class="stab'+(curSection==='recesso'?' active':'')+'" onclick="setSection(\'recesso\')">Recesso</button>';
   h+='</div>';
+
+  // Year tabs
+  if(curSection==='ferias'){
+    h+='<div class="year-tabs">';
+    YEARS.forEach(function(y){h+='<button class="ytab'+(y===curYear?' active':'')+'" onclick="setYear('+y+')">'+y+'</button>';});
+    h+='</div>';
+  }else{
+    h+='<div class="year-tabs">';
+    YEARS.forEach(function(y){h+='<button class="ytab'+(y===curRecessoYear?' active':'')+'" onclick="setRecessoYear('+y+')">'+y+'</button>';});
+    h+='</div>';
+    h+=buildRecessoView(curRecessoYear);
+    h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' por '+(lastSavedBy||'?'):statusMsg)+'</div>';
+    document.getElementById('app').innerHTML=h;
+    return;
+  }
 
   // Cards
   h+='<div class="cards">';
@@ -1791,9 +1998,12 @@ function bootDashboard(user){
       var matched=getAdminPasswords().find(function(p){return normalize(p)===normUser;});
       if(matched){currentAdminUser=matched;}else{currentAdminUser=null;}
     }
-    render();
-    window.scrollTo(0,0);
-    subscribeOfficial();
+    loadRecesso(function(){
+      render();
+      window.scrollTo(0,0);
+      subscribeOfficial();
+      subscribeRecesso();
+    });
   });
 }
 
