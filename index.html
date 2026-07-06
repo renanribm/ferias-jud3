@@ -1803,7 +1803,6 @@ function buildRecessoView(year){
 }
 
 function buildPanel(year){
-  var todayStr=fmt(new Date());
   var dm=buildDayMap(year);
   var st=getStats(year);
   var active=activePeopleForYear(year);
@@ -1811,83 +1810,17 @@ function buildPanel(year){
   var apSet={};Object.keys(dm).forEach(function(k){dm[k].forEach(function(n){apSet[n]=1;});});
   var ap=Object.keys(apSet).length;
 
-  // Who's on vacation today
-  var onVacToday=(dm[todayStr]||[]).slice();
-
-  // Upcoming vacations in next 30 days
-  var upcoming=[];
-  vacations.forEach(function(v){
-    if(v.s.slice(0,4)!==String(year))return;
-    var start=new Date(v.s+'T00:00:00');
-    var diff=(start-now)/86400000;
-    if(diff>0&&diff<=30)upcoming.push(v);
-  });
-  upcoming.sort(function(a,b){return a.s.localeCompare(b.s);});
-
-  // Returns in next 30 days
-  var returning=[];
-  vacations.forEach(function(v){
-    var endStr=fmt(addDays(v.s,v.d-1));
-    var end=new Date(endStr+'T00:00:00');
-    var diff=(end-now)/86400000;
-    if(diff>0&&diff<=30)returning.push({n:v.n,end:endStr});
-  });
-  returning.sort(function(a,b){return a.end.localeCompare(b.end);});
-
-
   var h='';
 
-  // ── Cards de resumo ──
+  // ── Cards ──
   h+='<div class="cards" style="margin-bottom:24px">';
 
-  // De férias hoje
-  h+='<div class="card">';
-  h+='<div class="card-label">De férias hoje</div>';
-  if(onVacToday.length){
-    h+='<div class="card-val">'+onVacToday.length+'</div>';
-    h+='<div class="card-sub">'+onVacToday.join(', ')+'</div>';
-  }else{
-    h+='<div class="card-val" style="font-size:20px">0</div>';
-    h+='<div class="card-sub">Nenhum procurador de férias hoje</div>';
-  }
-  h+='</div>';
-
-  // Próximas saídas
-  h+='<div class="card">';
-  h+='<div class="card-label">Próximas saídas (30 dias)</div>';
-  if(upcoming.length){
-    h+='<div class="card-val">'+upcoming.length+'</div>';
-    h+='<div class="card-sub">';
-    upcoming.forEach(function(v){h+=v.n+' · '+fmtBR(v.s)+'<br>';});
-    h+='</div>';
-  }else{
-    h+='<div class="card-val" style="font-size:20px">0</div>';
-    h+='<div class="card-sub">Sem saídas nos próximos 30 dias</div>';
-  }
-  h+='</div>';
-
-  // Próximos retornos
-  h+='<div class="card">';
-  h+='<div class="card-label">Próximos retornos (30 dias)</div>';
-  if(returning.length){
-    h+='<div class="card-val">'+returning.length+'</div>';
-    h+='<div class="card-sub">';
-    returning.forEach(function(r){h+=r.n+' · '+fmtBR(r.end)+'<br>';});
-    h+='</div>';
-  }else{
-    h+='<div class="card-val" style="font-size:20px">0</div>';
-    h+='<div class="card-sub">Sem retornos nos próximos 30 dias</div>';
-  }
-  h+='</div>';
-
-  // Procuradores com férias
   h+='<div class="card">';
   h+='<div class="card-label">Procuradores com férias em '+year+'</div>';
   h+='<div class="card-val">'+ap+'</div>';
   h+='<div class="card-sub">de '+active.length+' ativos em '+year+'</div>';
   h+='</div>';
 
-  // Pico simultâneo
   var peakClass=st.maxS>LIMIT?'danger':st.maxS===LIMIT?'warn':'ok';
   h+='<div class="card '+peakClass+'">';
   h+='<div class="card-label">Pico simultâneo em '+year+'</div>';
@@ -1895,14 +1828,12 @@ function buildPanel(year){
   h+='<div class="card-sub">limite: '+LIMIT+' &middot; '+st.dOver+' dia'+(st.dOver!==1?'s':'')+' acima</div>';
   h+='</div>';
 
-  // Dias acima do limite
   h+='<div class="card '+(st.dOver>0?'danger':'ok')+'">';
   h+='<div class="card-label">Dias acima do limite</div>';
   h+='<div class="card-val">'+st.dOver+'</div>';
   h+='<div class="card-sub">'+st.dAt4+' '+(st.dAt4===1?'dia':'dias')+' no limite exato</div>';
   h+='</div>';
 
-  // Dias com férias
   h+='<div class="card">';
   h+='<div class="card-label">Dias com férias em '+year+'</div>';
   h+='<div class="card-val">'+st.daysWithVac+'</div>';
