@@ -362,7 +362,6 @@ var vacations=[],people=[];
 var curYear=2026,curMonth=new Date().getMonth(),curView='calendar';
 var lastSaved=null,lastSavedBy=null,statusMsg='';
 var _unsub=null;
-var _appReady=false;
 var currentAdminUser=null;
 // Preview state
 var previewVac=null; // {n, s, d} — vacation being previewed, not yet saved
@@ -1708,25 +1707,8 @@ function render(){
   if(window.innerWidth<=640)window.scrollTo({top:0,behavior:'instant'});
 }
 
-// ── Hash routing ───────────────────────────────────────────────────────────────
-function _stateToHash(){return '#'+curYear+'/'+curView+'/'+curMonth;}
-function _pushState(){history.pushState({year:curYear,view:curView,month:curMonth},'',_stateToHash());}
-function _replaceState(){history.replaceState({year:curYear,view:curView,month:curMonth},'',_stateToHash());}
-function _applyHash(hash){
-  var parts=(hash||'').replace('#','').split('/');
-  var y=parseInt(parts[0]);if(YEARS.indexOf(y)>=0)curYear=y;
-  var v=parts[1];if(['calendar','gantt','people','conflicts'].indexOf(v)>=0)curView=v;
-  var m=parseInt(parts[2]);if(m>=0&&m<=11)curMonth=m;
-}
-window.addEventListener('popstate',function(e){
-  if(!_appReady)return;
-  if(e.state){curYear=e.state.year;curView=e.state.view;curMonth=e.state.month;}
-  else{_applyHash(location.hash);}
-  render();
-});
-
-function setYear(y){curYear=y;_pushState();render();}
-function setView(v){if(v!=='calendar'){calSearch='';_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;_pushState();render();}
+function setYear(y){curYear=y;render();}
+function setView(v){if(v!=='calendar'){calSearch='';_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;render();}
 function _setReturnPerson(p){
   _calReturnPerson=p;
   if(_calReturnTimer)clearTimeout(_calReturnTimer);
@@ -1793,8 +1775,8 @@ function goToCalendarDate(year,month,vacStart,vacDays,hlDuration){
     });
   },60);
 }
-function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}_pushState();render();}
-function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}_pushState();render();}
+function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}render();}
+function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}render();}
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 function bootDashboard(user){
@@ -1809,9 +1791,6 @@ function bootDashboard(user){
       var matched=getAdminPasswords().find(function(p){return normalize(p)===normUser;});
       if(matched){currentAdminUser=matched;}else{currentAdminUser=null;}
     }
-    if(location.hash)_applyHash(location.hash);
-    _appReady=true;
-    _replaceState();
     render();
     window.scrollTo(0,0);
     subscribeOfficial();
