@@ -1668,7 +1668,7 @@ function recessoChangePerson(personName){
     openModal(
       '<h3>Escala de recesso — '+personName+'</h3>'+
       '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Selecione a escala de <strong>'+personName+'</strong> em '+curRecessoYear+':</p>'+
-      makeCard('&#127881;','Grupo 1','ano_novo',natalStr,anoNovoStr)+
+      makeCard('&#127878;','Grupo 1','ano_novo',natalStr,anoNovoStr)+
       makeCard('&#127876;','Grupo 2','natal',anoNovoStr,natalStr)+
       '<div class="mbtns" style="margin-top:4px"><button class="btn" onclick="closeModal()">Cancelar</button></div>'
     );
@@ -1676,8 +1676,8 @@ function recessoChangePerson(personName){
     var other=cur==='natal'?'ano_novo':'natal';
     var curGrupo=cur==='natal'?'Grupo 2':'Grupo 1';
     var otherGrupo=cur==='natal'?'Grupo 1':'Grupo 2';
-    var curEmoji=cur==='natal'?'&#127876;':'&#127881;';
-    var otherEmoji=cur==='natal'?'&#127881;':'&#127876;';
+    var curEmoji=cur==='natal'?'&#127876;':'&#127878;';
+    var otherEmoji=cur==='natal'?'&#127878;':'&#127876;';
     var curTrab=cur==='natal'?anoNovoStr:natalStr;
     var curRec=cur==='natal'?natalStr:anoNovoStr;
     var othTrab=cur==='natal'?natalStr:anoNovoStr;
@@ -1734,7 +1734,7 @@ function buildRecessoView(year){
 
   var h='<div class="recesso-cols">';
 
-  [{emoji:'&#127881;',label:'Grupo 1',val:'ano_novo',people:grupo1,desc:desc1},
+  [{emoji:'&#127878;',label:'Grupo 1',val:'ano_novo',people:grupo1,desc:desc1},
    {emoji:'&#127876;',label:'Grupo 2',val:'natal',   people:grupo2,desc:desc2}
   ].forEach(function(g){
     var isMine=myChoice===g.val;
