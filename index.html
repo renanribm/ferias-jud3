@@ -1523,7 +1523,7 @@ function setSection(s){curSection=s;render();}
 function setRecessoYear(y){curRecessoYear=y;render();}
 
 function recessoChoose(choice){
-  requireAdminConfirm(function(){
+  adminConfirm(function(){
     if(!recessoChoices[curRecessoYear])recessoChoices[curRecessoYear]={};
     recessoChoices[curRecessoYear][currentAdminUser]=choice;
     saveRecesso();render();
@@ -1531,7 +1531,7 @@ function recessoChoose(choice){
 }
 function recessoSetFor(personName,choice){
   closeModal();
-  requireAdminConfirm(function(){
+  adminConfirm(function(){
     if(!recessoChoices[curRecessoYear])recessoChoices[curRecessoYear]={};
     recessoChoices[curRecessoYear][personName]=choice;
     saveRecesso();render();
@@ -1596,7 +1596,7 @@ function buildRecessoView(year){
     h+='<div><div style="font-size:14px;font-weight:500">Registre sua preferência para o recesso de '+year+'</div>';
     h+='<div style="font-size:12px;color:var(--text-3);margin-top:3px">Você precisará confirmar com sua senha.</div></div>';
     h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-    h+='<button class="btn primary" onclick="recessoChoose(\'natal\')">&#127876; Semana do Natal</button>';
+    h+='<button class="btn" onclick="recessoChoose(\'natal\')">&#127876; Semana do Natal</button>';
     h+='<button class="btn" onclick="recessoChoose(\'ano_novo\')">&#127881; Semana do Ano Novo</button>';
     h+='</div></div>';
   }
