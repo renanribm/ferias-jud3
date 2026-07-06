@@ -1875,7 +1875,7 @@ function renderStatus(){
   if(!el)return;
   var txt=statusMsg;
   if(lastSaved){
-    txt='Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR');
+    txt='Última atualização:'+lastSaved.toLocaleString('pt-BR');
     if(lastSavedBy)txt+=' — por '+lastSavedBy;
   }
   el.innerHTML=txt;
@@ -2111,7 +2111,7 @@ function render(){
 
   var statusTxt=statusMsg;
   if(lastSaved){
-    statusTxt='Última atualização dos dados oficiais: '+lastSaved.toLocaleString('pt-BR');
+    statusTxt='Última atualização:'+lastSaved.toLocaleString('pt-BR');
     if(lastSavedBy)statusTxt+=' — por '+lastSavedBy;
   }
   h+='<div class="statusbar" id="statusbar">'+statusTxt+'</div>';
