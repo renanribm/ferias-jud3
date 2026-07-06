@@ -733,7 +733,6 @@ function buildConflictRows(year){
 
 function exportXLS(year){
   var years=year==='todos'?YEARS:[parseInt(year)];
-  var modeLabel='Dados Oficiais';
   var tbl='<html><head><meta charset="UTF-8"></head><body>';
 
   years.forEach(function(y){
@@ -745,21 +744,18 @@ function exportXLS(year){
     if(!src.length)return;
     src=src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);});
 
-    // Conflict check for this year
     var cDays=buildConflictRows(y);
+    var dm2=buildDayMap(y);
     var conflictStatus=cDays.length>0?
       'ATENÇÃO: '+cDays.length+' dia(s) com mais de '+LIMIT+' férias simultâneas em '+y+'.':
-      'Sem conflitos: todos os períodos respeitam o limite de '+LIMIT+' férias simultâneas em '+y+'.';
+      'Sem dias acima do limite de '+LIMIT+' férias simultâneas em '+y+'.';
 
-    tbl+='<h2 style="font-family:Arial">Controle de Férias — PGM/SP JUD-3 — '+y+' ('+modeLabel+')</h2>';
+    tbl+='<h2 style="font-family:Arial">Controle de Férias — PGM/SP JUD-3 — '+y+'</h2>';
     tbl+='<p style="font-family:Arial;color:'+(cDays.length>0?'#8a1a1a':'#1a7a4a')+'"><b>'+conflictStatus+'</b></p>';
 
     if(cDays.length>0){
-      tbl+='<p style="font-family:Arial;color:#8a1a1a">Dias em conflito: ';
-      tbl+=cDays.map(function(d){
-        var dm2=buildDayMap(y);
-        return fmtBR(d)+' ('+dm2[d].join(', ')+')';
-      }).join(' | ');
+      tbl+='<p style="font-family:Arial;color:#8a1a1a">Dias acima do limite: ';
+      tbl+=cDays.map(function(d){return fmtBR(d)+' ('+dm2[d].join(', ')+')';}).join(' | ');
       tbl+='</p>';
     }
 
@@ -768,22 +764,21 @@ function exportXLS(year){
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Dias de férias</th>';
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Data de início</th>';
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Data de término</th>';
-    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Conflito?</th></tr>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Acima do limite ('+LIMIT+')?</th></tr>';
 
     src.forEach(function(v){
-      // Check if this vacation overlaps any conflict day
-      var hasConflict=false;
+      var maxCount=0;
       for(var i=0;i<v.d;i++){
         var k=fmt(addDays(v.s,i));
-        if(cDays.indexOf(k)>=0){hasConflict=true;break;}
+        if(cDays.indexOf(k)>=0&&dm2[k]&&dm2[k].length>maxCount)maxCount=dm2[k].length;
       }
-      var rowColor=hasConflict?'background:#fae8e8':'';
+      var rowColor=maxCount>0?'background:#fae8e8':'';
       tbl+='<tr style="'+rowColor+'">';
       tbl+='<td style="padding:5px 10px">'+v.n+'</td>';
       tbl+='<td style="padding:5px 10px;text-align:center">'+v.d+'</td>';
       tbl+='<td style="padding:5px 10px">'+fmtBR(v.s)+'</td>';
       tbl+='<td style="padding:5px 10px">'+fmtBR(fmt(addDays(v.s,v.d-1)))+'</td>';
-      tbl+='<td style="padding:5px 10px;text-align:center;color:'+(hasConflict?'#8a1a1a':'#1a7a4a')+'">'+(hasConflict?'⚠ Sim':'✓ Não')+'</td>';
+      tbl+='<td style="padding:5px 10px;text-align:center;color:'+(maxCount>0?'#8a1a1a':'#1a7a4a')+'">'+(maxCount>0?'⚠ Sim ('+maxCount+' em férias)':'✓ Não')+'</td>';
       tbl+='</tr>';
     });
     tbl+='</table><br><br>';
@@ -793,13 +788,12 @@ function exportXLS(year){
   var blob=new Blob([tbl],{type:'application/vnd.ms-excel;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   var ysuffix=year==='todos'?'todos_os_anos':String(year);
-  a.download='ferias_jud3_'+ysuffix+'_'+'oficial'+'.xls';
+  a.download='ferias_jud3_'+ysuffix+'.xls';
   a.click();
 }
 
 function exportCSV(year){
   var years=year==='todos'?YEARS:[parseInt(year)];
-  var modeLabel='Dados Oficiais';
   var lines=[];
 
   years.forEach(function(y){
@@ -812,22 +806,25 @@ function exportCSV(year){
     src=src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);});
 
     var cDays=buildConflictRows(y);
+    var dm2=buildDayMap(y);
     var conflictStatus=cDays.length>0?
       'ATENCAO: '+cDays.length+' dia(s) com mais de '+LIMIT+' ferias simultaneas em '+y:
-      'Sem conflitos em '+y+': limite de '+LIMIT+' ferias simultaneas respeitado';
+      'Sem dias acima do limite de '+LIMIT+' ferias simultaneas em '+y;
 
-    lines.push('"Controle de Ferias - PGM/SP JUD-3 - '+y+' ('+modeLabel+')"');
+    lines.push('"Controle de Ferias - PGM/SP JUD-3 - '+y+'"');
     lines.push('"'+conflictStatus+'"');
     if(cDays.length>0){
-      var dm2=buildDayMap(y);
-      lines.push('"Dias em conflito: '+cDays.map(function(d){return fmtBR(d)+' ('+dm2[d].join('+')+')';}).join(' | ')+'"');
+      lines.push('"Dias acima do limite: '+cDays.map(function(d){return fmtBR(d)+' ('+dm2[d].join('+')+')';}).join(' | ')+'"');
     }
     lines.push('');
-    lines.push('"Procurador";"Dias de ferias";"Data de inicio";"Data de termino";"Conflito?"');
+    lines.push('"Procurador";"Dias de ferias";"Data de inicio";"Data de termino";"Acima do limite ('+LIMIT+')?"');
     src.forEach(function(v){
-      var hasConflict=false;
-      for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(cDays.indexOf(k)>=0){hasConflict=true;break;}}
-      lines.push('"'+v.n+'";"'+v.d+'";"'+fmtBR(v.s)+'";"'+fmtBR(fmt(addDays(v.s,v.d-1)))+'";"'+(hasConflict?'SIM':'NAO')+'"');
+      var maxCount=0;
+      for(var i=0;i<v.d;i++){
+        var k=fmt(addDays(v.s,i));
+        if(cDays.indexOf(k)>=0&&dm2[k]&&dm2[k].length>maxCount)maxCount=dm2[k].length;
+      }
+      lines.push('"'+v.n+'";"'+v.d+'";"'+fmtBR(v.s)+'";"'+fmtBR(fmt(addDays(v.s,v.d-1)))+'";"'+(maxCount>0?'SIM ('+maxCount+' EM FERIAS)':'NAO')+'"');
     });
     lines.push('');lines.push('');
   });
@@ -836,7 +833,7 @@ function exportCSV(year){
   var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);
   var ysuffix=year==='todos'?'todos_os_anos':String(year);
-  a.download='ferias_jud3_'+ysuffix+'_'+'oficial'+'.csv';
+  a.download='ferias_jud3_'+ysuffix+'.csv';
   a.click();
 }
 
