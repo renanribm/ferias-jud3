@@ -1664,13 +1664,18 @@ function buildRecessoView(year){
 
   h+='</div>';
 
-  // Pendentes — apenas para master
-  if(isMaster()&&pending.length){
+  // Pendentes — visível para todos, clicável apenas para master
+  if(pending.length){
     h+='<div class="recesso-pending">';
     h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Aguardando indicação ('+pending.length+')</div>';
     pending.forEach(function(p){
-      h+='<span class="recesso-chip clickable" onclick="recessoChangePerson(\''+p+'\')">'+
-         '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+'</span>';
+      if(isMaster()){
+        h+='<span class="recesso-chip clickable" onclick="recessoChangePerson(\''+p+'\')">'+
+           '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+'</span>';
+      } else {
+        h+='<span class="recesso-chip">'+
+           '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+p+'</span>';
+      }
     });
     h+='</div>';
   }
