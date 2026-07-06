@@ -224,7 +224,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 <div id="login-screen">
   <div class="login-box">
     <div class="login-mark">JUD3</div>
-    <div class="login-title">Controle de Férias</div>
+    <div class="login-title">Controle de Férias e Recesso</div>
     <div class="login-sub">PGM/SP JUD-3 &middot; Acesso restrito</div>
     <div class="login-field">
       <label for="login-input">Senha de acesso</label>
@@ -1740,7 +1740,7 @@ function render(){
   // Topbar
   h+='<div class="topbar">';
   h+='<div class="logo"><div class="logo-mark">JUD3</div>';
-  h+='<div><div class="logo-text">Controle de Férias</div>';
+  h+='<div><div class="logo-text">Controle de Férias e Recesso</div>';
   h+='<div class="logo-sub">PGM/SP JUD-3 &middot; '+YEARS[0]+'&ndash;'+YEARS[YEARS.length-1]+'</div></div></div>';
   h+='<div class="topbar-right">';
   h+='<button class="btn export" onclick="showExportModal()"><span class="btn-mobile-hide">&#8595; Exportar</span><span class="btn-mobile-show">&#8595;</span></button>';
@@ -1752,7 +1752,7 @@ function render(){
   h+='</div></div>';
 
   // Welcome banner — shown once per session for non-master users
-  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac&&!_welcomeDismissed){
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac&&!_welcomeDismissed&&curSection==='ferias'){
     h+='<div class="welcome-banner">';
     h+='<div class="welcome-banner-text">';
     h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="var(--blue)" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="var(--blue)" stroke-width="1.4" stroke-linecap="round"/></svg>';
