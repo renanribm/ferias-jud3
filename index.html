@@ -1589,8 +1589,8 @@ function buildRecessoView(year){
   var grupo2=active.filter(function(p){return choices[p]==='natal';});
   var pending=active.filter(function(p){return !choices[p];});
 
-  var natalStr=dates.natal?'de '+dates.natal:'na semana do Natal';
-  var anoNovoStr=dates.ano_novo?'de '+dates.ano_novo:'na semana do Ano Novo';
+  var natalStr='na semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
+  var anoNovoStr='na semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
   var desc1='trabalha '+natalStr+' &middot; recesso '+anoNovoStr;
   var desc2='recesso '+natalStr+' &middot; trabalha '+anoNovoStr;
 
