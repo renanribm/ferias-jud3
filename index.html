@@ -236,6 +236,7 @@ var vacations=[],people=[];
 var curYear=2026,curMonth=new Date().getMonth(),curView='calendar';
 var lastSaved=null,statusMsg='';
 var _unsub=null;
+var _appReady=false;
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function pColor(p){var i=people.indexOf(p);return PCOLORS[Math.max(i,0)%PCOLORS.length];}
@@ -852,10 +853,27 @@ function render(){
   document.getElementById('app').innerHTML=h;
 }
 
-function setYear(y){curYear=y;render();}
-function setView(v){curView=v;render();}
-function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}render();}
-function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}render();}
+// ── Hash routing ───────────────────────────────────────────────────────────────
+function _stateToHash(){return '#'+curYear+'/'+curView+'/'+curMonth;}
+function _pushState(){history.pushState({year:curYear,view:curView,month:curMonth},'',_stateToHash());}
+function _replaceState(){history.replaceState({year:curYear,view:curView,month:curMonth},'',_stateToHash());}
+function _applyHash(hash){
+  var parts=(hash||'').replace('#','').split('/');
+  var y=parseInt(parts[0]);if(YEARS.indexOf(y)>=0)curYear=y;
+  var v=parts[1];if(['calendar','gantt','people','conflicts'].indexOf(v)>=0)curView=v;
+  var m=parseInt(parts[2]);if(m>=0&&m<=11)curMonth=m;
+}
+window.addEventListener('popstate',function(e){
+  if(!_appReady)return;
+  if(e.state){curYear=e.state.year;curView=e.state.view;curMonth=e.state.month;}
+  else{_applyHash(location.hash);}
+  render();
+});
+
+function setYear(y){curYear=y;_pushState();render();}
+function setView(v){curView=v;_pushState();render();}
+function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}_pushState();render();}
+function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}_pushState();render();}
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
 function bootDashboard(){
@@ -865,6 +883,9 @@ function bootDashboard(){
     if(!simData)resetSimToOfficial();
     mode='simulation';
     applyData(simData);
+    if(location.hash)_applyHash(location.hash);
+    _appReady=true;
+    _replaceState();
     statusMsg='Pronto';
     render();
     subscribeOfficial();
