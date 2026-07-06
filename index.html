@@ -1009,10 +1009,7 @@ function canEditVac(person){
 function showPermissionDenied(person){
   openModal(
     '<h3>Sem permissão</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 14px;line-height:1.6">Cada procurador pode editar apenas os seus próprios períodos de férias. As férias de <strong>'+person+'</strong> só podem ser alteradas por ele(a) mesmo(a).</p>'+
-    '<div style="background:var(--blue-bg);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--blue);margin-bottom:16px">'+
-    'Para visualizar como o calendário ficaria com alterações nos períodos de outros procuradores, utilize o botão <strong>Testar período</strong> no seu próprio perfil.'+
-    '</div>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 14px;line-height:1.6">Cada procurador pode editar apenas os seus próprios períodos de férias. As férias de <strong>'+person+'</strong> só podem ser alteradas por ele(a) mesmo(a) ou pelo administrador.</p>'+
     '<div class="mbtns"><button class="btn primary" onclick="closeModal()">Entendi</button></div>'
   );
 }
@@ -1246,9 +1243,7 @@ function showPersonVacs(person){
            '<div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+' <span style="color:var(--text-3);font-weight:400">('+v.d+' dias)</span></div>'+
            actionRow+'</div>';
   }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período cadastrado.</div>';
-  var addBtn=canEdit?
-    '<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar férias</button>':
-    '<button class="btn" onclick="showPermissionDenied(\''+person+'\')">+ Adicionar férias</button>';
+  var addBtn=canEdit?'<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar férias</button>':'';
   var testBtn='<button class="btn" onclick="closeModal();showTestPeriod(\''+person+'\')">&#128197; Testar período</button>';
   var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
   var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
