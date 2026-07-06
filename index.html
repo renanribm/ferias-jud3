@@ -1604,9 +1604,13 @@ function buildRecessoView(year){
     h+='<div style="background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:18px 20px;margin-bottom:20px">';
     h+='<div style="font-size:14px;font-weight:500;margin-bottom:4px">Indique sua preferência de escala em '+year+'</div>';
     h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Você precisará confirmar com sua senha.</div>';
-    h+='<div style="display:flex;flex-direction:column;gap:8px">';
-    h+='<button class="btn" style="justify-content:flex-start;text-align:left" onclick="recessoChoose(\'ano_novo\')"><strong style="min-width:58px">Grupo 1</strong><span style="color:var(--text-2)">'+desc1+'</span></button>';
-    h+='<button class="btn" style="justify-content:flex-start;text-align:left" onclick="recessoChoose(\'natal\')"><strong style="min-width:58px">Grupo 2</strong><span style="color:var(--text-2)">'+desc2+'</span></button>';
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+    h+='<button onclick="recessoChoose(\'ano_novo\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;text-align:left;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:border-color .12s" onmouseover="this.style.borderColor=\'var(--border-md)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+    h+='<div style="font-size:15px;margin-bottom:6px">&#127876; <strong>Grupo 1</strong></div>';
+    h+='<div style="font-size:12px;color:var(--text-2);line-height:1.5">'+desc1+'</div></button>';
+    h+='<button onclick="recessoChoose(\'natal\')" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;text-align:left;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:border-color .12s" onmouseover="this.style.borderColor=\'var(--border-md)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+    h+='<div style="font-size:15px;margin-bottom:6px">&#127881; <strong>Grupo 2</strong></div>';
+    h+='<div style="font-size:12px;color:var(--text-2);line-height:1.5">'+desc2+'</div></button>';
     h+='</div></div>';
   }
 
@@ -1627,7 +1631,7 @@ function buildRecessoView(year){
 
   // Dois grupos
   h+='<div class="recesso-cols">';
-  [{key:'ao_novo_fixed',val:'ano_novo',num:'Grupo 1',people:grupo1,desc:desc1},{key:'natal',val:'natal',num:'Grupo 2',people:grupo2,desc:desc2}].forEach(function(g){
+  [{val:'ano_novo',num:'&#127876; Grupo 1',people:grupo1,desc:desc1},{val:'natal',num:'&#127881; Grupo 2',people:grupo2,desc:desc2}].forEach(function(g){
     h+='<div class="recesso-group">';
     h+='<div class="recesso-group-title">'+g.num+'</div>';
     h+='<div class="recesso-group-dates" style="margin-bottom:12px">'+g.desc+'</div>';
