@@ -1788,7 +1788,10 @@ function buildRecessoView(year){
   if(isMaster()){
     h+='<div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
     h+='<span style="font-size:12px;color:var(--text-3)">'+grupo1.length+' no Grupo 1 &middot; '+grupo2.length+' no Grupo 2 &middot; '+pending.length+' pendente'+(pending.length!==1?'s':'')+'</span>';
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
     h+='<button class="btn sm" onclick="showRecessoDatesModal('+year+')">&#9998; Definir datas das semanas</button>';
+    h+='</div>';
     h+='</div>';
   }
   return h;
@@ -1946,7 +1949,7 @@ function render(){
   var cLabel='Conflitos (+ de 4 férias simultâneas)'+(st.dOver>0?' &mdash; '+st.dOver+' dia'+(st.dOver>1?'s':'')+' !':'');
   h+='<div class="view-tabs">';
   h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendário</button>';
-  h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Procuradores</button>';
+  h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Férias por procurador</button>';
   h+='<button class="vtab'+(curView==='gantt'?' active':'')+'" onclick="setView(\'gantt\')">Linha do tempo</button>';
   h+='<button class="vtab conflict-tab'+(curView==='conflicts'?' active':'')+'" onclick="setView(\'conflicts\')">'+cLabel+'</button>';
   h+='</div>';
