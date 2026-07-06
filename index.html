@@ -841,6 +841,97 @@ function exportCSV(year){
 }
 
 
+function exportRecessoXLS(year){
+  var years=year==='todos'?YEARS:[parseInt(year)];
+  var tbl='<html><head><meta charset="UTF-8"></head><body>';
+  years.forEach(function(y){
+    var choices=recessoChoices[y]||{};
+    var dates=recessoDates[y]||{};
+    var active=activePeopleForYear(y);
+    if(!active.length)return;
+    var grupo1=active.filter(function(p){return choices[p]==='ano_novo';}).sort();
+    var grupo2=active.filter(function(p){return choices[p]==='natal';}).sort();
+    var pending=active.filter(function(p){return !choices[p];}).sort();
+    var natalStr='Semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
+    var anoNovoStr='Semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+    tbl+='<h2 style="font-family:Arial">Escala de Recesso — PGM/SP JUD-3 — '+y+'</h2>';
+    tbl+='<table border="1" style="font-family:Arial;border-collapse:collapse;margin-top:8px">';
+    tbl+='<tr><th style="background:#1a1a18;color:#fff;padding:6px 10px">Procurador</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Grupo</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Trabalha em</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Recesso em</th></tr>';
+    grupo1.forEach(function(p){
+      tbl+='<tr><td style="padding:5px 10px">'+p+'</td>';
+      tbl+='<td style="padding:5px 10px">Grupo 1</td>';
+      tbl+='<td style="padding:5px 10px">'+natalStr+'</td>';
+      tbl+='<td style="padding:5px 10px">'+anoNovoStr+'</td></tr>';
+    });
+    grupo2.forEach(function(p){
+      tbl+='<tr><td style="padding:5px 10px">'+p+'</td>';
+      tbl+='<td style="padding:5px 10px">Grupo 2</td>';
+      tbl+='<td style="padding:5px 10px">'+anoNovoStr+'</td>';
+      tbl+='<td style="padding:5px 10px">'+natalStr+'</td></tr>';
+    });
+    pending.forEach(function(p){
+      tbl+='<tr style="background:#fdf6e3"><td style="padding:5px 10px">'+p+'</td>';
+      tbl+='<td style="padding:5px 10px;color:#a06000">Pendente</td>';
+      tbl+='<td style="padding:5px 10px">—</td>';
+      tbl+='<td style="padding:5px 10px">—</td></tr>';
+    });
+    tbl+='</table><br><br>';
+  });
+  tbl+='</body></html>';
+  var blob=new Blob([tbl],{type:'application/vnd.ms-excel;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  var ysuffix=year==='todos'?'todos_os_anos':String(year);
+  a.download='recesso_jud3_'+ysuffix+'.xls';
+  a.click();
+}
+
+function exportRecessoCSV(year){
+  var years=year==='todos'?YEARS:[parseInt(year)];
+  var lines=[];
+  years.forEach(function(y){
+    var choices=recessoChoices[y]||{};
+    var dates=recessoDates[y]||{};
+    var active=activePeopleForYear(y);
+    if(!active.length)return;
+    var grupo1=active.filter(function(p){return choices[p]==='ano_novo';}).sort();
+    var grupo2=active.filter(function(p){return choices[p]==='natal';}).sort();
+    var pending=active.filter(function(p){return !choices[p];}).sort();
+    var natalStr='Semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
+    var anoNovoStr='Semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+    lines.push('"Escala de Recesso - PGM/SP JUD-3 - '+y+'"');
+    lines.push('');
+    lines.push('"Procurador";"Grupo";"Trabalha em";"Recesso em"');
+    grupo1.forEach(function(p){
+      lines.push('"'+p+'";"Grupo 1";"'+natalStr+'";"'+anoNovoStr+'"');
+    });
+    grupo2.forEach(function(p){
+      lines.push('"'+p+'";"Grupo 2";"'+anoNovoStr+'";"'+natalStr+'"');
+    });
+    pending.forEach(function(p){
+      lines.push('"'+p+'";"Pendente";"—";"—"');
+    });
+    lines.push('');lines.push('');
+  });
+  var csv=lines.join('\n');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  var ysuffix=year==='todos'?'todos_os_anos':String(year);
+  a.download='recesso_jud3_'+ysuffix+'.csv';
+  a.click();
+}
+
+function doExportRecesso(fmt){
+  var sel=document.getElementById('exp-rec-year');
+  var y=sel?sel.value:'todos';
+  var year=isNaN(y)?y:parseInt(y);
+  closeModal();
+  if(fmt==='csv')exportRecessoCSV(year);
+  else exportRecessoXLS(year);
+}
+
 // ── Modal ──────────────────────────────────────────────────────────────────────
 var _modal=null;
 function openModal(html){
@@ -1334,24 +1425,40 @@ function doExport(fmt){
 
 function showExportModal(){
   var yearOpts='<option value="todos">Todos os anos</option>';
+  var recYearOpts='<option value="todos">Todos os anos</option>';
   YEARS.forEach(function(y){
     var count=vacations.filter(function(v){
-    var vs=v.s.slice(0,4),ve=fmt(addDays(v.s,v.d-1)).slice(0,4);
-    return vs===String(y)||ve===String(y);
-  }).length;
+      var vs=v.s.slice(0,4),ve=fmt(addDays(v.s,v.d-1)).slice(0,4);
+      return vs===String(y)||ve===String(y);
+    }).length;
     yearOpts+='<option value="'+y+'"'+(y===curYear?' selected':'')+'>'+y+(count>0?' ('+count+' períodos)':' (sem dados)')+' </option>';
+    var rCount=Object.keys(recessoChoices[y]||{}).length;
+    recYearOpts+='<option value="'+y+'"'+(y===curRecessoYear?' selected':'')+'>'+y+(rCount>0?' ('+rCount+' indicações)':' (sem dados)')+' </option>';
   });
   openModal(
     '<h3>Exportar dados</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin-bottom:16px">Exporta os períodos com tres colunas: <strong>Procurador</strong>, <strong>Dias de férias</strong> e <strong>Data de início</strong>.</p>'+
+
+    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Férias</div>'+
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:12px">Exporta os períodos de férias por procurador.</p>'+
     '<div class="field"><label>Ano a exportar</label><select id="exp-year">'+yearOpts+'</select></div>'+
-    ''+ // export always uses official data
-    '<div class="mbtns" style="justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:20px">'+
-    '<button class="btn" onclick="closeModal()">Cancelar</button>'+
-    '<div style="display:flex;gap:8px">'+
+    '<div style="display:flex;gap:8px;margin-bottom:20px">'+
     '<button class="btn export" data-fmt="csv" onclick="doExport(this.dataset.fmt)">&#8595; CSV</button>'+
     '<button class="btn export" data-fmt="xls" onclick="doExport(this.dataset.fmt)">&#8595; Excel</button>'+
-    '</div></div>'
+    '</div>'+
+
+    '<div style="border-top:1px solid var(--border);margin-bottom:16px"></div>'+
+
+    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Recesso</div>'+
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:12px">Exporta a escala de recesso com grupo, semana de trabalho e semana de recesso.</p>'+
+    '<div class="field"><label>Ano a exportar</label><select id="exp-rec-year">'+recYearOpts+'</select></div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:4px">'+
+    '<button class="btn export" data-fmt="csv" onclick="doExportRecesso(this.dataset.fmt)">&#8595; CSV</button>'+
+    '<button class="btn export" data-fmt="xls" onclick="doExportRecesso(this.dataset.fmt)">&#8595; Excel</button>'+
+    '</div>'+
+
+    '<div class="mbtns" style="justify-content:flex-end;margin-top:16px">'+
+    '<button class="btn" onclick="closeModal()">Fechar</button>'+
+    '</div>'
   );
 }
 
