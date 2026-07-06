@@ -1537,6 +1537,13 @@ function recessoSetFor(personName,choice){
     saveRecesso();render();
   });
 }
+function recessoRemoveFor(personName){
+  closeModal();
+  adminConfirm(function(){
+    if(recessoChoices[curRecessoYear])delete recessoChoices[curRecessoYear][personName];
+    saveRecesso();render();
+  });
+}
 function recessoChangePerson(personName){
   var cur=recessoChoices[curRecessoYear]&&recessoChoices[curRecessoYear][personName];
   var dates=recessoDates[curRecessoYear]||{};
@@ -1579,7 +1586,10 @@ function recessoChangePerson(personName){
       '<div style="font-size:12px;color:var(--text-2);line-height:1.6">Trabalha na '+curTrab+'<br>Recesso na '+curRec+'</div></div>'+
       '<p style="font-size:13px;color:var(--text-2);margin-bottom:10px">Mover para:</p>'+
       makeCard(otherEmoji,otherGrupo,other,othTrab,othRec)+
-      '<div class="mbtns" style="margin-top:4px"><button class="btn" onclick="closeModal()">Cancelar</button></div>'
+      '<div class="mbtns" style="margin-top:4px">'+
+      '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn" style="color:var(--danger,#c0392b)" onclick="recessoRemoveFor(\''+personName+'\')">Remover do grupo</button>'+
+      '</div>'
     );
   }
 }
