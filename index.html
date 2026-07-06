@@ -1958,11 +1958,11 @@ function render(){
     h+='<button class="btn" onclick="prevM()">&#8592;</button>';
     h+='<div class="month-label">'+MONTHS_PT[curMonth]+' '+curYear+'</div>';
     h+='<button class="btn" onclick="nextM()">&#8594;</button>';
-    h+='<span style="font-size:12px;color:var(--text-3);margin-left:6px">'+mStatus+'</span>';
     var _today=new Date();
-    if(curMonth!==_today.getMonth()||curYear!==_today.getFullYear())
-      h+='<button class="btn sm" style="margin-left:auto;white-space:nowrap" onclick="curMonth=new Date().getMonth();curYear=new Date().getFullYear();render()">Hoje</button>';
-    if(_calReturnPerson)h+='<button class="btn sm primary" style="'+(curMonth!==_today.getMonth()||curYear!==_today.getFullYear()?'':'margin-left:auto;')+'white-space:nowrap" onclick="var p=_calReturnPerson;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}setView(\'people\');setTimeout(function(){showPersonVacs(p);},80)">&#8592; Retornar para as férias de '+_calReturnPerson+'</button>';
+    var _notToday=curMonth!==_today.getMonth()||curYear!==_today.getFullYear();
+    h+='<span style="font-size:12px;color:var(--text-3);margin-left:6px">'+mStatus+'</span>';
+    if(_notToday)h+='<button class="btn sm" style="margin-left:4px;white-space:nowrap" onclick="curMonth=new Date().getMonth();curYear=new Date().getFullYear();render()">Hoje</button>';
+    if(_calReturnPerson)h+='<button class="btn sm primary" style="margin-left:auto;white-space:nowrap" onclick="var p=_calReturnPerson;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}setView(\'people\');setTimeout(function(){showPersonVacs(p);},80)">&#8592; Retornar para as férias de '+_calReturnPerson+'</button>';
     h+='</div>';
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
     h+='<span style="font-size:12px;color:var(--text-3);white-space:nowrap">Destacar férias de</span>';
