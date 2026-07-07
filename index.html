@@ -721,44 +721,39 @@ function buildSubsView(year,month){
   }
   var totalPairs=days.reduce(function(acc,ds){return acc+absences[ds].length;},0);
   var assignedPairs=days.reduce(function(acc,ds){var da=monthAssignments[ds]||{};return acc+absences[ds].filter(function(a){return da[a.n];}).length;},0);
-  h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:12px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' substituição'+(totalPairs!==1?'ões':'')+' &middot; '+assignedPairs+'/'+totalPairs+' definidas</div>';
-  h+='<table style="width:100%;border-collapse:collapse">';
-  var prevDs=null;
+  h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' substituição'+(totalPairs!==1?'ões':'')+' &middot; '+assignedPairs+'/'+totalPairs+' definidas</div>';
   days.forEach(function(ds){
     var dow=new Date(ds+'T00:00:00').getDay();
     var dayLabel=DAYS_PT[dow]+' '+fmtBR(ds).slice(0,5);
     var dayAssignments=monthAssignments[ds]||{};
     var absentToday=absences[ds];
     var absentNames=absentToday.map(function(a){return a.n;});
-    // week separator
-    var prevDow=prevDs?new Date(prevDs+'T00:00:00').getDay():null;
-    if(prevDs&&dow<=prevDow){
-      h+='<tr><td colspan="3" style="padding:0;border:none"><div style="border-top:1px solid var(--border);margin:4px 0"></div></td></tr>';
-    }
-    prevDs=ds;
-    absentToday.forEach(function(absent,i){
+    var allAssigned=absentToday.every(function(a){return dayAssignments[a.n];});
+    h+='<div class="vac-item" style="flex-direction:column;align-items:stretch;margin-bottom:6px;padding:10px 12px">';
+    h+='<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;display:flex;align-items:center;gap:6px">';
+    h+=dayLabel;
+    if(allAssigned)h+='<span style="font-size:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:1px 6px;border-radius:4px">&#10003; completo</span>';
+    h+='</div>';
+    absentToday.forEach(function(absent){
       var currentSub=dayAssignments[absent.n]||'';
       var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
-      h+='<tr style="border-bottom:1px solid var(--surface2)">';
-      h+='<td style="padding:5px 8px 5px 0;white-space:nowrap;font-size:12px;color:var(--text-2);font-weight:'+(i===0?'600':'400')+';color:'+(i===0?'var(--text-1)':'transparent')+';user-select:none">'+dayLabel+'</td>';
-      h+='<td style="padding:5px 6px;font-size:12px;white-space:nowrap"><span style="font-weight:600">'+absent.n+'</span><span style="color:var(--text-3);font-size:11px"> ('+licenseLabel(absent.type)+')</span></td>';
-      h+='<td style="padding:5px 0 5px 6px;width:100%">';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
+      h+='<span style="font-size:12px;font-weight:600">'+absent.n+'</span>';
+      h+='<span style="font-size:11px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span>';
+      h+='<span style="font-size:12px;color:var(--text-3)"> &#8594;</span>';
       if(isMaster()){
-        h+='<div style="display:flex;align-items:center;gap:6px">';
-        h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface);width:100%" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
+        h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
         h+='<option value="">— escolher —</option>';
         available.forEach(function(n){h+='<option value="'+n+'"'+(currentSub===n?' selected':'')+'>'+n+'</option>';});
         h+='</select>';
-        if(currentSub)h+='<span style="font-size:13px;color:#16a34a;flex-shrink:0">&#10003;</span>';
-        h+='</div>';
+        if(currentSub)h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
       }else{
         h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
       }
-      h+='</td>';
-      h+='</tr>';
+      h+='</div>';
     });
+    h+='</div>';
   });
-  h+='</table>';
   return h;
 }
 window.printSubs=function(year,month){
