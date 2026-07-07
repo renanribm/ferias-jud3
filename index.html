@@ -762,29 +762,57 @@ window.printSubs=function(year,month){
   var monthKey=year+'-'+String(month+1).padStart(2,'0');
   var monthAssignments=subsData[monthKey]||{};
   var absences=getMonthAbsences(year,month);
-  var days=Object.keys(absences).sort();
-  var DAYS_PT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  // Build weeks: find Monday of the week containing the 1st
+  var firstDay=new Date(year,month,1);
+  var lastDay=new Date(year,month+1,0);
+  var dowFirst=firstDay.getDay();
+  var backDays=dowFirst===0?6:dowFirst-1;
+  var weekStart=new Date(firstDay);
+  weekStart.setDate(weekStart.getDate()-backDays);
+  var weeks=[];
+  var cur=new Date(weekStart);
+  while(cur<=lastDay){
+    var weekFri=new Date(cur);weekFri.setDate(weekFri.getDate()+4);
+    if(weekFri>=firstDay){
+      var week=[];
+      for(var di=0;di<5;di++){
+        var cd=new Date(cur);cd.setDate(cd.getDate()+di);
+        week.push({ds:fmt(cd),dayNum:cd.getDate(),inMonth:cd.getMonth()===month});
+      }
+      weeks.push(week);
+    }
+    cur.setDate(cur.getDate()+7);
+  }
   var rows='';
-  days.forEach(function(ds){
-    var dow=new Date(ds+'T00:00:00').getDay();
-    var dayLabel=DAYS_PT[dow]+' '+fmtBR(ds).slice(0,5);
-    var da=monthAssignments[ds]||{};
-    var absentToday=absences[ds];
-    absentToday.forEach(function(absent,i){
-      var sub=da[absent.n]||'—';
-      rows+='<tr>';
-      if(i===0)rows+='<td rowspan="'+absentToday.length+'">'+dayLabel+'</td>';
-      rows+='<td>'+absent.n+'</td><td>'+licenseLabel(absent.type)+'</td><td><strong>'+sub+'</strong></td>';
-      rows+='</tr>';
+  weeks.forEach(function(week){
+    rows+='<tr>';
+    week.forEach(function(cell){
+      if(!cell.inMonth){rows+='<td style="background:#f5f5f5"></td>';return;}
+      var da=monthAssignments[cell.ds]||{};
+      var abs=absences[cell.ds]||[];
+      rows+='<td style="vertical-align:top;padding:6px 8px">';
+      rows+='<div style="font-size:13px;font-weight:700;margin-bottom:5px;color:#333">'+cell.dayNum+'</div>';
+      if(abs.length){
+        abs.forEach(function(absent){
+          var sub=da[absent.n]||'—';
+          rows+='<div style="font-size:10px;margin-bottom:3px;line-height:1.4">';
+          rows+='<span style="color:#555">'+absent.n+'</span><br>';
+          rows+='<strong>'+sub+'</strong>';
+          rows+='</div>';
+        });
+      }
+      rows+='</td>';
     });
+    rows+='</tr>';
   });
+  var colStyle='th{background:#e8e8e8;font-weight:600;padding:8px;text-align:center;font-size:12px;width:20%}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições — '+MONTHS_PT[month]+' '+year+'</title>'+
-    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}h2{font-size:16px;margin-bottom:16px}'+
-    'table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px 10px;text-align:left}'+
-    'th{background:#f0f0f0;font-weight:600}tr:nth-child(even){background:#fafafa}'+
-    '@media print{button{display:none}}</style></head><body>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}h2{font-size:15px;margin-bottom:14px}'+
+    'table{border-collapse:collapse;width:100%}'+colStyle+
+    'td{border:1px solid #ccc;min-height:60px;min-width:0}th{border:1px solid #bbb}'+
+    '@media print{button{display:none}body{padding:10px}}</style></head><body>'+
     '<h2>Substituições — '+MONTHS_PT[month]+' '+year+'</h2>'+
-    '<table><thead><tr><th>Data</th><th>Ausente</th><th>Tipo</th><th>Substituto</th></tr></thead>'+
+    '<table><thead><tr><th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table>'+
     '<br><button onclick="window.print()">Imprimir</button>'+
     '</body></html>';
