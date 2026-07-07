@@ -95,7 +95,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .cal-head{display:grid;grid-template-columns:repeat(7,1fr);background:#faf9f7}
 .cal-head span{padding:8px 0;text-align:center;font-size:11px;font-weight:500;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .cal-body{display:grid;grid-template-columns:repeat(7,1fr)}
-.day{min-height:66px;padding:6px 6px 4px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.day{min-height:66px;padding:6px 6px 4px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;flex-direction:column}
 .day:nth-child(7n){border-right:none}
 .day.empty{background:#faf9f7;cursor:default}
 .day.weekend{background:#faf9f7}
@@ -108,12 +108,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .day:not(.empty):hover{background:#f5f5f0}
 .dn{font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
 .day.today .dn{background:var(--accent);color:#fff;border-radius:50%}
-.cbadge{display:inline-flex;align-items:center;font-size:9px;font-weight:600;border-radius:3px;padding:1px 5px;margin-bottom:2px}
+.day-content{flex:1;display:flex;flex-direction:column;justify-content:flex-end}
+.day-label{display:inline-block;font-size:8px;font-weight:600;border-radius:3px;padding:1px 4px;margin-bottom:2px}
 .cb1{background:var(--green-bg);color:var(--green)}
 .cb2{background:var(--blue-bg);color:var(--blue)}
 .cb3{background:var(--yellow-bg);color:var(--yellow)}
 .cb4{background:var(--amber-bg);color:var(--amber)}
 .cbover{background:var(--red-bg);color:var(--red)}
+.day-label-lic{background:#dbeafe;color:#2563eb;margin-top:3px}
 .dnames{font-size:9px;color:var(--text-3);line-height:1.4;word-break:break-word}
 .sel-info{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:20px;font-size:13px;color:var(--text-2);min-height:42px;line-height:1.6}
 .gantt-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;margin-bottom:20px}
@@ -197,7 +199,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .day{padding:3px 3px 2px;min-height:54px}
   .dn{font-size:10px;width:18px;height:18px}
   .dnames{font-size:7px;line-height:1.3}
-  .cbadge{font-size:8px;padding:1px 3px}
+  .day-label{font-size:7px;padding:1px 2px}
   .gtrack{height:22px}
   .gbar{height:18px;top:2px;border-radius:3px}
   .btn-mobile-hide{display:none}
@@ -1589,14 +1591,17 @@ function buildCal(year,month){
     if(calSearch&&ns.some(function(n){return n.toLowerCase().indexOf(calSearch.toLowerCase())>=0;}))dayCls+=' search-match';
     h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
-    if(c>0)h+='<div class="cbadge '+bc+'">'+c+(over?' !':'')+'</div><div class="dnames">'+ns.join(', ')+'</div>';
+    h+='<div class="day-content">';
+    if(c>0){
+      h+='<div class="day-label '+bc+'">Férias: '+c+(over?' !':'')+'</div>';
+      h+='<div class="dnames">'+ns.join(', ')+'</div>';
+    }
     if(hasLic){
       var licNs=allNs.filter(function(n){return ns.indexOf(n)<0;});
-      licNs.forEach(function(n){
-        h+='<div style="font-size:9px;color:#2563eb;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+n+' · Licença</div>';
-      });
+      h+='<div class="day-label day-label-lic">Licença: '+licNs.length+'</div>';
+      h+='<div class="dnames" style="color:#2563eb">'+licNs.join(', ')+'</div>';
     }
-    h+='</div>';
+    h+='</div></div>';
   }
   return h+'</div>';
 }
@@ -2415,7 +2420,7 @@ function render(){
     h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>4 em férias (limite)</div>';
     h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;border-left:3px solid #7c3aed;flex-shrink:0"></div>Feriado / Sem expediente</div>';
-    h+='<div class="leg"><span style="font-size:9px;color:#2563eb;font-weight:600">NOME · Licença</span></div>';
+    h+='<div class="leg"><span class="day-label day-label-lic">Licença: N</span><span style="margin-left:4px">Licenças do dia</span></div>';
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;background:#fff1f2;border:1px solid #fecdd3;flex-shrink:0"></div>Recesso (clique para ver equipes)</div>';
     if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Férias de '+calSearch+'</div>';
     if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
