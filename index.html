@@ -2792,7 +2792,7 @@ function render(){
   h+='<button class="btn export" onclick="showExportModal()"><span class="btn-mobile-hide">&#8595; Exportar</span><span class="btn-mobile-show">&#8595;</span></button>';
   if(isMaster())h+='<button class="btn" onclick="showHistoryModal()">&#128336; Histórico</button>';
   h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px">';
-  h+='<span style="font-size:12px;font-weight:500;color:var(--text-2)">'+(currentAdminUser==='ADMIN'?'Master':currentAdminUser)+'</span>';
+  h+='<span style="font-size:12px;font-weight:500;color:var(--text-2)">'+(currentAdminUser==='ADMIN'?'Administrador':currentAdminUser)+'</span>';
   h+='<button class="btn sm" style="padding:3px 10px;font-size:11px" onclick="logout()">Sair</button>';
   h+='</div>';
   h+='</div></div>';
