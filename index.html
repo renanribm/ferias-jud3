@@ -707,10 +707,10 @@ function getMonthAbsences(year,month){
   return result;
 }
 // ── Geração automática de substituições ────────────────────────────────────────
-function generateSubsMonth(year,month,fabianaSub){
+// startingPoints: { "PERSON": "LAST_SUB_FROM_PREV_MONTH" }
+function generateSubsMonth(year,month,fabianaSub,startingPoints){
   var monthKey=year+'-'+String(month+1).padStart(2,'0');
   var existing=subsData[monthKey]||{};
-  // Coletar overrides manuais preservados
   var manualOverrides={};
   Object.keys(existing).forEach(function(k){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(k))return;
@@ -728,7 +728,6 @@ function generateSubsMonth(year,month,fabianaSub){
     var absentNames=absents.map(function(a){return a.n;});
     var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
     var dayResult={};var manuals=[];
-    // Aplicar overrides manuais primeiro
     var manDay=manualOverrides[ds]||{};
     Object.keys(manDay).forEach(function(name){
       if(absentNames.indexOf(name)>=0){
@@ -737,14 +736,12 @@ function generateSubsMonth(year,month,fabianaSub){
         available=available.filter(function(n){return n!==sub;});
       }
     });
-    // Fabiana: sub fixo
     if(fabianaSub&&absentNames.indexOf('FABIANA')>=0&&!dayResult['FABIANA']){
       if(available.indexOf(fabianaSub)>=0){
         dayResult['FABIANA']=fabianaSub;
         available=available.filter(function(n){return n!==fabianaSub;});
       }
     }
-    // Demais ausentes em ordem de fila
     var remaining=absents.filter(function(a){return !dayResult[a.n]&&a.n!=='FABIANA';});
     remaining.sort(function(a,b){
       var ia=SUBS_QUEUE.indexOf(a.n);var ib=SUBS_QUEUE.indexOf(b.n);
@@ -753,7 +750,12 @@ function generateSubsMonth(year,month,fabianaSub){
     remaining.forEach(function(absent){
       var n=absent.n;
       var qIdx=SUBS_QUEUE.indexOf(n);if(qIdx<0)qIdx=0;
-      if(pointers[n]===undefined)pointers[n]=(qIdx+1)%N;
+      if(pointers[n]===undefined){
+        // A: inicializa a partir do último sub do mês anterior se disponível
+        var sp=startingPoints&&startingPoints[n];
+        if(sp){var spIdx=SUBS_QUEUE.indexOf(sp);pointers[n]=spIdx>=0?(spIdx+1)%N:(qIdx+1)%N;}
+        else{pointers[n]=(qIdx+1)%N;}
+      }
       for(var j=0;j<N;j++){
         var cidx=(pointers[n]+j)%N;
         var candidate=SUBS_QUEUE[cidx];
@@ -771,6 +773,66 @@ function generateSubsMonth(year,month,fabianaSub){
   subsData[monthKey]=newData;
   saveSubs();
 }
+// Retorna o último substituto registrado para person nos meses anteriores
+function getLastSubFromPrevMonth(person,year,month){
+  for(var i=1;i<=4;i++){
+    var pm=month-i;var py=year;
+    while(pm<0){pm+=12;py--;}
+    var pk=py+'-'+String(pm+1).padStart(2,'0');
+    var prev=subsData[pk];if(!prev)continue;
+    var dates=Object.keys(prev).filter(function(k){return /^\d{4}-\d{2}-\d{2}$/.test(k)&&prev[k][person];}).sort();
+    if(dates.length)return prev[dates[dates.length-1]][person];
+  }
+  return null;
+}
+// Retorna { auto: {person:lastSub}, needsInput: [person] } para ausentes cross-month (exceto Fabiana)
+function getCrossMonthData(year,month){
+  var mo=String(month+1).padStart(2,'0');
+  var monthFirst=year+'-'+mo+'-01';
+  var absences=getMonthAbsences(year,month);
+  var seen={};var auto={};var needsInput=[];
+  Object.keys(absences).forEach(function(ds){
+    absences[ds].forEach(function(a){
+      var n=a.n;
+      if(n==='FABIANA'||seen[n])return;
+      seen[n]=true;
+      var isCross=vacations.some(function(v){
+        return v.n===n&&v.s<monthFirst&&fmt(addDays(v.s,v.d-1))>=monthFirst;
+      });
+      if(!isCross)return;
+      var last=getLastSubFromPrevMonth(n,year,month);
+      if(last)auto[n]=last;
+      else needsInput.push(n);
+    });
+  });
+  return{auto:auto,needsInput:needsInput};
+}
+function showStartingPointsModal(people,onConfirm){
+  var fields=people.map(function(n){
+    var opts=SUBS_QUEUE.filter(function(q){return q!==n;}).map(function(q){return'<option value="'+q+'">'+q+'</option>';}).join('');
+    return'<div class="field"><label>Último substituto de '+n+'</label><select id="_sp_'+n+'">'+opts+'</select></div>';
+  }).join('');
+  window._spCb=onConfirm;
+  openModal(
+    '<h3>Ponto de partida da fila</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">As ausências abaixo vêm do mês anterior sem dados registrados. Informe o último substituto de cada procurador:</p>'+
+    fields+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="'+
+      'var _r={};'+people.map(function(n){return'_r[\''+n+'\']=document.getElementById(\'_sp_'+n+'\').value;';}).join('')+
+      'closeModal();window._spCb(_r)'+
+    '">Confirmar e Gerar</button></div>'
+  );
+}
+window.clearSubsMonth=function(year,month){
+  if(!isMaster())return;
+  var mk=year+'-'+String(month+1).padStart(2,'0');
+  openModal('<h3>Limpar tabela</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Remover todas as substituições de <strong>'+MONTHS_PT[month]+' '+year+'</strong>?</p>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn danger" onclick="closeModal();delete subsData[\''+mk+'\'];saveSubs();render();showToast(\'✓ Tabela limpa\')">Limpar</button></div>'
+  );
+};
 function getFabianaCrossMonthSub(year,month){
   var mo=String(month+1).padStart(2,'0');
   var monthFirst=year+'-'+mo+'-01';
@@ -838,12 +900,21 @@ window.generateSubs=function(year,month){
   var absences=getMonthAbsences(year,month);
   var fabAbsent=false;
   Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n==='FABIANA';}))fabAbsent=true;});
-  if(fabAbsent){
-    showFabianaSubModal(year,month,function(fabianaSub){
-      generateSubsMonth(year,month,fabianaSub);render();showToast('✓ Tabela gerada');
+  var crossData=getCrossMonthData(year,month);
+  function doGenerate(fabianaSub,startingPoints){
+    generateSubsMonth(year,month,fabianaSub,startingPoints);render();showToast('✓ Tabela gerada');
+  }
+  function afterStartingPoints(startingPoints){
+    if(fabAbsent){showFabianaSubModal(year,month,function(fab){doGenerate(fab,startingPoints);});}
+    else{doGenerate(null,startingPoints);}
+  }
+  if(crossData.needsInput.length>0){
+    showStartingPointsModal(crossData.needsInput,function(inputs){
+      var sp=Object.assign({},crossData.auto,inputs);
+      afterStartingPoints(sp);
     });
   }else{
-    generateSubsMonth(year,month,null);render();showToast('✓ Tabela gerada');
+    afterStartingPoints(crossData.auto);
   }
 };
 
@@ -862,7 +933,10 @@ function buildSubsView(year,month){
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px">';
-  if(isMaster())h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
+  if(isMaster()){
+    h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
+    h+='<button class="btn sm danger" onclick="clearSubsMonth('+year+','+month+')">Limpar</button>';
+  }
   h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Imprimir</button>';
   h+='</div>';
   h+='</div>';
