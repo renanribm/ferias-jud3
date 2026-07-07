@@ -2765,11 +2765,13 @@ function render(){
     document.getElementById('app').innerHTML=h;
     return;
   }
-  if(curView!=='subs'){
-    h+='<div class="year-tabs">';
+  h+='<div class="year-tabs">';
+  if(curView==='subs'){
+    YEARS.forEach(function(y){h+='<button class="ytab'+(y===subsYear?' active':'')+'" onclick="subsYear='+y+';render()">'+y+'</button>';});
+  }else{
     YEARS.forEach(function(y){h+='<button class="ytab'+(y===curYear?' active':'')+'" onclick="setYear('+y+')">'+y+'</button>';});
-    h+='</div>';
   }
+  h+='</div>';
 
   // Panel
   if(curView==='panel'){
