@@ -101,6 +101,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .day.weekend{background:#faf9f7}
 .day.day-preview{background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308}
 .day.day-preview-conflict{background:#fee2e2;box-shadow:inset 0 0 0 2px #dc2626}
+.day.rec-day{background:#fff1f2}
 .day.search-match{background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308}
 .day.hl-vac{background:#fefce8 !important;box-shadow:inset 0 0 0 2px #eab308;transition:background .6s ease,box-shadow .6s ease}
 .day.hl-vac-out{background:transparent !important;box-shadow:inset 0 0 0 0px #eab308;transition:background 1s ease,box-shadow 1s ease}
@@ -1584,7 +1585,7 @@ function buildCal(year,month){
         }
       }
     }
-    var dayCls='day'+(isT?' today':'')+(hol?' has-hol':'')+(isWeekend?' weekend':'')+(inPreview?(previewConflict?' day-preview-conflict':' day-preview'):'');
+    var dayCls='day'+(isT?' today':'')+(hol?' has-hol':'')+(isWeekend?' weekend':'')+(inPreview?(previewConflict?' day-preview-conflict':' day-preview'):'')+(hasRec?' rec-day':'');
     if(calSearch&&ns.some(function(n){return n.toLowerCase().indexOf(calSearch.toLowerCase())>=0;}))dayCls+=' search-match';
     h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
@@ -1593,12 +1594,6 @@ function buildCal(year,month){
       var licNs=allNs.filter(function(n){return ns.indexOf(n)<0;});
       licNs.forEach(function(n){
         h+='<div style="font-size:9px;color:#2563eb;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+n+' · Licença</div>';
-      });
-    }
-    if(hasRec){
-      var recNs=(recMap[ds]||[]).concat((recMapPrev[ds]||[]));
-      recNs.forEach(function(n){
-        h+='<div style="font-size:9px;color:#b45309;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+n+' · Recesso</div>';
       });
     }
     h+='</div>';
@@ -1908,6 +1903,9 @@ function saveRecessoDatesConfirm(year){
   if(ne)recessoDates[year].natal_e=ne;else delete recessoDates[year].natal_e;
   if(as)recessoDates[year].ano_novo_s=as;else delete recessoDates[year].ano_novo_s;
   if(ae)recessoDates[year].ano_novo_e=ae;else delete recessoDates[year].ano_novo_e;
+  // limpa campos de texto antigos para evitar exibição inconsistente
+  delete recessoDates[year].natal;
+  delete recessoDates[year].ano_novo;
   closeModal();saveRecesso();render();
 }
 function recessoDateLabel(s,e,fallback){
@@ -2418,7 +2416,7 @@ function render(){
     h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;border-left:3px solid #7c3aed;flex-shrink:0"></div>Feriado / Sem expediente</div>';
     h+='<div class="leg"><span style="font-size:9px;color:#2563eb;font-weight:600">NOME · Licença</span></div>';
-    h+='<div class="leg"><span style="font-size:9px;color:#b45309;font-weight:600">NOME · Recesso</span></div>';
+    h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;background:#fff1f2;border:1px solid #fecdd3;flex-shrink:0"></div>Recesso (clique para ver equipes)</div>';
     if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Férias de '+calSearch+'</div>';
     if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
     h+='<div class="leg" id="_hl-leg" style="display:none"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">Férias de</span></div>';
