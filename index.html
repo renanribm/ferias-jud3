@@ -231,6 +231,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .recesso-cta{background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r);padding:18px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .hm-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative}
 .hm-bar:hover .hm-tip{display:block}
+.hm-bar.hm-active .hm-tip{display:block}
 .hm-tip{display:none;position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;font-size:11px;font-weight:600;padding:3px 7px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:10}
 .hm-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1a1a18}
 </style>
@@ -2211,7 +2212,7 @@ function buildPanel(year){
     var barColor=maxInMonth===0?'var(--border)':maxInMonth<=2?'#4ade80':maxInMonth===3?'#fbbf24':maxInMonth===LIMIT?'#f97316':'#ef4444';
     var isCurMo=(mi===now.getMonth()&&year===now.getFullYear());
     var barH=maxInMonth===0?4:Math.max(8,Math.round((maxInMonth/LIMIT)*32));
-    h+='<div class="hm-bar" onclick="setView(\'calendar\');curMonth='+mi+';render()">';
+    h+='<div class="hm-bar" onclick="hmBarClick(this,'+mi+',\''+mName+'\','+maxInMonth+')">';
     h+='<div class="hm-tip">'+mName+' — pico: '+maxInMonth+'</div>';
     h+='<div style="width:100%;height:'+barH+'px;background:'+barColor+';border-radius:3px 3px 0 0;opacity:'+(isCurMo?'1':'.75')+'"></div>';
     h+='<div style="font-size:10px;color:'+(isCurMo?'var(--accent)':'var(--text-3)')+';font-weight:'+(isCurMo?'600':'400')+'">'+mName.slice(0,3)+'</div>';
@@ -2513,6 +2514,15 @@ function render(){
 }
 
 function setYear(y){curYear=y;render();}
+function hmBarClick(el,mi,mName,maxVal){
+  if(window.matchMedia('(hover:none)').matches){
+    var isActive=el.classList.contains('hm-active');
+    document.querySelectorAll('.hm-bar').forEach(function(b){b.classList.remove('hm-active');});
+    if(!isActive)el.classList.add('hm-active');
+  }else{
+    setView('calendar');curMonth=mi;render();
+  }
+}
 function setView(v){if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;render();}
 function _setReturnPerson(p){
   _calReturnPerson=p;
