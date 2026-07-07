@@ -711,7 +711,7 @@ function buildSubsView(year,month){
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
   h+='</div>';
-  h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128438; Imprimir</button>';
+  h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Imprimir</button>';
   h+='</div>';
   if(!days.length){
     h+='<div style="text-align:center;padding:48px 20px;color:var(--text-3)"><div style="font-size:28px;margin-bottom:10px">&#10003;</div>';
