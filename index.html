@@ -193,9 +193,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .pwd-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);font-size:12px;padding:2px 4px;font-family:'DM Sans',sans-serif}
 .pwd-toggle:hover{color:var(--text-2)}
 .op-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.next-ev+.next-ev::before{content:' \00B7  '}
+.next-ev{display:inline}
 @media(max-width:640px){
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   .op-grid{grid-template-columns:1fr}
+  .next-ev{display:block}
+  .next-ev+.next-ev::before{content:''}
   .cal-head span{font-size:8px;padding:5px 0}
   .day{padding:3px 3px 2px;min-height:54px}
   .dn{font-size:10px;width:18px;height:18px}
@@ -2140,16 +2144,18 @@ function buildPanel(year){
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
-      function nextGroup(label,items){
-        var h2='<div style="margin-bottom:6px">';
-        h2+='<div style="font-size:10px;color:var(--text-3);font-weight:600;margin-bottom:2px">'+label+'</div>';
-        h2+=items.map(function(item){return '<div style="font-size:12px;line-height:1.6;padding-left:8px">'+item+'</div>';}).join('');
-        return h2+'</div>';
+      if(returnsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Retorna hoje:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(startsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Inicia férias hoje:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(distEvents.length){
+        h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
+        h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+'</span>';}).join('');
+        h+='</div>';
       }
-      if(returnsToday.length)h+=nextGroup('Retorna hoje',returnsToday.map(function(n){return '<strong>'+n+'</strong>';}));
-      if(startsToday.length)h+=nextGroup('Inicia férias hoje',startsToday.map(function(n){return '<strong>'+n+'</strong>';}));
-      if(distEvents.length)h+=nextGroup('Sai da distribuição',distEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}));
-      if(bancaEvents.length)h+=nextGroup('Banca começa a rodar',bancaEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}));
+      if(bancaEvents.length){
+        h+='<div style="font-size:12px"><span style="color:var(--text-2)">Banca começa a rodar:</span> ';
+        h+=bancaEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+'</span>';}).join('');
+        h+='</div>';
+      }
       h+='</div>';
     }
 
