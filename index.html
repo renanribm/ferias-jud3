@@ -1072,7 +1072,7 @@ window.printSubs=function(year,month){
       var holLabel=hol?(hol.type==='holiday'?'Feriado':hol.type==='optional'?'Ponto facultativo':'Suspensão de expediente'):null;
       var holText=hol?(hol.type==='suspended'?holLabel:holLabel+': '+hol.label):null;
       rows+='<td style="vertical-align:top;padding:6px 8px'+(isOff?';background:#fafafa':'')+'">';
-      rows+='<div style="font-size:13px;font-weight:700;margin-bottom:4px;color:#333">'+cell.dayNum+'</div>';
+      rows+='<div style="font-size:13px;font-weight:700;margin-bottom:4px;color:#333;text-align:right">'+cell.dayNum+'</div>';
       if(holText)rows+='<div style="font-size:9px;color:#888;font-style:italic;margin-bottom:4px;line-height:1.3">'+holText+'</div>';
       abs.forEach(function(absent){
         var sub=da[absent.n]||'—';
@@ -1110,7 +1110,7 @@ window.printSubs=function(year,month){
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</title>'+
     '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}h2{font-size:15px;margin-bottom:14px}'+
     'table{border-collapse:collapse;width:100%}'+colStyle+
-    'td{border:1px solid #ccc;min-height:60px;min-width:0}th{border:1px solid #bbb}'+
+    'td{border:1px solid #ccc;height:107px;min-width:0}th{border:1px solid #bbb}'+
     '@media print{button{display:none}body{padding:10px}}</style></head><body>'+
     '<h2>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</h2>'+
     '<table><thead><tr><th>Segunda-feira</th><th>Terça-feira</th><th>Quarta-feira</th><th>Quinta-feira</th><th>Sexta-feira</th></tr></thead>'+
