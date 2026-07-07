@@ -2255,7 +2255,7 @@ function render(){
 
   var statusTxt=statusMsg;
   if(lastSaved){
-    statusTxt='Última atualização:'+lastSaved.toLocaleString('pt-BR');
+    statusTxt='Última atualização: '+lastSaved.toLocaleString('pt-BR');
     if(lastSavedBy)statusTxt+=' — por '+lastSavedBy;
   }
   h+='<div class="statusbar" id="statusbar">'+statusTxt+'</div>';
