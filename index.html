@@ -1052,9 +1052,9 @@ window.printSubs=function(year,month){
     var weekFri=new Date(cur);weekFri.setDate(weekFri.getDate()+4);
     if(weekFri>=firstDay){
       var week=[];
-      for(var di=0;di<7;di++){
+      for(var di=0;di<5;di++){
         var cd=new Date(cur);cd.setDate(cd.getDate()+di);
-        week.push({ds:fmt(cd),dayNum:cd.getDate(),inMonth:cd.getMonth()===month,weekend:di>=5});
+        week.push({ds:fmt(cd),dayNum:cd.getDate(),inMonth:cd.getMonth()===month});
       }
       weeks.push(week);
     }
@@ -1064,13 +1064,7 @@ window.printSubs=function(year,month){
   weeks.forEach(function(week){
     rows+='<tr>';
     week.forEach(function(cell){
-      if(!cell.inMonth){rows+='<td style="background:#f0f0f0"></td>';return;}
-      if(cell.weekend){
-        rows+='<td style="vertical-align:top;padding:6px 8px;background:#f0f0f0">';
-        rows+='<div style="font-size:13px;font-weight:700;color:#bbb;text-align:right">'+cell.dayNum+'</div>';
-        rows+='</td>';
-        return;
-      }
+      if(!cell.inMonth){rows+='<td style="background:#f5f5f5"></td>';return;}
       var da=monthAssignments[cell.ds]||{};
       var abs=absences[cell.ds]||[];
       var hol=getHoliday(cell.ds);
@@ -1112,14 +1106,14 @@ window.printSubs=function(year,month){
     '<p style="font-size:12px;font-weight:600;margin-bottom:8px">Ausências em '+MONTHS_PT[month]+' '+year+'</p>'+
     summaryLines.map(function(l){return '<p style="font-size:11px;margin:3px 0">'+l+'</p>';}).join('')+
     '</div>':'';
-  var colStyle='th{background:#e8e8e8;font-weight:600;padding:8px;text-align:center;font-size:12px;width:calc(100%/7)}th.wknd{background:#e0e0e0;color:#999}';
+  var colStyle='th{background:#e8e8e8;font-weight:600;padding:8px;text-align:center;font-size:12px;width:20%}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</title>'+
     '<style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,sans-serif;font-size:12px;padding:20px}h2{font-size:15px;margin-bottom:14px}'+
     'table{border-collapse:collapse;width:100%}'+colStyle+
     'td{border:1px solid #ccc;height:92px;min-width:0}th{border:1px solid #bbb}'+
     '@media print{button{display:none}body{padding:10px}}</style></head><body>'+
     '<h2>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</h2>'+
-    '<table><thead><tr><th>Segunda-feira</th><th>Terça-feira</th><th>Quarta-feira</th><th>Quinta-feira</th><th>Sexta-feira</th><th class="wknd">Sábado</th><th class="wknd">Domingo</th></tr></thead>'+
+    '<table><thead><tr><th>Segunda-feira</th><th>Terça-feira</th><th>Quarta-feira</th><th>Quinta-feira</th><th>Sexta-feira</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table>'+
     summary+
     '<br><button onclick="window.print()">Imprimir</button>'+
