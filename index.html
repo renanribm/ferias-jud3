@@ -896,6 +896,26 @@ window._showFabianaChange=function(year,month){
     _fabianaSelectHtml(avail)
   );
 };
+window.changeFabianaSub=function(year,month){
+  if(!isMaster())return;
+  var monthKey=year+'-'+String(month+1).padStart(2,'0');
+  var currentFab=(subsData[monthKey]||{}).fabianaFixedSub||'';
+  var avail=_fabianaAvail(year,month);
+  var opts=avail.map(function(n){return'<option value="'+n+'"'+(n===currentFab?' selected':'')+'>'+n+'</option>';}).join('');
+  openModal(
+    '<h3>Alterar substituto de Fabiana</h3>'+
+    '<div style="font-size:13px;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;margin:10px 0 16px">'+
+    '&#9888; Alterar o substituto de Fabiana recalculará toda a tabela de <strong>'+MONTHS_PT[month]+'</strong>. Os ajustes manuais serão preservados.</div>'+
+    '<div class="field"><label>Novo substituto</label><select id="_fab-alt-sel">'+opts+'</select></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="var _v=document.getElementById(\'_fab-alt-sel\').value;closeModal();window._changeFabCb(_v)">Alterar e Regerar</button></div>'
+  );
+  window._changeFabCb=function(newFab){
+    var crossData=getCrossMonthData(year,month);
+    generateSubsMonth(year,month,newFab,crossData.auto);
+    render();showToast('✓ Substituto de Fabiana alterado');
+  };
+};
 window.generateSubs=function(year,month){
   if(!isMaster())return;
   var absences=getMonthAbsences(year,month);
@@ -947,8 +967,10 @@ function buildSubsView(year,month){
   var fabAbsentThisMonth=false;
   days.forEach(function(ds){if(absences[ds]&&absences[ds].some(function(a){return a.n==='FABIANA';}))fabAbsentThisMonth=true;});
   if(fabAbsentThisMonth&&fabianaSub){
-    h+='<div style="font-size:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;margin-bottom:12px;color:#1d4ed8">'+
-      'Substituto de Fabiana: <strong>'+fabianaSub+'</strong> (período completo)</div>';
+    h+='<div style="font-size:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;margin-bottom:12px;color:#1d4ed8;display:flex;align-items:center;justify-content:space-between">'+
+      '<span>Substituto de Fabiana: <strong>'+fabianaSub+'</strong> (período completo)</span>'+
+      (isMaster()?'<button class="btn sm" onclick="changeFabianaSub('+year+','+month+')">Alterar</button>':'')+
+    '</div>';
   }
   if(!days.length){
     h+='<div style="text-align:center;padding:48px 20px;color:var(--text-3)"><div style="font-size:28px;margin-bottom:10px">&#10003;</div>';
@@ -985,15 +1007,20 @@ function buildSubsView(year,month){
       h+='<span style="font-size:11px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span>';
       h+='<span style="font-size:12px;color:var(--text-3)"> &#8594;</span>';
       if(isMaster()){
-        h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid '+(hasConflict?'var(--red)':'var(--border)')+';background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
-        h+='<option value="">— escolher —</option>';
-        available.forEach(function(n){h+='<option value="'+n+'"'+(currentSub===n?' selected':'')+'>'+n+'</option>';});
-        h+='</select>';
-        if(hasConflict)h+='<span style="font-size:11px;color:var(--red)" title="'+currentSub+' também está ausente neste dia">&#9888; conflito</span>';
-        else if(fabConflict)h+='<span style="font-size:11px;color:var(--amber)">&#9888; '+fabianaSub+' ausente</span>';
-        else if(currentSub){
-          h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
-          if(isManual)h+='<span style="font-size:10px;color:var(--text-3)" title="Definido manualmente">&#9998;</span>';
+        if(absent.n==='FABIANA'&&fabianaSub){
+          h+='<span style="font-size:12px;font-weight:600;color:var(--accent)">'+fabianaSub+'</span>';
+          h+='<span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px">fixo</span>';
+          if(fabConflict)h+='<span style="font-size:11px;color:var(--amber)">&#9888; ausente neste dia</span>';
+        }else{
+          h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid '+(hasConflict?'var(--red)':'var(--border)')+';background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
+          h+='<option value="">— escolher —</option>';
+          available.forEach(function(n){h+='<option value="'+n+'"'+(currentSub===n?' selected':'')+'>'+n+'</option>';});
+          h+='</select>';
+          if(hasConflict)h+='<span style="font-size:11px;color:var(--red)" title="'+currentSub+' também está ausente neste dia">&#9888; conflito</span>';
+          else if(currentSub){
+            h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
+            if(isManual)h+='<span style="font-size:10px;color:var(--text-3)" title="Definido manualmente">&#9998;</span>';
+          }
         }
       }else{
         h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
