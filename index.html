@@ -279,6 +279,7 @@ firebase.initializeApp({
 var _db = firebase.firestore();
 var _docRef = _db.collection("jud3").doc("oficial");
 var _recessoRef = _db.collection("jud3").doc("recesso");
+var _subsRef = _db.collection("jud3").doc("subs");
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 var YEARS=[2026,2027,2028,2029,2030];
@@ -425,6 +426,8 @@ var calHighlightPeriod=null; // {s, d} — specific period highlighted in calend
 var _calReturnPerson=null; // person to return to after viewing calendar
 var _calReturnTimer=null; // auto-clear timer for return button
 var _hlLegendPerson=null; // person shown in temporary highlight legend
+var subsData={}; // { "YYYY-MM": { "YYYY-MM-DD": { "NAME": "SUBSTITUTE" } } }
+var subsYear=new Date().getFullYear(),subsMonth=new Date().getMonth();
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function pColor(name){var i=people.findIndex(function(p){return p.n===name;});return PCOLORS[Math.max(i,0)%PCOLORS.length];}
@@ -656,6 +659,136 @@ function subscribeRecesso(){
     if(curView==='recesso')render();
   },function(err){console.warn('Recesso sync error:',err);});
 }
+function subscribeSubs(){
+  _subsRef.onSnapshot(function(snap){
+    if(!snap.exists)return;
+    var d=snap.data();
+    try{subsData=JSON.parse(d.data||'{}');}catch(e){subsData={};}
+    if(curView==='subs')render();
+  },function(err){console.warn('Subs sync error:',err);});
+}
+function saveSubs(){
+  _subsRef.set({data:JSON.stringify(subsData),savedAt:new Date().toISOString(),savedBy:currentAdminUser||'ADMIN'})
+    .then(function(){showToast('✓ Substituição salva');})
+    .catch(function(e){showToast('Erro: '+e.message);});
+}
+window.setSub=function(monthKey,dateStr,from,to){
+  if(!isMaster())return;
+  if(!subsData[monthKey])subsData[monthKey]={};
+  if(!subsData[monthKey][dateStr])subsData[monthKey][dateStr]={};
+  if(to)subsData[monthKey][dateStr][from]=to;
+  else delete subsData[monthKey][dateStr][from];
+  saveSubs();
+};
+function getMonthAbsences(year,month){
+  var result={};
+  var dim=new Date(year,month+1,0).getDate();
+  var mo=String(month+1).padStart(2,'0');
+  for(var d=1;d<=dim;d++){
+    var ds=year+'-'+mo+'-'+String(d).padStart(2,'0');
+    if(!isWorkDayForBanca(ds))continue;
+    var absent=[];
+    vacations.forEach(function(v){
+      var endD=fmt(addDays(v.s,v.d-1));
+      if(ds>=v.s&&ds<=endD)absent.push({n:v.n,type:v.type||'ferias'});
+    });
+    absent.sort(function(a,b){return a.n.localeCompare(b.n);});
+    if(absent.length)result[ds]=absent;
+  }
+  return result;
+}
+function buildSubsView(year,month){
+  var DAYS_PT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var monthKey=year+'-'+String(month+1).padStart(2,'0');
+  var monthAssignments=subsData[monthKey]||{};
+  var absences=getMonthAbsences(year,month);
+  var days=Object.keys(absences).sort();
+  var active=activePeopleForYear(year);
+  var h='';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">';
+  h+='<div style="display:flex;align-items:center;gap:8px">';
+  h+='<button class="btn sm" onclick="subsMonth--;if(subsMonth<0){subsMonth=11;subsYear--;}render()">&#8592;</button>';
+  h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
+  h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
+  h+='</div>';
+  h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128438; Imprimir</button>';
+  h+='</div>';
+  if(!days.length){
+    h+='<div style="text-align:center;padding:48px 20px;color:var(--text-3)"><div style="font-size:28px;margin-bottom:10px">&#10003;</div>';
+    h+='<div style="font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px">Nenhuma substituição necessária</div>';
+    h+='<div style="font-size:13px">Nenhuma ausência registrada para dias úteis deste mês.</div></div>';
+    return h;
+  }
+  var totalPairs=days.reduce(function(acc,ds){return acc+absences[ds].length;},0);
+  var assignedPairs=days.reduce(function(acc,ds){var da=monthAssignments[ds]||{};return acc+absences[ds].filter(function(a){return da[a.n];}).length;},0);
+  h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' substituição'+(totalPairs!==1?'ões':'')+' &middot; '+assignedPairs+'/'+totalPairs+' definidas</div>';
+  days.forEach(function(ds){
+    var dow=new Date(ds+'T00:00:00').getDay();
+    var dayLabel=DAYS_PT[dow]+' '+fmtBR(ds).slice(0,5);
+    var dayAssignments=monthAssignments[ds]||{};
+    var absentToday=absences[ds];
+    var absentNames=absentToday.map(function(a){return a.n;});
+    var allAssigned=absentToday.every(function(a){return dayAssignments[a.n];});
+    h+='<div class="vac-item" style="flex-direction:column;align-items:stretch;margin-bottom:6px;padding:10px 12px">';
+    h+='<div style="font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:8px;display:flex;align-items:center;gap:6px">';
+    h+=dayLabel;
+    if(allAssigned)h+='<span style="font-size:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;padding:1px 6px;border-radius:4px">&#10003; completo</span>';
+    h+='</div>';
+    absentToday.forEach(function(absent){
+      var currentSub=dayAssignments[absent.n]||'';
+      var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
+      h+='<span style="font-size:12px;font-weight:600;min-width:90px">'+absent.n+'</span>';
+      h+='<span style="font-size:10px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px">'+licenseLabel(absent.type)+'</span>';
+      h+='<span style="font-size:12px;color:var(--text-3)">&#8594;</span>';
+      if(isMaster()){
+        h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
+        h+='<option value="">— escolher —</option>';
+        available.forEach(function(n){h+='<option value="'+n+'"'+(currentSub===n?' selected':'')+'>'+n+'</option>';});
+        h+='</select>';
+        if(currentSub)h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
+      }else{
+        h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
+      }
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  return h;
+}
+window.printSubs=function(year,month){
+  var monthKey=year+'-'+String(month+1).padStart(2,'0');
+  var monthAssignments=subsData[monthKey]||{};
+  var absences=getMonthAbsences(year,month);
+  var days=Object.keys(absences).sort();
+  var DAYS_PT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var rows='';
+  days.forEach(function(ds){
+    var dow=new Date(ds+'T00:00:00').getDay();
+    var dayLabel=DAYS_PT[dow]+' '+fmtBR(ds).slice(0,5);
+    var da=monthAssignments[ds]||{};
+    var absentToday=absences[ds];
+    absentToday.forEach(function(absent,i){
+      var sub=da[absent.n]||'—';
+      rows+='<tr>';
+      if(i===0)rows+='<td rowspan="'+absentToday.length+'">'+dayLabel+'</td>';
+      rows+='<td>'+absent.n+'</td><td>'+licenseLabel(absent.type)+'</td><td><strong>'+sub+'</strong></td>';
+      rows+='</tr>';
+    });
+  });
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições — '+MONTHS_PT[month]+' '+year+'</title>'+
+    '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}h2{font-size:16px;margin-bottom:16px}'+
+    'table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px 10px;text-align:left}'+
+    'th{background:#f0f0f0;font-weight:600}tr:nth-child(even){background:#fafafa}'+
+    '@media print{button{display:none}}</style></head><body>'+
+    '<h2>Substituições — '+MONTHS_PT[month]+' '+year+'</h2>'+
+    '<table><thead><tr><th>Data</th><th>Ausente</th><th>Tipo</th><th>Substituto</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table>'+
+    '<br><button onclick="window.print()">Imprimir</button>'+
+    '</body></html>';
+  var w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+};
 
 function showToast(msg){
   var t=document.getElementById('_toast');
@@ -2504,11 +2637,7 @@ function render(){
     h+=buildLicensesView(curYear);
   }
   if(curView==='subs'){
-    h+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--text-3)">';
-    h+='<div style="font-size:32px;margin-bottom:16px">&#128197;</div>';
-    h+='<div style="font-size:15px;font-weight:600;color:var(--text-2);margin-bottom:6px">Substituições</div>';
-    h+='<div style="font-size:13px;max-width:340px;line-height:1.6">Em breve — esta seção permitirá definir os procuradores substitutos para cada dia de férias ou licença.</div>';
-    h+='</div>';
+    h+=buildSubsView(subsYear,subsMonth);
   }
 
   var statusTxt=statusMsg;
@@ -2626,6 +2755,7 @@ function bootDashboard(user){
       window.scrollTo(0,0);
       subscribeOfficial();
       subscribeRecesso();
+      subscribeSubs();
     });
   });
 }
