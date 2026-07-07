@@ -269,9 +269,6 @@ var MONTHS=['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto
 var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
-var LICENSE_TYPES={maternidade:'Lic. Maternidade',paternidade:'Lic. Paternidade',gala:'Lic. Gala',nojo:'Lic. Nojo',saude:'Lic. Saúde',outros:'Outra licença'};
-function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
-function isLicense(v){return v.type&&v.type!=='ferias';}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
 var OFFICIAL_PIN='admin1'; // senha master
 var SESSION_KEY='ferias-jud3-session';
@@ -414,19 +411,6 @@ var today=fmt(new Date());
 function buildDayMap(year){
   var m={};
   vacations.forEach(function(v){
-    if(isLicense(v))return; // licenças não contam para o limite
-    for(var i=0;i<v.d;i++){
-      var k=fmt(addDays(v.s,i));
-      if(k.slice(0,4)!==String(year))continue;
-      if(!m[k])m[k]=[];
-      m[k].push(v.n);
-    }
-  });
-  return m;
-}
-function buildAllAbsenceMap(year){
-  var m={};
-  vacations.forEach(function(v){
     for(var i=0;i<v.d;i++){
       var k=fmt(addDays(v.s,i));
       if(k.slice(0,4)!==String(year))continue;
@@ -447,7 +431,6 @@ function getStats(year){
     if(ns.length===LIMIT)dAt4++;
   });
   vacations.forEach(function(v){
-    if(isLicense(v))return;
     var ys=v.s.slice(0,4),ye=fmt(addDays(v.s,v.d-1)).slice(0,4);
     if(ys===String(year)||ye===String(year))totalD+=v.d;
   });
@@ -615,23 +598,19 @@ function diffSnapshots(curr, prev){
   var prevPeople=prev?migratePeople(JSON.parse(prev.people)):[];
 
   // Vacation key for comparison
-  function vacKey(v){return v.n+'|'+v.s+'|'+v.d+'|'+(v.type||'ferias');}
+  function vacKey(v){return v.n+'|'+v.s+'|'+v.d;}
   var currKeys=currVacs.map(vacKey);
   var prevKeys=prevVacs.map(vacKey);
 
-  // Added vacations/licenses (in curr but not prev)
+  // Added vacations (in curr but not prev)
   currVacs.forEach(function(v){
-    if(prevKeys.indexOf(vacKey(v))<0){
-      var label=(!v.type||v.type==='ferias')?'Férias adicionadas':licenseLabel(v.type)+' registrada';
-      lines.push({type:'add',text:'+ '+label+': '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
-    }
+    if(prevKeys.indexOf(vacKey(v))<0)
+      lines.push({type:'add',text:'+ Férias adicionadas: '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
   });
-  // Removed vacations/licenses (in prev but not curr)
+  // Removed vacations (in prev but not curr)
   prevVacs.forEach(function(v){
-    if(currKeys.indexOf(vacKey(v))<0){
-      var label=(!v.type||v.type==='ferias')?'Férias removidas':licenseLabel(v.type)+' removida';
-      lines.push({type:'rem',text:'− '+label+': '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
-    }
+    if(currKeys.indexOf(vacKey(v))<0)
+      lines.push({type:'rem',text:'− Férias removidas: '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
   });
 
   // People changes
@@ -1244,63 +1223,41 @@ function confirmAddVac(){
 // ── Person vacations ───────────────────────────────────────────────────────────
 function showPersonVacs(person){
   var canEdit=canEditVac(person);
-  var allPvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear);}).sort(function(a,b){return a.s.localeCompare(b.s);});
-  var pvacs=allPvacs.filter(function(v){return !isLicense(v);});
-  var plics=allPvacs.filter(function(v){return isLicense(v);});
-
-  function renderVacItem(v){
+  var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear);}).sort(function(a,b){return a.s.localeCompare(b.s);});
+  var items=pvacs.length?pvacs.map(function(v){
     var idx=vacations.indexOf(v);
     var startYear=parseInt(v.s.slice(0,4)),startMonth=parseInt(v.s.slice(5,7))-1;
     var viewBtn='<button class="btn sm" onclick="closeModal();calSearch=\'\';_setReturnPerson(\''+person+'\');goToCalendarDate('+startYear+','+startMonth+',\''+v.s+'\','+v.d+',8000)">Ver no calendário</button>';
     var actionRow=canEdit?
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'+viewBtn+
-      '<div style="display:flex;gap:6px"><button class="btn sm" onclick="editVac('+idx+',\''+person+'\')">Editar</button>'+
-      '<button class="btn sm danger" onclick="removeVac('+idx+',\''+person+'\')">Remover</button></div></div>':
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'+viewBtn+
-      '<span style="font-size:11px;color:var(--text-3);font-style:italic">somente leitura</span></div>';
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'+
+      viewBtn+
+      '<div style="display:flex;gap:6px">'+
+      '<button class="btn sm" onclick="editVac('+idx+',\''+person+'\')">Editar</button>'+
+      '<button class="btn sm danger" onclick="removeVac('+idx+',\''+person+'\')">Remover</button>'+
+      '</div></div>':
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px">'+
+      viewBtn+
+      '<span style="font-size:11px;color:var(--text-3);font-style:italic">somente leitura</span>'+
+      '</div>';
     return '<div class="vac-item" style="flex-direction:column;align-items:stretch">'+
            '<div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+' <span style="color:var(--text-3);font-weight:400">('+v.d+' dias)</span></div>'+
            actionRow+'</div>';
-  }
-
-  function renderLicItem(v){
-    var idx=vacations.indexOf(v);
-    var actionRow=isMaster()?
-      '<div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:2px">'+
-      '<button class="btn sm" onclick="editLicense('+idx+',\''+person+'\')">Editar</button>'+
-      '<button class="btn sm danger" onclick="removeLicense('+idx+',\''+person+'\')">Remover</button></div>':
-      '<div style="margin-top:2px"><span style="font-size:11px;color:var(--text-3);font-style:italic">somente leitura</span></div>';
-    return '<div class="vac-item" style="flex-direction:column;align-items:stretch">'+
-           '<div class="vac-dates">'+
-           '<span style="font-size:11px;font-weight:600;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px;margin-right:6px">'+licenseLabel(v.type)+'</span>'+
-           fmtBR(v.s)+' &rarr; '+fmtBR(fmt(addDays(v.s,v.d-1)))+' <span style="color:var(--text-3);font-weight:400">('+v.d+' dias)</span></div>'+
-           actionRow+'</div>';
-  }
-
-  var vacItems=pvacs.length?pvacs.map(renderVacItem).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período de férias cadastrado.</div>';
-  var licItems=plics.length?plics.map(renderLicItem).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhuma licença cadastrada.</div>';
-
+  }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período cadastrado.</div>';
+  var addBtn=canEdit?'<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar férias</button>':'';
+  var testBtn='<button class="btn" onclick="closeModal();showTestPeriod(\''+person+'\')">&#128197; Testar período</button>';
   var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
   var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
   var daysLabel='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--surface2);color:'+daysColor+'">'+daysUsed+' / '+VAC_LIMIT+' dias em '+curYear+'</span>';
-
   var bodyHtml=
     '<h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
     '<span style="display:flex;align-items:center;gap:8px">'+
     '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+'</span>'+
     daysLabel+'</h3>'+
-    (!canEdit&&!isMaster()?'<div style="background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--text-3);margin-bottom:12px">Você está visualizando as férias de '+person+'. Apenas '+person+' pode editar seus próprios períodos.</div>':'')+
-    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:0 0 6px">Férias</div>'+
-    '<div class="vac-list">'+vacItems+'</div>'+
-    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin:14px 0 6px">Licenças</div>'+
-    '<div class="vac-list">'+licItems+'</div>';
-
-  var addVacBtn=canEdit?'<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Férias</button>':'';
-  var addLicBtn=isMaster()?'<button class="btn" onclick="closeModal();showAddLicense(\''+person+'\')">+ Licença</button>':'';
-  var testBtn=canEdit?'<button class="btn" onclick="closeModal();showTestPeriod(\''+person+'\')">&#128197; Testar período</button>':'';
+    (!canEdit?'<div style="background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--text-3);margin-bottom:12px">Você está visualizando as férias de '+person+'. Apenas '+person+' pode editar seus próprios períodos.</div>':'')+
+    '<div class="vac-list">'+items+'</div>';
   var footerHtml=
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
-    '<div style="display:flex;gap:6px">'+addVacBtn+addLicBtn+testBtn+'</div>'+
+    '<div style="display:flex;gap:6px">'+addBtn+(canEdit?testBtn:'')+'</div>'+
     '<button class="btn" onclick="closeModal()">Fechar</button></div>';
   openTallModal(bodyHtml, footerHtml);
 }
@@ -1349,67 +1306,6 @@ function removeVac(idx, person){
 window._doRemoveVac=function(idx,person){
   adminConfirm(function(){vacations.splice(idx,1);closeModal();saveData('✓ Período removido');render();});
 };
-
-// ── Licenças (somente master) ──────────────────────────────────────────────────
-function showAddLicense(person){
-  if(!isMaster())return;
-  var licOpts=Object.keys(LICENSE_TYPES).map(function(k){return '<option value="'+k+'">'+LICENSE_TYPES[k]+'</option>';}).join('');
-  var mo=String(curMonth+1).padStart(2,'0');
-  openModal(
-    '<h3>Registrar licença</h3>'+
-    '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 14px;line-height:1.6"><strong>'+person+'</strong></p>'+
-    '<div class="field"><label>Tipo</label><select id="lic-type">'+licOpts+'</select></div>'+
-    '<div class="field"><label>Data de início</label><input type="date" id="lic-start" value="'+curYear+'-'+mo+'-01"></div>'+
-    '<div class="field"><label>Número de dias</label><input type="number" id="lic-days" min="1" max="365" value="1"></div>'+
-    '<div class="mbtns"><button class="btn" onclick="closeModal();showPersonVacs(\''+person+'\')">Cancelar</button>'+
-    '<button class="btn primary" onclick="confirmAddLicense(\''+person+'\')">Salvar</button></div>'
-  );
-}
-function confirmAddLicense(person){
-  if(!isMaster())return;
-  var type=document.getElementById('lic-type').value;
-  var start=document.getElementById('lic-start').value;
-  var days=parseInt(document.getElementById('lic-days').value);
-  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
-  closeModal();
-  adminConfirm(function(){vacations.push({n:person,s:start,d:days,type:type});saveData('✓ Licença registrada');render();showPersonVacs(person);});
-}
-function editLicense(idx,person){
-  if(!isMaster())return;
-  var v=vacations[idx];if(!v)return;
-  var licOpts=Object.keys(LICENSE_TYPES).map(function(k){return '<option value="'+k+'"'+(v.type===k?' selected':'')+'>'+LICENSE_TYPES[k]+'</option>';}).join('');
-  openModal(
-    '<h3>Editar licença</h3>'+
-    '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 14px"><strong>'+person+'</strong></p>'+
-    '<div class="field"><label>Tipo</label><select id="lic-type">'+licOpts+'</select></div>'+
-    '<div class="field"><label>Data de início</label><input type="date" id="lic-start" value="'+v.s+'"></div>'+
-    '<div class="field"><label>Número de dias</label><input type="number" id="lic-days" min="1" max="365" value="'+v.d+'"></div>'+
-    '<div class="mbtns"><button class="btn" onclick="showPersonVacs(\''+person+'\')">Cancelar</button>'+
-    '<button class="btn primary" onclick="confirmEditLicense('+idx+',\''+person+'\')">Salvar</button></div>'
-  );
-}
-function confirmEditLicense(idx,person){
-  if(!isMaster())return;
-  var type=document.getElementById('lic-type').value;
-  var start=document.getElementById('lic-start').value;
-  var days=parseInt(document.getElementById('lic-days').value);
-  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
-  function doEdit(){vacations[idx]={n:person,s:start,d:days,type:type};saveData('✓ Licença atualizada');render();showPersonVacs(person);}
-  closeModal();adminConfirm(doEdit);
-}
-function removeLicense(idx,person){
-  if(!isMaster())return;
-  openModal(
-    '<h3>Remover licença</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Tem certeza que deseja remover esta licença? Esta ação não pode ser desfeita.</p>'+
-    '<div class="mbtns"><button class="btn" onclick="closeModal();showPersonVacs(\''+person+'\')">Cancelar</button>'+
-    '<button class="btn danger" onclick="closeModal();_doRemoveLicense('+idx+',\''+person+'\')">Remover</button></div>'
-  );
-}
-window._doRemoveLicense=function(idx,person){
-  adminConfirm(function(){vacations.splice(idx,1);closeModal();saveData('✓ Licença removida');render();showPersonVacs(person);});
-};
-
 function showPeopleManager(){
   var active=people.filter(function(p){return p.ate===null;});
   var inactive=people.filter(function(p){return p.ate!==null;});
@@ -1565,41 +1461,31 @@ function showExportModal(){
 
 // ── Calendar ───────────────────────────────────────────────────────────────────
 function selectDay(ds){
-  var year=parseInt(ds.slice(0,4));
-  var vacNames=(buildDayMap(year)[ds])||[];
-  var allNames=(buildAllAbsenceMap(year)[ds])||[];
-  var licNames=allNames.filter(function(n){return vacNames.indexOf(n)<0;});
+  var names=(buildDayMap(parseInt(ds.slice(0,4)))[ds])||[];
   var el=document.getElementById('sel-info');if(!el)return;
   var d=parseD(ds);
   var opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
   var str=d.toLocaleDateString('pt-BR',opts);
   var hol=getHoliday(ds);
   var lines=[];
+  // Line 1: date
   lines.push('<div style="font-weight:600">'+str+'</div>');
+  // Line 2: holiday badge (if any)
   if(hol){
     var holLabel=hol.type==='holiday'?'Feriado':hol.type==='optional'?'Ponto facultativo':'Suspensão de expediente';
     var holText=hol.type==='suspended'?holLabel:holLabel+': '+hol.label;
     lines.push('<div><span style="font-size:11px;font-weight:500;background:#f3eeff;color:#7c3aed;border:1px solid #c4b5fd;padding:2px 8px;border-radius:4px;display:inline-block">'+holText+'</span></div>');
   }
-  if(!vacNames.length&&!licNames.length){
-    lines.push('<div style="color:var(--text-3);font-size:12px">Nenhum procurador ausente.</div>');
+  // Line 3: people on vacation
+  if(!names.length){
+    lines.push('<div style="color:var(--text-3);font-size:12px">Nenhum procurador de férias.</div>');
   }else{
-    if(vacNames.length){
-      var over=vacNames.length>LIMIT,atLim=vacNames.length===LIMIT;
-      var limitBadge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
-      var nameLinks=vacNames.map(function(n){
-        return '<a href="#" onclick="event.preventDefault();setView(\'people\');setTimeout(function(){showPersonVacs(\''+n+'\');},80)" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>';
-      }).join(', ');
-      lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Férias:</span> '+nameLinks+limitBadge+' <span style="color:var(--text-3)">('+vacNames.length+')</span></div>');
-    }
-    if(licNames.length){
-      var licLinks=licNames.map(function(n){
-        var licType='';
-        vacations.forEach(function(v){if(v.n===n&&isLicense(v)){var vs=new Date(v.s+'T00:00:00'),ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00'),td=new Date(ds+'T00:00:00');if(vs<=td&&td<=ve)licType=licenseLabel(v.type);}});
-        return '<a href="#" onclick="event.preventDefault();setView(\'people\');setTimeout(function(){showPersonVacs(\''+n+'\');},80)" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>'+(licType?' <span style="color:var(--text-3);font-size:11px">('+licType+')</span>':'');
-      }).join(', ');
-      lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Licença:</span> '+licLinks+'</div>');
-    }
+    var over=names.length>LIMIT,atLim=names.length===LIMIT;
+    var limitBadge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
+    var nameLinks=names.map(function(n){
+      return '<a href="#" onclick="event.preventDefault();setView(\'people\');setTimeout(function(){showPersonVacs(\''+n+'\');},80)" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>';
+    }).join(', ');
+    lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Procuradores de férias:</span> '+nameLinks+limitBadge+' <span style="color:var(--text-3)">('+names.length+')</span></div>');
   }
   el.innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'+lines.join('')+'</div>';
 }
@@ -1929,37 +1815,38 @@ function buildPanel(year){
     windowEnd.setDate(windowEnd.getDate()+30);
     var windowEndStr=fmt(windowEnd);
 
-    var allAbsToday=buildAllAbsenceMap(year)[todayStr]||[];
-    var onVacToday=dm[todayStr]||[]; // só férias (para limite)
+    var onVacToday=dm[todayStr]||[];
     var foraDistNow=[],bancaNow=[],startsToday=[],returnsToday=[];
     var distEvents=[],bancaEvents=[];
     var seen={dist:{},banca:{}};
 
     vacations.forEach(function(v){
       var vEndStr=fmt(addDays(v.s,v.d-1));
+      var vEndD=new Date(vEndStr+'T00:00:00');
       var vStartD=new Date(v.s+'T00:00:00');
 
-      if(v.s===todayStr)startsToday.push({n:v.n,type:v.type});
+      if(v.s===todayStr)startsToday.push(v.n);
       var retD=new Date(vEndStr+'T00:00:00');retD.setDate(retD.getDate()+1);
-      if(fmt(retD)===todayStr)returnsToday.push({n:v.n,type:v.type});
+      if(fmt(retD)===todayStr)returnsToday.push(v.n);
 
-      // Fora da distribuição: apenas férias (regra dos 7 dias não se aplica a licenças)
-      if(!isLicense(v)){
-        var distD=new Date(vStartD);distD.setDate(distD.getDate()-7);
-        var distStr=fmt(distD);
-        if(distStr<=todayStr&&v.s>todayStr)foraDistNow.push({n:v.n,start:v.s});
-        if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
-          seen.dist[v.n+distStr]=true;
-          distEvents.push({n:v.n,date:distStr,start:v.s});
-        }
-      }
+      // Fora da distribuição agora: distDate<=today e férias ainda não começou
+      var distD=new Date(vStartD);distD.setDate(distD.getDate()-7);
+      var distStr=fmt(distD);
+      if(distStr<=todayStr&&v.s>todayStr)foraDistNow.push({n:v.n,start:v.s});
 
-      // Banca roda: férias e licenças (regra dos 2 dias úteis aplica-se a ambos)
+      // Banca rodando agora: bancaDate<=today e férias ainda não começou
       var bancaStr=subtractWorkDays(v.s,2);
-      if(bancaStr<=todayStr&&v.s>todayStr)bancaNow.push({n:v.n,start:v.s,type:v.type});
+      if(bancaStr<=todayStr&&v.s>todayStr)bancaNow.push({n:v.n,start:v.s});
+
+      // Próximos 30 dias — saída da distribuição
+      if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
+        seen.dist[v.n+distStr]=true;
+        distEvents.push({n:v.n,date:distStr,start:v.s});
+      }
+      // Próximos 30 dias — banca começa a rodar
       if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){
         seen.banca[v.n+bancaStr]=true;
-        bancaEvents.push({n:v.n,date:bancaStr,start:v.s,type:v.type});
+        bancaEvents.push({n:v.n,date:bancaStr,start:v.s});
       }
     });
 
@@ -1974,20 +1861,19 @@ function buildPanel(year){
     // Três blocos: de férias / fora da dist / banca rodando
     h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">';
 
-    // Bloco 1 — Ausentes agora (férias + licenças)
+    // Bloco 1 — De férias agora
     h+='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 12px">';
-    h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Ausentes agora</div>';
-    if(allAbsToday.length){
-      h+=allAbsToday.map(function(n){
-        var ret='',vtype='ferias';
+    h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">De férias agora</div>';
+    if(onVacToday.length){
+      h+=onVacToday.map(function(n){
+        var ret='';
         vacations.forEach(function(v){
           if(v.n!==n)return;
           var vs=new Date(v.s+'T00:00:00');
           var ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00');
-          if(vs<=todayD&&todayD<=ve){var rd=new Date(ve);rd.setDate(rd.getDate()+1);ret=fmtBR(fmt(rd));vtype=v.type||'ferias';}
+          if(vs<=todayD&&todayD<=ve){var rd=new Date(ve);rd.setDate(rd.getDate()+1);ret=fmtBR(fmt(rd));}
         });
-        var badge=isLicense({type:vtype})?'<span style="font-size:10px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:0 5px;border-radius:3px;margin-left:4px">'+licenseLabel(vtype)+'</span>':'';
-        return '<div style="font-size:12px;line-height:1.6"><strong>'+n+'</strong>'+badge+(ret?' <span style="color:var(--text-3);font-size:11px">retorna '+ret+'</span>':'')+'</div>';
+        return '<div style="font-size:12px;line-height:1.6"><strong>'+n+'</strong>'+(ret?' <span style="color:var(--text-3);font-size:11px">retorna '+ret+'</span>':'')+'</div>';
       }).join('');
     }else{
       h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
@@ -2034,10 +1920,7 @@ function buildPanel(year){
       }
       if(bancaEvents.length){
         h+='<div style="font-size:12px"><span style="color:var(--text-2)">Banca começa a rodar:</span> ';
-        h+=bancaEvents.map(function(e){
-          var badge=isLicense({type:e.type})?'<span style="font-size:10px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:0 5px;border-radius:3px;margin-left:3px">'+licenseLabel(e.type)+'</span>':'';
-          return '<strong>'+e.n+'</strong>'+badge+' em '+fmtBR(e.date);
-        }).join(' &nbsp;·&nbsp; ');
+        h+=bancaEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}).join(' &nbsp;·&nbsp; ');
         h+='</div>';
       }
       h+='</div>';
@@ -2201,7 +2084,7 @@ function render(){
     h+='<div class="welcome-banner">';
     h+='<div class="welcome-banner-text">';
     h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="var(--blue)" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="var(--blue)" stroke-width="1.4" stroke-linecap="round"/></svg>';
-    h+='<span>Olá, <strong>'+currentAdminUser+'</strong> — para adicionar ou editar seus períodos de férias, acesse a aba <strong>Por procurador</strong> e selecione o ano desejado.</span>';
+    h+='<span>Olá, <strong>'+currentAdminUser+'</strong> — para adicionar ou editar seus períodos de férias, acesse a aba <strong>Férias por procurador</strong> e selecione o ano desejado.</span>';
     h+='</div>';
     h+='<div class="welcome-banner-actions">';
     h+='<button class="btn sm primary" onclick="goToMyVacations()">Ver minhas férias</button>';
@@ -2249,7 +2132,7 @@ function render(){
 
   // Section toggle
   h+='<div class="section-toggle">';
-  h+='<button class="stab'+(curSection==='ferias'?' active':'')+'" onclick="setSection(\'ferias\')">Ausências</button>';
+  h+='<button class="stab'+(curSection==='ferias'?' active':'')+'" onclick="setSection(\'ferias\')">Férias</button>';
   h+='<button class="stab'+(curSection==='recesso'?' active':'')+'" onclick="setSection(\'recesso\')">Recesso</button>';
   h+='</div>';
 
@@ -2276,7 +2159,7 @@ function render(){
   h+='<div class="view-tabs">';
   h+='<button class="vtab'+(curView==='panel'?' active':'')+'" onclick="setView(\'panel\')">Painel</button>';
   h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendário</button>';
-  h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Por procurador</button>';
+  h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Férias por procurador</button>';
   h+='<button class="vtab conflict-tab'+(curView==='conflicts'?' active':'')+'" onclick="setView(\'conflicts\')">'+cLabel+'</button>';
   h+='</div>';
 
@@ -2335,7 +2218,6 @@ function render(){
     h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>4 em férias (limite)</div>';
     h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;border-left:3px solid #7c3aed;flex-shrink:0"></div>Feriado / Sem expediente</div>';
-    h+='<div class="leg" style="font-size:11px;color:var(--text-3)">Licenças não afetam a contagem do limite — aparecem no detalhe do dia</div>';
     if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Férias de '+calSearch+'</div>';
     if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
     h+='<div class="leg" id="_hl-leg" style="display:none"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">Férias de</span></div>';
@@ -2344,7 +2226,7 @@ function render(){
   if(curView==='people'){
     h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
     var peopleSubtitle=isMaster()?
-      'Clique em um nome para ver e editar ausências de '+curYear:
+      'Clique em um nome para ver e editar períodos de '+curYear:
       'Clique no seu nome para editar seus períodos. Clique nos demais para visualizar.';
     h+='<span style="font-size:12px;color:var(--text-3)">'+peopleSubtitle+'</span>';
     h+='<div style="display:flex;gap:6px">';
@@ -2354,18 +2236,16 @@ function render(){
     h+='</div></div>';
     h+='<div class="people-grid">';
     activePeopleForYear(curYear).forEach(function(p){
-      var allpvacs=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);});
-      var pvacs=allpvacs.filter(function(v){return !isLicense(v);});
-      var plics=allpvacs.filter(function(v){return isLicense(v);});
+      var pvacs=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);});
+      var c=pvacs.length;
       var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
       var isMe=p===currentAdminUser&&currentAdminUser!=='ADMIN';
       var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--text-3)';
-      var licSub=plics.length?' &middot; '+plics.length+' lic.':'';
       h+='<div class="pchip'+(isMe?' mine':'')+'" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
          '<div class="pdot" style="background:'+pColor(p)+'"></div>'+
          '<div>'+
          '<div class="pname">'+p+(isMe?' <span style="font-size:10px;font-weight:400;color:var(--text-3)">(você)</span>':'')+'</div>'+
-         '<div class="psub">'+pvacs.length+' férias'+licSub+' em '+curYear+'</div>'+
+         '<div class="psub">'+c+' período'+(c!==1?'s':'')+' em '+curYear+'</div>'+
          '<div class="psub" style="color:'+daysColor+'">'+daysUsed+'/'+VAC_LIMIT+' dias utilizados</div>'+
          '</div></div>';
     });
