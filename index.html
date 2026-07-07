@@ -1596,7 +1596,7 @@ function buildCal(year,month){
       var nameParts=ns.slice();
       licNs.forEach(function(n){nameParts.push('<span style="color:#2563eb">'+n+'</span>');});
       if(c>0)h+='<div class="cbadge '+bc+'">'+c+(over?' !':'')+'</div>';
-      else h+='<div class="cbadge" style="background:#dbeafe;color:#2563eb">'+licNs.length+'</div>';
+      else h+='<div class="cbadge" style="visibility:hidden">0</div>';
       h+='<div class="dnames">'+nameParts.join(', ')+'</div>';
     }
     h+='</div></div>';
