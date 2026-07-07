@@ -396,6 +396,7 @@ var recessoDates={};
 var previewVac=null; // {n, s, d} — vacation being previewed, not yet saved
 var _welcomeDismissed=false; // shown once per session
 var calSearch=''; // calendar search filter
+var calHighlightPeriod=null; // {s, d} — specific period highlighted in calendar
 var _calReturnPerson=null; // person to return to after viewing calendar
 var _calReturnTimer=null; // auto-clear timer for return button
 var _hlLegendPerson=null; // person shown in temporary highlight legend
@@ -1601,7 +1602,7 @@ function buildCal(year,month){
       }
     }
     var dayCls='day'+(isT?' today':'')+(hol?' has-hol':'')+(isWeekend?' weekend':'')+(inPreview?(previewConflict?' day-preview-conflict':' day-preview'):'')+(hasRec?' rec-day':'');
-    if(calSearch&&allNs.some(function(n){return n.toLowerCase().indexOf(calSearch.toLowerCase())>=0;}))dayCls+=' search-match';
+    if(calHighlightPeriod){var _hlEnd=fmt(addDays(calHighlightPeriod.s,calHighlightPeriod.d-1));if(ds>=calHighlightPeriod.s&&ds<=_hlEnd)dayCls+=' search-match';}
     h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
     h+='<div class="day-content">';
@@ -2403,7 +2404,7 @@ function render(){
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
     h+='<span style="font-size:12px;color:var(--text-3);white-space:nowrap">Destacar períodos de</span>';
     var searchOpts='<option value="">...</option>'+activePeopleForYear(curYear).map(function(p){return '<option value="'+p+'"'+(calSearch===p?' selected':'')+'>'+p+'</option>';}).join('');
-    h+='<select onchange="calSearch=this.value;if(this.value){var vv=vacations.filter(function(v){return v.n===this.value&&v.s.slice(0,4)===String(curYear);}.bind(this));if(vv.length){vv.sort(function(a,b){return a.s.localeCompare(b.s);});curMonth=parseInt(vv[0].s.slice(5,7))-1;}}render()" style="padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);min-width:140px">'+searchOpts+'</select>';
+    h+='<select onchange="calSearch=this.value;calHighlightPeriod=null;if(this.value){var _vv=vacations.filter(function(v){return v.n===calSearch&&v.s.slice(0,4)===String(curYear);});_vv.sort(function(a,b){return a.s.localeCompare(b.s);});if(_vv.length){calHighlightPeriod={s:_vv[0].s,d:_vv[0].d};curMonth=parseInt(_vv[0].s.slice(5,7))-1;}}render()" style="padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);min-width:140px">'+searchOpts+'</select>';
     if(calSearch){
       var personVacsAll=vacations.filter(function(v){return v.n===calSearch;}).sort(function(a,b){return a.s.localeCompare(b.s);});
       var personVacsYear=personVacsAll.filter(function(v){return v.s.slice(0,4)===String(curYear);});
@@ -2423,7 +2424,7 @@ function render(){
           var active=y===curYear&&mo===curMonth;
           var typeLabel=licenseLabel(v.type);
           var label=typeLabel+': '+fmtBR(v.s).slice(0,5)+' → '+fmtBR(fmt(addDays(v.s,v.d-1))).slice(0,5)+' ('+v.d+' dias)';
-          h+='<button class="btn sm'+(active?' primary':'')+'" onclick="curYear='+y+';curMonth='+mo+';render()">'+label+'</button>';
+          h+='<button class="btn sm'+(active?' primary':'')+'" onclick="calHighlightPeriod={s:\''+v.s+'\',d:'+v.d+'};curYear='+y+';curMonth='+mo+';render()">'+label+'</button>';
         });
         h+='</div>';
       }
@@ -2502,7 +2503,7 @@ function render(){
 }
 
 function setYear(y){curYear=y;render();}
-function setView(v){if(v!=='calendar'){calSearch='';_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;render();}
+function setView(v){if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;render();}
 function _setReturnPerson(p){
   _calReturnPerson=p;
   if(_calReturnTimer)clearTimeout(_calReturnTimer);
