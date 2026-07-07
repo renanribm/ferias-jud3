@@ -828,12 +828,12 @@ window.printSubs=function(year,month){
     summaryLines.map(function(l){return '<p style="font-size:11px;margin:3px 0">'+l+'</p>';}).join('')+
     '</div>':'';
   var colStyle='th{background:#e8e8e8;font-weight:600;padding:8px;text-align:center;font-size:12px;width:20%}';
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições — '+MONTHS_PT[month]+' '+year+'</title>'+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</title>'+
     '<style>body{font-family:Arial,sans-serif;font-size:12px;padding:20px}h2{font-size:15px;margin-bottom:14px}'+
     'table{border-collapse:collapse;width:100%}'+colStyle+
     'td{border:1px solid #ccc;min-height:60px;min-width:0}th{border:1px solid #bbb}'+
     '@media print{button{display:none}body{padding:10px}}</style></head><body>'+
-    '<h2>Substituições — '+MONTHS_PT[month]+' '+year+'</h2>'+
+    '<h2>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</h2>'+
     '<table><thead><tr><th>Segunda-feira</th><th>Terça-feira</th><th>Quarta-feira</th><th>Quinta-feira</th><th>Sexta-feira</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table>'+
     summary+
