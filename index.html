@@ -801,7 +801,7 @@ function _fabianaSelectHtml(avail){
   var opts=avail.map(function(n){return'<option value="'+n+'">'+n+'</option>';}).join('');
   return'<div class="field"><label>Substituto</label><select id="_fab-sel">'+opts+'</select></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-    '<button class="btn primary" onclick="closeModal();window._fabCb(document.getElementById(\'_fab-sel\').value)">Confirmar e Gerar</button></div>';
+    '<button class="btn primary" onclick="var _v=document.getElementById(\'_fab-sel\').value;closeModal();window._fabCb(_v)">Confirmar e Gerar</button></div>';
 }
 function showFabianaSubModal(year,month,onConfirm){
   window._fabCb=onConfirm;
@@ -861,8 +861,10 @@ function buildSubsView(year,month){
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
   h+='</div>';
+  h+='<div style="display:flex;gap:6px">';
   if(isMaster())h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
   h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Imprimir</button>';
+  h+='</div>';
   h+='</div>';
   // Info substituto fixo Fabiana
   var fabianaSub=monthAssignments.fabianaFixedSub||null;
