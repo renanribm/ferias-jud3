@@ -271,7 +271,7 @@ var MONTHS=['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto
 var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
-var LICENSE_TYPES={maternidade:'Lic. Maternidade',paternidade:'Lic. Paternidade',gala:'Lic. Gala',nojo:'Lic. Nojo',saude:'Lic. Saúde',outros:'Outra licença'};
+var LICENSE_TYPES={maternidade:'Licença Maternidade',paternidade:'Licença Paternidade',gala:'Licença Gala',nojo:'Licença Nojo',saude:'Licença Saúde',outros:'Outra licença'};
 function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
 function isLicense(v){return v.type&&v.type!=='ferias';}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
