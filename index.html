@@ -232,6 +232,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .hm-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;position:relative}
 .hm-bar:hover .hm-tip{display:block}
 .hm-bar.hm-active .hm-tip{display:block}
+.hm-cell{transition:opacity .1s ease}
+.hm-bar:hover .hm-cell{opacity:1!important}
+.hm-label{transition:color .1s ease,font-weight .1s ease}
+.hm-bar:hover .hm-label{color:var(--accent)!important;font-weight:600!important}
 .hm-tip{display:none;position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;font-size:11px;font-weight:600;padding:3px 7px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:10}
 .hm-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1a1a18}
 </style>
@@ -2214,8 +2218,8 @@ function buildPanel(year){
     var barH=maxInMonth===0?4:Math.max(8,Math.round((maxInMonth/LIMIT)*32));
     h+='<div class="hm-bar" onclick="hmBarClick(this,'+mi+',\''+mName+'\','+maxInMonth+')">';
     h+='<div class="hm-tip">'+mName+' — pico: '+maxInMonth+'</div>';
-    h+='<div style="width:100%;height:'+barH+'px;background:'+barColor+';border-radius:3px 3px 0 0;opacity:'+(isCurMo?'1':'.3')+'"></div>';
-    h+='<div style="font-size:10px;color:'+(isCurMo?'var(--accent)':'var(--text-3)')+';font-weight:'+(isCurMo?'600':'400')+'">'+mName.slice(0,3)+'</div>';
+    h+='<div class="hm-cell" style="width:100%;height:'+barH+'px;background:'+barColor+';border-radius:3px 3px 0 0;opacity:'+(isCurMo?'1':'.3')+'"></div>';
+    h+='<div class="hm-label" style="font-size:10px;color:'+(isCurMo?'var(--accent)':'var(--text-3)')+';font-weight:'+(isCurMo?'600':'400')+'">'+mName.slice(0,3)+'</div>';
     h+='</div>';
   });
   h+='</div></div>';
