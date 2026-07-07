@@ -269,6 +269,9 @@ var MONTHS=['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto
 var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
+var LICENSE_TYPES={maternidade:'Lic. Maternidade',paternidade:'Lic. Paternidade',gala:'Lic. Gala',nojo:'Lic. Nojo',saude:'Lic. Saúde',outros:'Outra licença'};
+function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
+function isLicense(v){return v.type&&v.type!=='ferias';}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
 var OFFICIAL_PIN='admin1'; // senha master
 var SESSION_KEY='ferias-jud3-session';
@@ -411,6 +414,7 @@ var today=fmt(new Date());
 function buildDayMap(year){
   var m={};
   vacations.forEach(function(v){
+    if(isLicense(v))return;
     for(var i=0;i<v.d;i++){
       var k=fmt(addDays(v.s,i));
       if(k.slice(0,4)!==String(year))continue;
@@ -418,6 +422,38 @@ function buildDayMap(year){
       m[k].push(v.n);
     }
   });
+  return m;
+}
+function buildAllAbsenceMap(year){
+  var m={};
+  vacations.forEach(function(v){
+    for(var i=0;i<v.d;i++){
+      var k=fmt(addDays(v.s,i));
+      if(k.slice(0,4)!==String(year))continue;
+      if(!m[k])m[k]=[];
+      m[k].push(v.n);
+    }
+  });
+  return m;
+}
+function buildRecessoDayMap(year){
+  var m={};
+  var choices=recessoChoices[year]||{};
+  var dates=recessoDates[year]||{};
+  var active=activePeopleForYear(year);
+  var grupo1=active.filter(function(p){return choices[p]==='ano_novo';});
+  var grupo2=active.filter(function(p){return choices[p]==='natal';});
+  function fillRange(s,e,people){
+    if(!s||!e||!people.length)return;
+    var cur=s;
+    while(cur<=e){
+      if(!m[cur])m[cur]=[];
+      people.forEach(function(n){if(m[cur].indexOf(n)<0)m[cur].push(n);});
+      var d=new Date(cur+'T00:00:00');d.setDate(d.getDate()+1);cur=fmt(d);
+    }
+  }
+  fillRange(dates.natal_s,dates.natal_e,grupo2);
+  fillRange(dates.ano_novo_s,dates.ano_novo_e,grupo1);
   return m;
 }
 
@@ -431,6 +467,7 @@ function getStats(year){
     if(ns.length===LIMIT)dAt4++;
   });
   vacations.forEach(function(v){
+    if(isLicense(v))return;
     var ys=v.s.slice(0,4),ye=fmt(addDays(v.s,v.d-1)).slice(0,4);
     if(ys===String(year)||ye===String(year))totalD+=v.d;
   });
@@ -598,19 +635,21 @@ function diffSnapshots(curr, prev){
   var prevPeople=prev?migratePeople(JSON.parse(prev.people)):[];
 
   // Vacation key for comparison
-  function vacKey(v){return v.n+'|'+v.s+'|'+v.d;}
+  function vacKey(v){return v.n+'|'+v.s+'|'+v.d+'|'+(v.type||'ferias');}
   var currKeys=currVacs.map(vacKey);
   var prevKeys=prevVacs.map(vacKey);
 
-  // Added vacations (in curr but not prev)
   currVacs.forEach(function(v){
-    if(prevKeys.indexOf(vacKey(v))<0)
-      lines.push({type:'add',text:'+ Férias adicionadas: '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
+    if(prevKeys.indexOf(vacKey(v))<0){
+      var lbl=(!v.type||v.type==='ferias')?'Férias adicionadas':licenseLabel(v.type)+' registrada';
+      lines.push({type:'add',text:'+ '+lbl+': '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
+    }
   });
-  // Removed vacations (in prev but not curr)
   prevVacs.forEach(function(v){
-    if(currKeys.indexOf(vacKey(v))<0)
-      lines.push({type:'rem',text:'− Férias removidas: '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
+    if(currKeys.indexOf(vacKey(v))<0){
+      var lbl=(!v.type||v.type==='ferias')?'Férias removidas':licenseLabel(v.type)+' removida';
+      lines.push({type:'rem',text:'− '+lbl+': '+v.n+' ('+fmtBR(v.s)+', '+v.d+' dias)'});
+    }
   });
 
   // People changes
@@ -853,8 +892,10 @@ function exportRecessoXLS(year){
     var grupo1=active.filter(function(p){return choices[p]==='ano_novo';}).sort();
     var grupo2=active.filter(function(p){return choices[p]==='natal';}).sort();
     var pending=active.filter(function(p){return !choices[p];}).sort();
-    var natalStr='Semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
-    var anoNovoStr='Semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+    var _nlbl=recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal);
+    var _anlbl=recessoDateLabel(dates.ano_novo_s,dates.ano_novo_e,dates.ano_novo);
+    var natalStr='Semana do Natal'+(_nlbl?' ('+_nlbl+')':'');
+    var anoNovoStr='Semana do Ano Novo'+(_anlbl?' ('+_anlbl+')':'');
     tbl+='<h2 style="font-family:Arial">Escala de Recesso — PGM/SP JUD-3 — '+y+'</h2>';
     tbl+='<table border="1" style="font-family:Arial;border-collapse:collapse;margin-top:8px">';
     tbl+='<tr><th style="background:#1a1a18;color:#fff;padding:6px 10px">Procurador</th>';
@@ -900,8 +941,10 @@ function exportRecessoCSV(year){
     var grupo1=active.filter(function(p){return choices[p]==='ano_novo';}).sort();
     var grupo2=active.filter(function(p){return choices[p]==='natal';}).sort();
     var pending=active.filter(function(p){return !choices[p];}).sort();
-    var natalStr='Semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
-    var anoNovoStr='Semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+    var _nlbl=recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal);
+    var _anlbl=recessoDateLabel(dates.ano_novo_s,dates.ano_novo_e,dates.ano_novo);
+    var natalStr='Semana do Natal'+(_nlbl?' ('+_nlbl+')':'');
+    var anoNovoStr='Semana do Ano Novo'+(_anlbl?' ('+_anlbl+')':'');
     lines.push('"Escala de Recesso - PGM/SP JUD-3 - '+y+'"');
     lines.push('');
     lines.push('"Procurador";"Grupo";"Trabalha em";"Recesso em"');
@@ -1461,31 +1504,50 @@ function showExportModal(){
 
 // ── Calendar ───────────────────────────────────────────────────────────────────
 function selectDay(ds){
-  var names=(buildDayMap(parseInt(ds.slice(0,4)))[ds])||[];
+  var year=parseInt(ds.slice(0,4));
+  var vacNames=(buildDayMap(year)[ds])||[];
+  var allAbsNames=(buildAllAbsenceMap(year)[ds])||[];
+  var licNames=allAbsNames.filter(function(n){return vacNames.indexOf(n)<0;});
+  // Recesso: check current year and previous year (ano_novo can span Dec→Jan)
+  var recMap=buildRecessoDayMap(year);
+  var recMapPrev=buildRecessoDayMap(year-1);
+  var recNames=(recMap[ds]||[]).concat((recMapPrev[ds]||[]));
   var el=document.getElementById('sel-info');if(!el)return;
   var d=parseD(ds);
   var opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
   var str=d.toLocaleDateString('pt-BR',opts);
   var hol=getHoliday(ds);
   var lines=[];
-  // Line 1: date
   lines.push('<div style="font-weight:600">'+str+'</div>');
-  // Line 2: holiday badge (if any)
   if(hol){
     var holLabel=hol.type==='holiday'?'Feriado':hol.type==='optional'?'Ponto facultativo':'Suspensão de expediente';
     var holText=hol.type==='suspended'?holLabel:holLabel+': '+hol.label;
     lines.push('<div><span style="font-size:11px;font-weight:500;background:#f3eeff;color:#7c3aed;border:1px solid #c4b5fd;padding:2px 8px;border-radius:4px;display:inline-block">'+holText+'</span></div>');
   }
-  // Line 3: people on vacation
-  if(!names.length){
-    lines.push('<div style="color:var(--text-3);font-size:12px">Nenhum procurador de férias.</div>');
+  var hasAny=vacNames.length||licNames.length||recNames.length;
+  if(!hasAny){
+    lines.push('<div style="color:var(--text-3);font-size:12px">Nenhum procurador ausente.</div>');
   }else{
-    var over=names.length>LIMIT,atLim=names.length===LIMIT;
-    var limitBadge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
-    var nameLinks=names.map(function(n){
-      return '<a href="#" onclick="event.preventDefault();setView(\'people\');setTimeout(function(){showPersonVacs(\''+n+'\');},80)" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>';
-    }).join(', ');
-    lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Procuradores de férias:</span> '+nameLinks+limitBadge+' <span style="color:var(--text-3)">('+names.length+')</span></div>');
+    if(vacNames.length){
+      var over=vacNames.length>LIMIT,atLim=vacNames.length===LIMIT;
+      var limitBadge=over?' <span style="color:var(--red);font-weight:600">&#9888; Limite ultrapassado!</span>':atLim?' <span style="color:var(--amber);font-weight:500">&#9888; Limite atingido</span>':'';
+      var nameLinks=vacNames.map(function(n){
+        return '<a href="#" onclick="event.preventDefault();setView(\'people\');setTimeout(function(){showPersonVacs(\''+n+'\');},80)" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>';
+      }).join(', ');
+      lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Férias:</span> '+nameLinks+limitBadge+'</div>');
+    }
+    if(licNames.length){
+      var licLinks=licNames.map(function(n){
+        var lt='';
+        vacations.forEach(function(v){if(v.n===n&&isLicense(v)){var vs=new Date(v.s+'T00:00:00'),ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00'),td=new Date(ds+'T00:00:00');if(vs<=td&&td<=ve)lt=licenseLabel(v.type);}});
+        return '<a href="#" onclick="event.preventDefault();setView(\'licenses\')" style="color:var(--text);text-decoration:underline;text-decoration-color:var(--border-md);font-weight:500">'+n+'</a>'+(lt?' <span style="color:var(--text-3);font-size:11px">('+lt+')</span>':'');
+      }).join(', ');
+      lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Licença:</span> '+licLinks+'</div>');
+    }
+    if(recNames.length){
+      var recLinks=recNames.map(function(n){return '<span style="font-weight:500">'+n+'</span>';}).join(', ');
+      lines.push('<div style="font-size:12px"><span style="color:var(--text-3)">Recesso:</span> '+recLinks+'</div>');
+    }
   }
   el.innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'+lines.join('')+'</div>';
 }
@@ -1495,11 +1557,17 @@ function buildCal(year,month){
   var firstDay=firstDayRaw; // Sun=0, already correct
   var dim=new Date(year,month+1,0).getDate();
   var dm=buildDayMap(year);
+  var allAbsMap=buildAllAbsenceMap(year);
+  var recMap=buildRecessoDayMap(year);
+  var recMapPrev=buildRecessoDayMap(year-1);
   var h='<div class="cal-head">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sab'].map(function(d){return '<span>'+d+'</span>';}).join('')+'</div><div class="cal-body">';
   for(var i=0;i<firstDay;i++)h+='<div class="day empty"></div>';
   for(var d=1;d<=dim;d++){
     var ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var ns=dm[ds]||[],c=ns.length,isT=ds===today,over=c>LIMIT;
+    var allNs=allAbsMap[ds]||[];
+    var hasLic=allNs.some(function(n){return ns.indexOf(n)<0;});
+    var hasRec=(recMap[ds]||[]).length>0||(recMapPrev[ds]||[]).length>0;
     var bc=c===0?'':over?'cbover':'cb'+Math.min(c,4);
     var hol=getHoliday(ds);
     var dow=new Date(year,month,d).getDay();
@@ -1521,6 +1589,12 @@ function buildCal(year,month){
     h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
     if(c>0)h+='<div class="cbadge '+bc+'">'+c+(over?' !':'')+'</div><div class="dnames">'+ns.join(', ')+'</div>';
+    if(hasLic||hasRec){
+      h+='<div style="display:flex;gap:3px;justify-content:center;margin-top:2px">';
+      if(hasLic)h+='<div style="width:5px;height:5px;border-radius:50%;background:#2563eb;opacity:.8"></div>';
+      if(hasRec)h+='<div style="width:5px;height:5px;border-radius:50%;background:#f59e0b;opacity:.8"></div>';
+      h+='</div>';
+    }
     h+='</div>';
   }
   return h+'</div>';
@@ -1622,6 +1696,107 @@ function buildConflictsView(year){
   return h+'</div>';
 }
 
+// ── Licenças ───────────────────────────────────────────────────────────────────
+function buildLicensesView(year){
+  var lics=vacations.filter(function(v){return isLicense(v)&&v.s.slice(0,4)===String(year);}).sort(function(a,b){return a.s.localeCompare(b.s);});
+  var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">';
+  h+='<span style="font-size:12px;color:var(--text-3)">'+lics.length+' licença'+(lics.length!==1?'s':'')+' registrada'+(lics.length!==1?'s':'')+' em '+year+'</span>';
+  if(isMaster())h+='<button class="btn sm primary" onclick="showAddLicense(\'\')">+ Registrar licença</button>';
+  h+='</div>';
+  if(!lics.length){
+    h+='<div style="text-align:center;padding:48px 20px;color:var(--text-3)">';
+    h+='<div style="font-size:28px;margin-bottom:10px">&#128203;</div>';
+    h+='<div style="font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px">Nenhuma licença registrada</div>';
+    h+='<div style="font-size:13px">'+( isMaster()?'Clique em "+ Registrar licença" para adicionar.':'Nenhuma licença foi lançada para este período.')+'</div>';
+    h+='</div>';
+  }else{
+    h+='<div class="vac-list">';
+    lics.forEach(function(v){
+      var idx=vacations.indexOf(v);
+      h+='<div class="vac-item" style="flex-direction:column;align-items:stretch">';
+      h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+      h+='<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(v.n)+';flex-shrink:0"></span>';
+      h+='<strong>'+v.n+'</strong>';
+      h+='<span style="font-size:11px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:1px 7px;border-radius:4px">'+licenseLabel(v.type)+'</span>';
+      h+='</div>';
+      h+='<div style="font-size:12px;color:var(--text-3)">'+fmtBR(v.s)+' → '+fmtBR(fmt(addDays(v.s,v.d-1)))+' &middot; '+v.d+' dias</div>';
+      if(isMaster()){
+        h+='<div style="display:flex;gap:6px;margin-top:6px">';
+        h+='<button class="btn sm" onclick="editLicense('+idx+',\''+v.n+'\')">Editar</button>';
+        h+='<button class="btn sm danger" onclick="removeLicense('+idx+',\''+v.n+'\')">Remover</button>';
+        h+='</div>';
+      }
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+  return h;
+}
+function showAddLicense(person){
+  if(!isMaster())return;
+  var active=activePeopleForYear(curYear);
+  var personField=person?
+    '<div class="field"><label>Procurador</label><input type="text" value="'+person+'" disabled style="background:var(--surface2);color:var(--text-2)"></div>':
+    '<div class="field"><label>Procurador</label><select id="lic-person">'+active.map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('')+'</select></div>';
+  var licOpts=Object.keys(LICENSE_TYPES).map(function(k){return '<option value="'+k+'">'+LICENSE_TYPES[k]+'</option>';}).join('');
+  var mo=String(curMonth+1).padStart(2,'0');
+  openModal(
+    '<h3>Registrar licença</h3>'+
+    personField+
+    '<div class="field"><label>Tipo</label><select id="lic-type">'+licOpts+'</select></div>'+
+    '<div class="field"><label>Data de início</label><input type="date" id="lic-start" value="'+curYear+'-'+mo+'-01"></div>'+
+    '<div class="field"><label>Número de dias</label><input type="number" id="lic-days" min="1" max="365" value="1"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="confirmAddLicense(\''+person+'\')">Salvar</button></div>'
+  );
+}
+function confirmAddLicense(fixedPerson){
+  if(!isMaster())return;
+  var personEl=document.getElementById('lic-person');
+  var person=fixedPerson||(personEl?personEl.value:'');
+  var type=document.getElementById('lic-type').value;
+  var start=document.getElementById('lic-start').value;
+  var days=parseInt(document.getElementById('lic-days').value);
+  if(!person||!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  closeModal();
+  adminConfirm(function(){vacations.push({n:person,s:start,d:days,type:type});saveData('✓ Licença registrada');render();});
+}
+function editLicense(idx,person){
+  if(!isMaster())return;
+  var v=vacations[idx];if(!v)return;
+  var licOpts=Object.keys(LICENSE_TYPES).map(function(k){return '<option value="'+k+'"'+(v.type===k?' selected':'')+'>'+LICENSE_TYPES[k]+'</option>';}).join('');
+  openModal(
+    '<h3>Editar licença</h3>'+
+    '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 14px"><strong>'+person+'</strong></p>'+
+    '<div class="field"><label>Tipo</label><select id="lic-type">'+licOpts+'</select></div>'+
+    '<div class="field"><label>Data de início</label><input type="date" id="lic-start" value="'+v.s+'"></div>'+
+    '<div class="field"><label>Número de dias</label><input type="number" id="lic-days" min="1" max="365" value="'+v.d+'"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="confirmEditLicense('+idx+',\''+person+'\')">Salvar</button></div>'
+  );
+}
+function confirmEditLicense(idx,person){
+  if(!isMaster())return;
+  var type=document.getElementById('lic-type').value;
+  var start=document.getElementById('lic-start').value;
+  var days=parseInt(document.getElementById('lic-days').value);
+  if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  function doEdit(){vacations[idx]={n:person,s:start,d:days,type:type};saveData('✓ Licença atualizada');render();}
+  closeModal();adminConfirm(doEdit);
+}
+function removeLicense(idx,person){
+  if(!isMaster())return;
+  openModal(
+    '<h3>Remover licença</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Remover esta licença de <strong>'+person+'</strong>? Esta ação não pode ser desfeita.</p>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn danger" onclick="closeModal();_doRemoveLicense('+idx+')">Remover</button></div>'
+  );
+}
+window._doRemoveLicense=function(idx){
+  adminConfirm(function(){vacations.splice(idx,1);closeModal();saveData('✓ Licença removida');render();});
+};
+
 // ── Recesso UI ─────────────────────────────────────────────────────────────────
 function setSection(s){curView=s==='recesso'?'recesso':'panel';render();}
 function setRecessoYear(y){curRecessoYear=y;render();}
@@ -1651,8 +1826,8 @@ function recessoRemoveFor(personName){
 function recessoChangePerson(personName){
   var cur=recessoChoices[curRecessoYear]&&recessoChoices[curRecessoYear][personName];
   var dates=recessoDates[curRecessoYear]||{};
-  var natalStr='semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
-  var anoNovoStr='semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+  var natalStr='semana do Natal'+(recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal)?' ('+recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal)+')':'');
+  var anoNovoStr='semana do Ano Novo'+(recessoDateLabel(dates.ano_novo_s,dates.ano_novo_e,dates.ano_novo)?' ('+recessoDateLabel(dates.ano_novo_s,dates.ano_novo_e,dates.ano_novo)+')':'');
   // Grupo 1: trabalha Natal, recesso Ano Novo (val='ano_novo')
   // Grupo 2: recesso Natal, trabalha Ano Novo (val='natal')
   var cardStyle='display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;cursor:pointer;font-family:\'DM Sans\',sans-serif;margin-bottom:8px;transition:border-color .12s';
@@ -1701,20 +1876,36 @@ function showRecessoDatesModal(year){
   var dates=recessoDates[year]||{};
   openModal(
     '<h3>Datas do recesso '+year+'</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:4px 0 16px">Informe as datas de cada semana (exibição informativa).</p>'+
-    '<div class="field"><label>Semana do Natal</label><input type="text" id="rd-natal" placeholder="ex: 23 a 27/dez" value="'+(dates.natal||'')+'"></div>'+
-    '<div class="field"><label>Semana do Ano Novo</label><input type="text" id="rd-anonovo" placeholder="ex: 30/dez a 03/jan" value="'+(dates.ano_novo||'')+'"></div>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:4px 0 16px">Informe as datas reais de cada semana para exibição no calendário.</p>'+
+    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:8px">&#127876; Semana do Natal</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">'+
+    '<div class="field" style="margin:0"><label>Início</label><input type="date" id="rd-natal-s" value="'+(dates.natal_s||'')+'"></div>'+
+    '<div class="field" style="margin:0"><label>Fim</label><input type="date" id="rd-natal-e" value="'+(dates.natal_e||'')+'"></div>'+
+    '</div>'+
+    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:8px">&#127878; Semana do Ano Novo</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">'+
+    '<div class="field" style="margin:0"><label>Início</label><input type="date" id="rd-anonovo-s" value="'+(dates.ano_novo_s||'')+'"></div>'+
+    '<div class="field" style="margin:0"><label>Fim</label><input type="date" id="rd-anonovo-e" value="'+(dates.ano_novo_e||'')+'"></div>'+
+    '</div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="saveRecessoDatesConfirm('+year+')">Salvar</button></div>'
   );
 }
 function saveRecessoDatesConfirm(year){
-  var n=(document.getElementById('rd-natal').value||'').trim();
-  var a=(document.getElementById('rd-anonovo').value||'').trim();
   if(!recessoDates[year])recessoDates[year]={};
-  if(n)recessoDates[year].natal=n;else delete recessoDates[year].natal;
-  if(a)recessoDates[year].ano_novo=a;else delete recessoDates[year].ano_novo;
+  var ns=document.getElementById('rd-natal-s').value;
+  var ne=document.getElementById('rd-natal-e').value;
+  var as=document.getElementById('rd-anonovo-s').value;
+  var ae=document.getElementById('rd-anonovo-e').value;
+  if(ns)recessoDates[year].natal_s=ns;else delete recessoDates[year].natal_s;
+  if(ne)recessoDates[year].natal_e=ne;else delete recessoDates[year].natal_e;
+  if(as)recessoDates[year].ano_novo_s=as;else delete recessoDates[year].ano_novo_s;
+  if(ae)recessoDates[year].ano_novo_e=ae;else delete recessoDates[year].ano_novo_e;
   closeModal();saveRecesso();render();
+}
+function recessoDateLabel(s,e,fallback){
+  if(s&&e)return fmtBR(s).slice(0,5)+' a '+fmtBR(e).slice(0,5);
+  return fallback||'';
 }
 
 function buildRecessoView(year){
@@ -1727,8 +1918,10 @@ function buildRecessoView(year){
   var grupo2=active.filter(function(p){return choices[p]==='natal';});
   var pending=active.filter(function(p){return !choices[p];});
 
-  var natalStr='na semana do Natal'+(dates.natal?' ('+dates.natal+')':'');
-  var anoNovoStr='na semana do Ano Novo'+(dates.ano_novo?' ('+dates.ano_novo+')':'');
+  var natalLbl=recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal);
+  var anoNovoLbl=recessoDateLabel(dates.ano_novo_s,dates.ano_novo_e,dates.ano_novo);
+  var natalStr='na semana do Natal'+(natalLbl?' ('+natalLbl+')':'');
+  var anoNovoStr='na semana do Ano Novo'+(anoNovoLbl?' ('+anoNovoLbl+')':'');
   var desc1='trabalha '+natalStr+' &middot; recesso '+anoNovoStr;
   var desc2='recesso '+natalStr+' &middot; trabalha '+anoNovoStr;
 
@@ -1816,6 +2009,8 @@ function buildPanel(year){
     var windowEndStr=fmt(windowEnd);
 
     var onVacToday=dm[todayStr]||[];
+    var allAbsToday=buildAllAbsenceMap(year)[todayStr]||[];
+    var recToday=(buildRecessoDayMap(year)[todayStr]||[]).concat(buildRecessoDayMap(year-1)[todayStr]||[]);
     var foraDistNow=[],bancaNow=[],startsToday=[],returnsToday=[];
     var distEvents=[],bancaEvents=[];
     var seen={dist:{},banca:{}};
@@ -1861,19 +2056,23 @@ function buildPanel(year){
     // Três blocos: de férias / fora da dist / banca rodando
     h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px">';
 
-    // Bloco 1 — De férias agora
+    // Bloco 1 — Ausentes agora (férias + licenças + recesso)
+    var allPresentToday=allAbsToday.concat(recToday.filter(function(n){return allAbsToday.indexOf(n)<0;}));
     h+='<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 12px">';
-    h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">De férias agora</div>';
-    if(onVacToday.length){
-      h+=onVacToday.map(function(n){
-        var ret='';
+    h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Ausentes agora</div>';
+    if(allPresentToday.length){
+      h+=allPresentToday.map(function(n){
+        var ret='',badge='';
+        if(recToday.indexOf(n)>=0){badge='<span style="font-size:10px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:0 5px;border-radius:3px;margin-left:4px">Recesso</span>';}
         vacations.forEach(function(v){
           if(v.n!==n)return;
-          var vs=new Date(v.s+'T00:00:00');
-          var ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00');
-          if(vs<=todayD&&todayD<=ve){var rd=new Date(ve);rd.setDate(rd.getDate()+1);ret=fmtBR(fmt(rd));}
+          var vs=new Date(v.s+'T00:00:00'),ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00');
+          if(vs<=todayD&&todayD<=ve){
+            if(isLicense(v))badge='<span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0 5px;border-radius:3px;margin-left:4px">'+licenseLabel(v.type)+'</span>';
+            var rd=new Date(ve);rd.setDate(rd.getDate()+1);ret=fmtBR(fmt(rd));
+          }
         });
-        return '<div style="font-size:12px;line-height:1.6"><strong>'+n+'</strong>'+(ret?' <span style="color:var(--text-3);font-size:11px">retorna '+ret+'</span>':'')+'</div>';
+        return '<div style="font-size:12px;line-height:1.6"><strong>'+n+'</strong>'+badge+(ret?' <span style="color:var(--text-3);font-size:11px">retorna '+ret+'</span>':'')+'</div>';
       }).join('');
     }else{
       h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
@@ -2135,6 +2334,7 @@ function render(){
   h+='<button class="vtab'+(curView==='panel'?' active':'')+'" onclick="setView(\'panel\')">Painel</button>';
   h+='<button class="vtab'+(curView==='calendar'?' active':'')+'" onclick="setView(\'calendar\')">Calendário</button>';
   h+='<button class="vtab'+(curView==='people'?' active':'')+'" onclick="setView(\'people\')">Férias</button>';
+  h+='<button class="vtab'+(curView==='licenses'?' active':'')+'" onclick="setView(\'licenses\')">Licenças</button>';
   h+='<button class="vtab'+(curView==='subs'?' active':'')+'" onclick="setView(\'subs\')">Substituições</button>';
   h+='<button class="vtab'+(curView==='recesso'?' active':'')+'" onclick="setView(\'recesso\')">Recesso</button>';
   h+='</div>';
@@ -2210,6 +2410,8 @@ function render(){
     h+='<div class="leg"><div class="leg-dot" style="background:#f59e0b"></div>4 em férias (limite)</div>';
     h+='<div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Acima do limite</div>';
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;border-left:3px solid #7c3aed;flex-shrink:0"></div>Feriado / Sem expediente</div>';
+    h+='<div class="leg"><div style="width:5px;height:5px;border-radius:50%;background:#2563eb;flex-shrink:0"></div>Licença</div>';
+    h+='<div class="leg"><div style="width:5px;height:5px;border-radius:50%;background:#f59e0b;flex-shrink:0"></div>Recesso</div>';
     if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Férias de '+calSearch+'</div>';
     if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
     h+='<div class="leg" id="_hl-leg" style="display:none"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">Férias de</span></div>';
@@ -2242,6 +2444,9 @@ function render(){
          '</div></div>';
     });
     h+='</div>';
+  }
+  if(curView==='licenses'){
+    h+=buildLicensesView(curYear);
   }
   if(curView==='subs'){
     h+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;text-align:center;color:var(--text-3)">';
