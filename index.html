@@ -399,7 +399,17 @@ var DEFAULT_VACS=[
 // ── State ──────────────────────────────────────────────────────────────────────
 var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
 var vacations=[],people=[];
-var curYear=2026,curMonth=new Date().getMonth(),curView='panel';
+var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso'};
+var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso'};
+var curYear=2026,curMonth=new Date().getMonth(),curView=PATH_VIEWS[window.location.pathname]||'panel';
+var _historyReady=false;
+function _pushViewState(v){var p=VIEW_PATHS[v]||'/';if(window.location.pathname!==p)history.pushState({view:v},'',p);}
+function _replaceViewState(v){history.replaceState({view:v},'',VIEW_PATHS[v]||'/');}
+window.addEventListener('popstate',function(e){
+  var v=(e.state&&e.state.view)||PATH_VIEWS[window.location.pathname]||'panel';
+  if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}
+  curView=v;render();
+});
 var lastSaved=null,lastSavedBy=null,statusMsg='';
 var _unsub=null;
 var currentAdminUser=null;
@@ -590,6 +600,7 @@ function subscribeOfficial(){
     if(d.savedBy)lastSavedBy=d.savedBy;
     statusMsg='Sincronizado';
     render();
+    if(!_historyReady){_historyReady=true;_replaceViewState(curView);}
   },function(err){console.warn('Firestore error:',err);});
 }
 
@@ -1129,7 +1140,7 @@ function goToMyVacations(){
   );
   window._openYearVacs=function(year){
     curYear=year;
-    curView='people';
+    curView='people';_pushViewState('people');
     render();
     setTimeout(function(){showPersonVacs(user);},80);
   };
@@ -1172,7 +1183,7 @@ function applyPreview(person){
   closeModal();
   curYear=parseInt(start.slice(0,4));
   curMonth=parseInt(start.slice(5,7))-1;
-  curView='calendar';
+  curView='calendar';_pushViewState('calendar');
   render();
   // Scroll to calendar on mobile
   setTimeout(function(){
@@ -1832,7 +1843,7 @@ window._doRemoveLicense=function(idx){
 };
 
 // ── Recesso UI ─────────────────────────────────────────────────────────────────
-function setSection(s){curView=s==='recesso'?'recesso':'panel';render();}
+function setSection(s){setView(s==='recesso'?'recesso':'panel');}
 function setRecessoYear(y){curRecessoYear=y;render();}
 
 function recessoChoose(choice){
@@ -2527,7 +2538,7 @@ function hmBarClick(el,mi,mName,maxVal){
     setView('calendar');curMonth=mi;render();
   }
 }
-function setView(v){if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;render();}
+function setView(v){if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}}curView=v;_pushViewState(v);render();}
 function _setReturnPerson(p){
   _calReturnPerson=p;
   if(_calReturnTimer)clearTimeout(_calReturnTimer);
@@ -2550,7 +2561,7 @@ function showGanttBar(person, vacStart, vacDays, year, month){
   );
 }
 function goToCalendarDate(year,month,vacStart,vacDays,hlDuration){
-  curYear=year;curMonth=month;curView='calendar';render();
+  curYear=year;curMonth=month;curView='calendar';_pushViewState('calendar');render();
   // Scroll to calendar on mobile
   setTimeout(function(){
     var nav=document.querySelector('.month-nav');
