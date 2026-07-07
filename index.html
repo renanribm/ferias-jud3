@@ -401,7 +401,7 @@ var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({}
 var vacations=[],people=[];
 var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso'};
 var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso'};
-var curYear=2026,curMonth=new Date().getMonth(),curView=PATH_VIEWS[window.location.pathname]||'panel';
+var curYear=new Date().getFullYear(),curMonth=new Date().getMonth(),curView=PATH_VIEWS[window.location.pathname]||'panel';
 var _historyReady=false;
 function _pushViewState(v){var p=VIEW_PATHS[v]||'/';if(window.location.pathname!==p)history.pushState({view:v},'',p);}
 function _replaceViewState(v){history.replaceState({view:v},'',VIEW_PATHS[v]||'/');}
