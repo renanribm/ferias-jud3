@@ -2140,18 +2140,16 @@ function buildPanel(year){
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
-      if(returnsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Retorna hoje:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
-      if(startsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Inicia férias hoje:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
-      if(distEvents.length){
-        h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
-        h+=distEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}).join(' &nbsp;·&nbsp; ');
-        h+='</div>';
+      function nextGroup(label,items){
+        var h2='<div style="margin-bottom:6px">';
+        h2+='<div style="font-size:10px;color:var(--text-3);font-weight:600;margin-bottom:2px">'+label+'</div>';
+        h2+=items.map(function(item){return '<div style="font-size:12px;line-height:1.6;padding-left:8px">'+item+'</div>';}).join('');
+        return h2+'</div>';
       }
-      if(bancaEvents.length){
-        h+='<div style="font-size:12px"><span style="color:var(--text-2)">Banca começa a rodar:</span> ';
-        h+=bancaEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}).join(' &nbsp;·&nbsp; ');
-        h+='</div>';
-      }
+      if(returnsToday.length)h+=nextGroup('Retorna hoje',returnsToday.map(function(n){return '<strong>'+n+'</strong>';}));
+      if(startsToday.length)h+=nextGroup('Inicia férias hoje',startsToday.map(function(n){return '<strong>'+n+'</strong>';}));
+      if(distEvents.length)h+=nextGroup('Sai da distribuição',distEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}));
+      if(bancaEvents.length)h+=nextGroup('Banca começa a rodar',bancaEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}));
       h+='</div>';
     }
 
