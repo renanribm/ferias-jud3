@@ -288,6 +288,7 @@ var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Ag
 var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
 var LICENSE_TYPES={maternidade:'Licença-Maternidade',paternidade:'Licença-Paternidade',gala:'Licença-Gala',nojo:'Licença-Nojo',saude:'Licença-Saúde',outros:'Outra licença'};
+var SUBS_QUEUE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','NETO','LEONARDO','MARCOS','VINICIUS','MARILIA','MAURICIO','RENAN','RODRIGO','THAYANE','VIVIANE'];
 function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
 function isLicense(v){return v.type&&v.type!=='ferias';}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
@@ -676,8 +677,16 @@ window.setSub=function(monthKey,dateStr,from,to){
   if(!isMaster())return;
   if(!subsData[monthKey])subsData[monthKey]={};
   if(!subsData[monthKey][dateStr])subsData[monthKey][dateStr]={};
-  if(to)subsData[monthKey][dateStr][from]=to;
-  else delete subsData[monthKey][dateStr][from];
+  var day=subsData[monthKey][dateStr];
+  if(!day._m)day._m=[];
+  if(to){
+    day[from]=to;
+    if(day._m.indexOf(from)<0)day._m.push(from);
+  }else{
+    delete day[from];
+    var mi=day._m.indexOf(from);
+    if(mi>=0)day._m.splice(mi,1);
+  }
   saveSubs();
 };
 function getMonthAbsences(year,month){
@@ -697,6 +706,147 @@ function getMonthAbsences(year,month){
   }
   return result;
 }
+// ── Geração automática de substituições ────────────────────────────────────────
+function generateSubsMonth(year,month,fabianaSub){
+  var monthKey=year+'-'+String(month+1).padStart(2,'0');
+  var existing=subsData[monthKey]||{};
+  // Coletar overrides manuais preservados
+  var manualOverrides={};
+  Object.keys(existing).forEach(function(k){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(k))return;
+    var day=existing[k];var manuals=day._m||[];
+    if(manuals.length){manualOverrides[k]={};manuals.forEach(function(n){if(day[n])manualOverrides[k][n]=day[n];});}
+  });
+  var absencesByDay=getMonthAbsences(year,month);
+  var active=activePeopleForYear(year);
+  var days=Object.keys(absencesByDay).sort();
+  var N=SUBS_QUEUE.length;
+  var pointers={};
+  var newData={fabianaFixedSub:fabianaSub||existing.fabianaFixedSub||null};
+  days.forEach(function(ds){
+    var absents=absencesByDay[ds];
+    var absentNames=absents.map(function(a){return a.n;});
+    var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
+    var dayResult={};var manuals=[];
+    // Aplicar overrides manuais primeiro
+    var manDay=manualOverrides[ds]||{};
+    Object.keys(manDay).forEach(function(name){
+      if(absentNames.indexOf(name)>=0){
+        var sub=manDay[name];
+        dayResult[name]=sub;manuals.push(name);
+        available=available.filter(function(n){return n!==sub;});
+      }
+    });
+    // Fabiana: sub fixo
+    if(fabianaSub&&absentNames.indexOf('FABIANA')>=0&&!dayResult['FABIANA']){
+      if(available.indexOf(fabianaSub)>=0){
+        dayResult['FABIANA']=fabianaSub;
+        available=available.filter(function(n){return n!==fabianaSub;});
+      }
+    }
+    // Demais ausentes em ordem de fila
+    var remaining=absents.filter(function(a){return !dayResult[a.n]&&a.n!=='FABIANA';});
+    remaining.sort(function(a,b){
+      var ia=SUBS_QUEUE.indexOf(a.n);var ib=SUBS_QUEUE.indexOf(b.n);
+      return(ia<0?999:ia)-(ib<0?999:ib);
+    });
+    remaining.forEach(function(absent){
+      var n=absent.n;
+      var qIdx=SUBS_QUEUE.indexOf(n);if(qIdx<0)qIdx=0;
+      if(pointers[n]===undefined)pointers[n]=(qIdx+1)%N;
+      for(var j=0;j<N;j++){
+        var cidx=(pointers[n]+j)%N;
+        var candidate=SUBS_QUEUE[cidx];
+        if(candidate!==n&&available.indexOf(candidate)>=0){
+          dayResult[n]=candidate;
+          available=available.filter(function(x){return x!==candidate;});
+          pointers[n]=(cidx+1)%N;
+          break;
+        }
+      }
+    });
+    newData[ds]=dayResult;
+    if(manuals.length)newData[ds]._m=manuals;
+  });
+  subsData[monthKey]=newData;
+  saveSubs();
+}
+function getFabianaCrossMonthSub(year,month){
+  var mo=String(month+1).padStart(2,'0');
+  var monthFirst=year+'-'+mo+'-01';
+  var cross=null;
+  vacations.forEach(function(v){
+    if(v.n!=='FABIANA')return;
+    var endD=fmt(addDays(v.s,v.d-1));
+    if(v.s<monthFirst&&endD>=monthFirst)cross=v;
+  });
+  if(!cross)return null;
+  for(var i=1;i<=4;i++){
+    var pm=month-i;var py=year;
+    while(pm<0){pm+=12;py--;}
+    var pk=py+'-'+String(pm+1).padStart(2,'0');
+    if(subsData[pk]&&subsData[pk].fabianaFixedSub)return{sub:subsData[pk].fabianaFixedSub,periodStart:cross.s};
+  }
+  return null;
+}
+function _fabianaAvail(year,month){
+  var absences=getMonthAbsences(year,month);
+  var fabDays=Object.keys(absences).filter(function(ds){return absences[ds].some(function(a){return a.n==='FABIANA';});});
+  return activePeopleForYear(year).filter(function(n){
+    if(n==='FABIANA')return false;
+    return fabDays.every(function(ds){return!absences[ds].some(function(a){return a.n===n;});});
+  });
+}
+function _fabianaSelectHtml(avail){
+  var opts=avail.map(function(n){return'<option value="'+n+'">'+n+'</option>';}).join('');
+  return'<div class="field"><label>Substituto</label><select id="_fab-sel">'+opts+'</select></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="closeModal();window._fabCb(document.getElementById(\'_fab-sel\').value)">Confirmar e Gerar</button></div>';
+}
+function showFabianaSubModal(year,month,onConfirm){
+  window._fabCb=onConfirm;
+  var cross=getFabianaCrossMonthSub(year,month);
+  var avail=_fabianaAvail(year,month);
+  if(cross){
+    var prevAvail=avail.indexOf(cross.sub)>=0;
+    openModal('<h3>Substituição de Fabiana</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0">Período iniciado em <strong>'+fmtBR(cross.periodStart)+'</strong>.</p>'+
+      (prevAvail
+        ?'<p style="font-size:13px;margin:0 0 18px">Manter <strong>'+cross.sub+'</strong> como substituto em '+MONTHS_PT[month]+'?</p>'+
+          '<div class="mbtns"><button class="btn" onclick="closeModal();_showFabianaChange('+year+','+month+')">Trocar</button>'+
+          '<button class="btn primary" onclick="closeModal();window._fabCb(\''+cross.sub+'\')">Manter '+cross.sub+'</button></div>'
+        :'<p style="font-size:13px;color:var(--red);margin:0 0 14px"><strong>'+cross.sub+'</strong> também está ausente neste mês. Defina outro substituto:</p>'+
+          _fabianaSelectHtml(avail)
+      )
+    );
+  }else{
+    openModal('<h3>Substituição de Fabiana</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Fabiana está ausente em <strong>'+MONTHS_PT[month]+'</strong>. Defina o substituto para todo o período:</p>'+
+      _fabianaSelectHtml(avail)
+    );
+  }
+}
+window._showFabianaChange=function(year,month){
+  var avail=_fabianaAvail(year,month);
+  openModal('<h3>Substituição de Fabiana</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Defina o substituto de Fabiana para <strong>'+MONTHS_PT[month]+'</strong>:</p>'+
+    _fabianaSelectHtml(avail)
+  );
+};
+window.generateSubs=function(year,month){
+  if(!isMaster())return;
+  var absences=getMonthAbsences(year,month);
+  var fabAbsent=false;
+  Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n==='FABIANA';}))fabAbsent=true;});
+  if(fabAbsent){
+    showFabianaSubModal(year,month,function(fabianaSub){
+      generateSubsMonth(year,month,fabianaSub);render();showToast('✓ Tabela gerada');
+    });
+  }else{
+    generateSubsMonth(year,month,null);render();showToast('✓ Tabela gerada');
+  }
+};
+
 function buildSubsView(year,month){
   var DAYS_PT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
   var monthKey=year+'-'+String(month+1).padStart(2,'0');
@@ -711,8 +861,17 @@ function buildSubsView(year,month){
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
   h+='</div>';
+  if(isMaster())h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
   h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Imprimir</button>';
   h+='</div>';
+  // Info substituto fixo Fabiana
+  var fabianaSub=monthAssignments.fabianaFixedSub||null;
+  var fabAbsentThisMonth=false;
+  days.forEach(function(ds){if(absences[ds]&&absences[ds].some(function(a){return a.n==='FABIANA';}))fabAbsentThisMonth=true;});
+  if(fabAbsentThisMonth&&fabianaSub){
+    h+='<div style="font-size:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;margin-bottom:12px;color:#1d4ed8">'+
+      'Substituto de Fabiana: <strong>'+fabianaSub+'</strong> (período completo)</div>';
+  }
   if(!days.length){
     h+='<div style="text-align:center;padding:48px 20px;color:var(--text-3)"><div style="font-size:28px;margin-bottom:10px">&#10003;</div>';
     h+='<div style="font-size:14px;font-weight:600;color:var(--text-2);margin-bottom:4px">Nenhuma substituição necessária</div>';
@@ -726,6 +885,7 @@ function buildSubsView(year,month){
     var dow=new Date(ds+'T00:00:00').getDay();
     var dayLabel=DAYS_PT[dow]+' '+fmtBR(ds).slice(0,5);
     var dayAssignments=monthAssignments[ds]||{};
+    var manualSet=dayAssignments._m||[];
     var absentToday=absences[ds];
     var absentNames=absentToday.map(function(a){return a.n;});
     var allAssigned=absentToday.every(function(a){return dayAssignments[a.n];});
@@ -736,21 +896,35 @@ function buildSubsView(year,month){
     h+='</div>';
     absentToday.forEach(function(absent){
       var currentSub=dayAssignments[absent.n]||'';
+      var isManual=manualSet.indexOf(absent.n)>=0;
+      // Conflito: sub atribuído também está ausente hoje
+      var hasConflict=currentSub&&absentNames.indexOf(currentSub)>=0;
+      // Fabiana com sub fixo indisponível
+      var fabConflict=absent.n==='FABIANA'&&fabianaSub&&!currentSub&&absentNames.indexOf(fabianaSub)>=0;
       var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
       h+='<span style="font-size:12px;font-weight:600">'+absent.n+'</span>';
       h+='<span style="font-size:11px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span>';
       h+='<span style="font-size:12px;color:var(--text-3)"> &#8594;</span>';
       if(isMaster()){
-        h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
+        h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid '+(hasConflict?'var(--red)':'var(--border)')+';background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
         h+='<option value="">— escolher —</option>';
         available.forEach(function(n){h+='<option value="'+n+'"'+(currentSub===n?' selected':'')+'>'+n+'</option>';});
         h+='</select>';
-        if(currentSub)h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
+        if(hasConflict)h+='<span style="font-size:11px;color:var(--red)" title="'+currentSub+' também está ausente neste dia">&#9888; conflito</span>';
+        else if(fabConflict)h+='<span style="font-size:11px;color:var(--amber)">&#9888; '+fabianaSub+' ausente</span>';
+        else if(currentSub){
+          h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
+          if(isManual)h+='<span style="font-size:10px;color:var(--text-3)" title="Definido manualmente">&#9998;</span>';
+        }
       }else{
         h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
+        if(isManual&&currentSub)h+='<span style="font-size:10px;color:var(--text-3)">&#9998;</span>';
       }
       h+='</div>';
+      if(hasConflict){
+        h+='<div style="font-size:11px;color:var(--red);margin:-2px 0 4px 4px">'+currentSub+' também está ausente neste dia — defina manualmente.</div>';
+      }
     });
     h+='</div>';
   });
