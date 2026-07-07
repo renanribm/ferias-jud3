@@ -1812,7 +1812,7 @@ function buildPanel(year){
     var todayStr=fmt(now);
     var todayD=new Date(todayStr+'T00:00:00');
     var windowEnd=new Date(todayStr+'T00:00:00');
-    windowEnd.setDate(windowEnd.getDate()+15);
+    windowEnd.setDate(windowEnd.getDate()+30);
     var windowEndStr=fmt(windowEnd);
 
     var onVacToday=dm[todayStr]||[];
@@ -1838,12 +1838,12 @@ function buildPanel(year){
       var bancaStr=subtractWorkDays(v.s,2);
       if(bancaStr<=todayStr&&v.s>todayStr)bancaNow.push({n:v.n,start:v.s});
 
-      // Próximos 15 dias — saída da distribuição
+      // Próximos 30 dias — saída da distribuição
       if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
         seen.dist[v.n+distStr]=true;
         distEvents.push({n:v.n,date:distStr,start:v.s});
       }
-      // Próximos 15 dias — banca começa a rodar
+      // Próximos 30 dias — banca começa a rodar
       if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){
         seen.banca[v.n+bancaStr]=true;
         bancaEvents.push({n:v.n,date:bancaStr,start:v.s});
@@ -1906,11 +1906,11 @@ function buildPanel(year){
 
     h+='</div>'; // end grid
 
-    // Próximos 15 dias
+    // Próximos 30 dias
     var hasNext=returnsToday.length||startsToday.length||distEvents.length||bancaEvents.length;
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
-      h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 15 dias</div>';
+      h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
       if(returnsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Retorna hoje:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
       if(startsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Inicia férias hoje:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
       if(distEvents.length){
