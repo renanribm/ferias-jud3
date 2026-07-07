@@ -1601,7 +1601,7 @@ function buildCal(year,month){
       }
     }
     var dayCls='day'+(isT?' today':'')+(hol?' has-hol':'')+(isWeekend?' weekend':'')+(inPreview?(previewConflict?' day-preview-conflict':' day-preview'):'')+(hasRec?' rec-day':'');
-    if(calSearch&&ns.some(function(n){return n.toLowerCase().indexOf(calSearch.toLowerCase())>=0;}))dayCls+=' search-match';
+    if(calSearch&&allNs.some(function(n){return n.toLowerCase().indexOf(calSearch.toLowerCase())>=0;}))dayCls+=' search-match';
     h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
     h+='<div class="day-content">';
@@ -2401,27 +2401,28 @@ function render(){
     if(_calReturnPerson)h+='<button class="btn sm primary" style="margin-left:auto;white-space:nowrap" onclick="var p=_calReturnPerson;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}setView(\'people\');setTimeout(function(){showPersonVacs(p);},80)">&#8592; Retornar para as férias de '+_calReturnPerson+'</button>';
     h+='</div>';
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
-    h+='<span style="font-size:12px;color:var(--text-3);white-space:nowrap">Destacar férias de</span>';
+    h+='<span style="font-size:12px;color:var(--text-3);white-space:nowrap">Destacar períodos de</span>';
     var searchOpts='<option value="">...</option>'+activePeopleForYear(curYear).map(function(p){return '<option value="'+p+'"'+(calSearch===p?' selected':'')+'>'+p+'</option>';}).join('');
     h+='<select onchange="calSearch=this.value;if(this.value){var vv=vacations.filter(function(v){return v.n===this.value&&v.s.slice(0,4)===String(curYear);}.bind(this));if(vv.length){vv.sort(function(a,b){return a.s.localeCompare(b.s);});curMonth=parseInt(vv[0].s.slice(5,7))-1;}}render()" style="padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);min-width:140px">'+searchOpts+'</select>';
     if(calSearch){
       var personVacsAll=vacations.filter(function(v){return v.n===calSearch;}).sort(function(a,b){return a.s.localeCompare(b.s);});
       var personVacsYear=personVacsAll.filter(function(v){return v.s.slice(0,4)===String(curYear);});
       if(personVacsAll.length===0){
-        h+='<span style="font-size:12px;color:var(--text-3)">Sem férias cadastradas.</span>';
+        h+='<span style="font-size:12px;color:var(--text-3)">Sem períodos cadastrados.</span>';
       } else if(personVacsYear.length===0){
         var lastVac=personVacsAll[personVacsAll.length-1];
         var lastYear=lastVac.s.slice(0,4);
         var firstVacOfLastYear=personVacsAll.filter(function(v){return v.s.slice(0,4)===lastYear;})[0];
         var lastMo=parseInt(firstVacOfLastYear.s.slice(5,7))-1;
-        h+='<span style="font-size:12px;color:var(--text-3)">Sem férias marcadas em '+curYear+'. '+
+        h+='<span style="font-size:12px;color:var(--text-3)">Sem períodos em '+curYear+'. '+
            '<a href="#" onclick="event.preventDefault();curYear=parseInt(\''+lastYear+'\');curMonth='+lastMo+';render()" style="color:var(--blue)">Ver em '+lastYear+'</a></span>';
       } else {
         h+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">';
         personVacsYear.forEach(function(v){
           var y=parseInt(v.s.slice(0,4)),mo=parseInt(v.s.slice(5,7))-1;
           var active=y===curYear&&mo===curMonth;
-          var label=fmtBR(v.s).slice(0,5)+' → '+fmtBR(fmt(addDays(v.s,v.d-1))).slice(0,5)+' ('+v.d+' dias)';
+          var typeLabel=licenseLabel(v.type);
+          var label=typeLabel+': '+fmtBR(v.s).slice(0,5)+' → '+fmtBR(fmt(addDays(v.s,v.d-1))).slice(0,5)+' ('+v.d+' dias)';
           h+='<button class="btn sm'+(active?' primary':'')+'" onclick="curYear='+y+';curMonth='+mo+';render()">'+label+'</button>';
         });
         h+='</div>';
@@ -2439,7 +2440,7 @@ function render(){
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;border-left:3px solid #7c3aed;flex-shrink:0"></div>Feriado / Sem expediente</div>';
     h+='<div class="leg"><span style="font-size:9px;color:#2563eb;font-weight:600">NOME</span><span style="font-size:9px;color:var(--text-3)"> em azul = licença</span></div>';
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;background:#fff1f2;border:1px solid #fecdd3;flex-shrink:0"></div>Recesso (clique para ver equipes)</div>';
-    if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Férias de '+calSearch+'</div>';
+    if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Períodos de '+calSearch+'</div>';
     if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
     h+='<div class="leg" id="_hl-leg" style="display:none"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">Férias de</span></div>';
     h+='</div>';
