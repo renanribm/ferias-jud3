@@ -1864,6 +1864,119 @@ function buildPanel(year){
   return h;
 }
 
+function isWorkDayForBanca(ds){
+  var d=new Date(ds+'T00:00:00');
+  var dow=d.getDay();
+  if(dow===0||dow===6)return false;
+  var hol=getHoliday(ds);
+  if(!hol)return true;
+  if(hol.type==='holiday'||hol.type==='suspended')return false;
+  if(hol.type==='optional'){
+    // Quarta-feira de Cinzas é opcional mas conta como útil
+    if(hol.label&&hol.label.indexOf('Cinzas')>=0)return true;
+    return false;
+  }
+  return true;
+}
+
+function subtractWorkDays(startDs,n){
+  var ds=startDs;
+  var count=0;
+  while(count<n){
+    var d=new Date(ds+'T00:00:00');
+    d.setDate(d.getDate()-1);
+    ds=fmt(d);
+    if(isWorkDayForBanca(ds))count++;
+  }
+  return ds;
+}
+
+function buildMasterBanner(){
+  var todayStr=fmt(new Date());
+  var todayD=new Date(todayStr+'T00:00:00');
+  var windowEnd=new Date(todayStr+'T00:00:00');
+  windowEnd.setDate(windowEnd.getDate()+15);
+  var windowEndStr=fmt(windowEnd);
+
+  var dm=buildDayMap(curYear);
+  var onVacToday=dm[todayStr]||[];
+  var startsToday=[],returnsToday=[];
+  var distEvents=[],bancaEvents=[];
+  var seen={dist:{},banca:{}};
+
+  vacations.forEach(function(v){
+    var startD=new Date(v.s+'T00:00:00');
+    var endStr=fmt(addDays(v.s,v.d-1));
+    var endD=new Date(endStr+'T00:00:00');
+
+    // Começa hoje
+    if(v.s===todayStr)startsToday.push(v.n);
+    // Retorna hoje (dia seguinte ao fim)
+    var returnD=new Date(endStr+'T00:00:00');
+    returnD.setDate(returnD.getDate()+1);
+    if(fmt(returnD)===todayStr)returnsToday.push(v.n);
+
+    // Sai da distribuição: 7 dias corridos antes do início
+    var distD=new Date(startD);
+    distD.setDate(distD.getDate()-7);
+    var distStr=fmt(distD);
+    if(distStr>=todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
+      seen.dist[v.n+distStr]=true;
+      distEvents.push({n:v.n,date:distStr,start:v.s});
+    }
+
+    // Banca roda: 2 dias úteis antes do início
+    var bancaStr=subtractWorkDays(v.s,2);
+    if(bancaStr>=todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){
+      seen.banca[v.n+bancaStr]=true;
+      bancaEvents.push({n:v.n,date:bancaStr,start:v.s});
+    }
+  });
+
+  distEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
+  bancaEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
+
+  var hasContent=onVacToday.length||startsToday.length||returnsToday.length||distEvents.length||bancaEvents.length;
+  if(!hasContent)return '';
+
+  var todayFmt=new Date(todayStr+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
+
+  function pill(text,color){
+    return '<span style="display:inline-block;background:'+color+';border-radius:4px;padding:1px 7px;font-size:11px;font-weight:500;margin:1px 2px;white-space:nowrap">'+text+'</span>';
+  }
+
+  var h='<div style="background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r-sm);padding:12px 16px;margin-bottom:16px;font-size:12px;line-height:1.8">';
+  h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:8px">Hoje · '+todayFmt+'</div>';
+
+  var todayParts=[];
+  if(onVacToday.length)todayParts.push('<span style="color:var(--text-2)">De férias:</span> '+onVacToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', '));
+  if(startsToday.length)todayParts.push('<span style="color:var(--text-2)">Começa hoje:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', '));
+  if(returnsToday.length)todayParts.push('<span style="color:var(--text-2)">Retorna hoje:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', '));
+  if(todayParts.length){
+    h+='<div style="margin-bottom:8px">'+todayParts.join(' &nbsp;·&nbsp; ')+'</div>';
+  }else{
+    h+='<div style="margin-bottom:8px;color:var(--text-3)">Nenhum movimento de férias hoje.</div>';
+  }
+
+  if(distEvents.length||bancaEvents.length){
+    h+='<div style="border-top:1px solid var(--border);margin:8px 0"></div>';
+    h+='<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 15 dias</div>';
+    if(distEvents.length){
+      h+='<div style="margin-bottom:4px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
+      h+=distEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}).join(' &nbsp;·&nbsp; ');
+      h+='</div>';
+    }
+    if(bancaEvents.length){
+      h+='<div><span style="color:var(--text-2)">Banca roda:</span> ';
+      h+=bancaEvents.map(function(e){return '<strong>'+e.n+'</strong> em '+fmtBR(e.date);}).join(' &nbsp;·&nbsp; ');
+      h+='</div>';
+    }
+  }
+
+  h+='</div>';
+  return h;
+}
+
 // ── Render ─────────────────────────────────────────────────────────────────────
 function renderStatus(){
   var el=document.getElementById('statusbar');
@@ -1929,6 +2042,11 @@ function render(){
   h+='<button class="btn sm" style="padding:3px 10px;font-size:11px" onclick="logout()">Sair</button>';
   h+='</div>';
   h+='</div></div>';
+
+  // Master daily banner — shown only to admin in Férias section
+  if(isMaster()&&curSection==='ferias'&&!previewVac){
+    h+=buildMasterBanner();
+  }
 
   // Welcome banner — shown once per session for non-master users
   if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac&&!_welcomeDismissed&&curSection==='ferias'){
