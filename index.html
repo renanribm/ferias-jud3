@@ -438,6 +438,18 @@ function buildAllAbsenceMap(year){
   });
   return m;
 }
+function buildRecessoDateSet(year){
+  var s={};
+  var dates=recessoDates[year]||{};
+  function fillRange(s0,e0){
+    if(!s0||!e0)return;
+    var cur=s0;
+    while(cur<=e0){s[cur]=true;var d=new Date(cur+'T00:00:00');d.setDate(d.getDate()+1);cur=fmt(d);}
+  }
+  fillRange(dates.natal_s,dates.natal_e);
+  fillRange(dates.ano_novo_s,dates.ano_novo_e);
+  return s;
+}
 function buildRecessoDayMap(year){
   var m={};
   var choices=recessoChoices[year]||{};
@@ -1562,6 +1574,8 @@ function buildCal(year,month){
   var allAbsMap=buildAllAbsenceMap(year);
   var recMap=buildRecessoDayMap(year);
   var recMapPrev=buildRecessoDayMap(year-1);
+  var recDateSet=buildRecessoDateSet(year);
+  var recDateSetPrev=buildRecessoDateSet(year-1);
   var h='<div class="cal-head">'+['Dom','Seg','Ter','Qua','Qui','Sex','Sab'].map(function(d){return '<span>'+d+'</span>';}).join('')+'</div><div class="cal-body">';
   for(var i=0;i<firstDay;i++)h+='<div class="day empty"></div>';
   for(var d=1;d<=dim;d++){
@@ -1569,7 +1583,7 @@ function buildCal(year,month){
     var ns=dm[ds]||[],c=ns.length,isT=ds===today,over=c>LIMIT;
     var allNs=allAbsMap[ds]||[];
     var hasLic=allNs.some(function(n){return ns.indexOf(n)<0;});
-    var hasRec=(recMap[ds]||[]).length>0||(recMapPrev[ds]||[]).length>0;
+    var hasRec=recDateSet[ds]||recDateSetPrev[ds]||false;
     var bc=c===0?'':over?'cbover':'cb'+Math.min(c,4);
     var hol=getHoliday(ds);
     var dow=new Date(year,month,d).getDay();
