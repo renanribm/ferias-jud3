@@ -2032,14 +2032,16 @@ function buildPanel(year){
       var retD=new Date(vEndStr+'T00:00:00');retD.setDate(retD.getDate()+1);
       if(fmt(retD)===todayStr)returnsToday.push(v.n);
 
-      // Fora da distribuição agora: distDate<=today e férias ainda não começou
-      var distD=new Date(vStartD);distD.setDate(distD.getDate()-7);
-      var distStr=fmt(distD);
-      if(distStr<=todayStr&&v.s>todayStr)foraDistNow.push({n:v.n,start:v.s});
+      // Fora da distribuição agora: distDate<=today e ainda dentro do período de férias
+      if(!isLicense(v)){
+        var distD=new Date(vStartD);distD.setDate(distD.getDate()-7);
+        var distStr=fmt(distD);
+        if(distStr<=todayStr&&vEndStr>=todayStr)foraDistNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
 
-      // Banca rodando agora: bancaDate<=today e férias ainda não começou
-      var bancaStr=subtractWorkDays(v.s,2);
-      if(bancaStr<=todayStr&&v.s>todayStr)bancaNow.push({n:v.n,start:v.s});
+        // Banca rodando agora: bancaDate<=today e ainda dentro do período de férias
+        var bancaStr=subtractWorkDays(v.s,2);
+        if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
+      }
 
       // Próximos 30 dias — saída da distribuição
       if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
@@ -2093,7 +2095,8 @@ function buildPanel(year){
     h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Fora da distribuição</div>';
     if(foraDistNow.length){
       h+=foraDistNow.map(function(e){
-        return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">inicia férias em '+fmtBR(e.start)+'</span></div>';
+        var info=e.started?'retorna em '+fmtBR(e.end):'inicia férias em '+fmtBR(e.start);
+        return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">'+info+'</span></div>';
       }).join('');
     }else{
       h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
@@ -2105,7 +2108,8 @@ function buildPanel(year){
     h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Banca rodando</div>';
     if(bancaNow.length){
       h+=bancaNow.map(function(e){
-        return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">inicia férias em '+fmtBR(e.start)+'</span></div>';
+        var info=e.started?'retorna em '+fmtBR(e.end):'inicia férias em '+fmtBR(e.start);
+        return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">'+info+'</span></div>';
       }).join('');
     }else{
       h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
