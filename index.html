@@ -1682,9 +1682,14 @@ function confirmPreview(){
   tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
   var over=false;
   for(var i=0;i<pv.d;i++){var k=fmt(addDays(pv.s,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
-  if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Confirmar mesmo assim?'))return;
-  previewVac=null;
-  adminConfirm(function(){vacations.push({n:pv.n,s:pv.s,d:pv.d});saveData();render();});
+  function _proceed(){previewVac=null;adminConfirm(function(){vacations.push({n:pv.n,s:pv.s,d:pv.d});saveData();render();});}
+  if(over){
+    openModal('<h3>Atenção</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período ultrapassa o limite de <strong>'+LIMIT+'</strong> simultâneos. Confirmar mesmo assim?</p>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn danger" onclick="closeModal();window._overLimitCb()">Confirmar mesmo assim</button></div>');
+    window._overLimitCb=_proceed;
+  }else{_proceed();}
 }
 
 // ── Add vacation ───────────────────────────────────────────────────────────────
@@ -1765,8 +1770,14 @@ function confirmAddVac(){
   tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
   var over=false;
   for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
-  if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Continuar?'))return;
-  closeModal();adminConfirm(function(){vacations.push({n:person,s:start,d:days});saveData();render();});
+  function _proceed(){closeModal();adminConfirm(function(){vacations.push({n:person,s:start,d:days});saveData();render();});}
+  if(over){
+    openModal('<h3>Atenção</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período ultrapassa o limite de <strong>'+LIMIT+'</strong> simultâneos. Continuar mesmo assim?</p>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn danger" onclick="window._overLimitCb()">Continuar mesmo assim</button></div>');
+    window._overLimitCb=_proceed;
+  }else{_proceed();}
 }
 
 // ── Person vacations ───────────────────────────────────────────────────────────
@@ -1836,9 +1847,15 @@ function confirmEditVac(idx, person){
   tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
   var over=false;
   for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
-  if(over&&!confirm('Atenção: este período ultrapassa o limite de '+LIMIT+' simultâneos. Continuar?'))return;
   function doEdit(){vacations[idx]={n:person,s:start,d:days};saveData('✓ Período atualizado');render();showPersonVacs(person);}
-  closeModal();adminConfirm(doEdit);
+  function _proceed(){closeModal();adminConfirm(doEdit);}
+  if(over){
+    openModal('<h3>Atenção</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período ultrapassa o limite de <strong>'+LIMIT+'</strong> simultâneos. Continuar mesmo assim?</p>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn danger" onclick="window._overLimitCb()">Continuar mesmo assim</button></div>');
+    window._overLimitCb=_proceed;
+  }else{_proceed();}
 }
 
 function removeVac(idx, person){
