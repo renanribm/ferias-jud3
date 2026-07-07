@@ -807,10 +807,11 @@ function getCrossMonthData(year,month){
   });
   return{auto:auto,needsInput:needsInput};
 }
-function showStartingPointsModal(people,onConfirm){
+function showStartingPointsModal(people,onConfirm,refYear,refMonth){
+  var refLabel=refYear!=null?' (em '+MONTHS_PT[refMonth]+'/'+refYear+')':'';
   var fields=people.map(function(n){
     var opts=SUBS_QUEUE.filter(function(q){return q!==n;}).map(function(q){return'<option value="'+q+'">'+q+'</option>';}).join('');
-    return'<div class="field"><label>Último substituto de '+n+'</label><select id="_sp_'+n+'">'+opts+'</select></div>';
+    return'<div class="field"><label>Último substituto de '+n+refLabel+'</label><select id="_sp_'+n+'">'+opts+'</select></div>';
   }).join('');
   window._spCb=onConfirm;
   openModal(
@@ -909,10 +910,11 @@ window.generateSubs=function(year,month){
     else{doGenerate(null,startingPoints);}
   }
   if(crossData.needsInput.length>0){
+    var prevMo=month>0?month-1:11;var prevYr=month>0?year:year-1;
     showStartingPointsModal(crossData.needsInput,function(inputs){
       var sp=Object.assign({},crossData.auto,inputs);
       afterStartingPoints(sp);
-    });
+    },prevYr,prevMo);
   }else{
     afterStartingPoints(crossData.auto);
   }
