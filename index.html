@@ -2214,7 +2214,7 @@ function buildPanel(year){
     var barH=maxInMonth===0?4:Math.max(8,Math.round((maxInMonth/LIMIT)*32));
     h+='<div class="hm-bar" onclick="hmBarClick(this,'+mi+',\''+mName+'\','+maxInMonth+')">';
     h+='<div class="hm-tip">'+mName+' — pico: '+maxInMonth+'</div>';
-    h+='<div style="width:100%;height:'+barH+'px;background:'+barColor+';border-radius:3px 3px 0 0;opacity:'+(isCurMo?'1':'.75')+'"></div>';
+    h+='<div style="width:100%;height:'+barH+'px;background:'+barColor+';border-radius:3px 3px 0 0;opacity:'+(isCurMo?'1':'.3')+'"></div>';
     h+='<div style="font-size:10px;color:'+(isCurMo?'var(--accent)':'var(--text-3)')+';font-weight:'+(isCurMo?'600':'400')+'">'+mName.slice(0,3)+'</div>';
     h+='</div>';
   });
