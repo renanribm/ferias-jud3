@@ -739,7 +739,9 @@ function buildSubsView(year,month){
       var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
       h+='<span style="font-size:12px;font-weight:600;min-width:90px">'+absent.n+'</span>';
-      h+='<span style="font-size:10px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px">'+licenseLabel(absent.type)+'</span>';
+      var isLic=isLicense(absent);
+      var badgeStyle=isLic?'background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe':'background:var(--green-bg);color:var(--green);border:1px solid #a7d7b8';
+      h+='<span style="font-size:10px;'+badgeStyle+';padding:1px 6px;border-radius:4px">'+licenseLabel(absent.type)+'</span>';
       h+='<span style="font-size:12px;color:var(--text-3)">&#8594;</span>';
       if(isMaster()){
         h+='<select style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid var(--border);background:var(--surface)" onchange="setSub(\''+monthKey+'\',\''+ds+'\',\''+absent.n+'\',this.value)">';
