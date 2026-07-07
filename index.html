@@ -403,7 +403,7 @@ var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({}
 var vacations=[],people=[];
 var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso'};
 var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso'};
-var curYear=new Date().getFullYear(),curMonth=new Date().getMonth(),curView='panel';
+var curYear=new Date().getFullYear(),curMonth=new Date().getMonth(),curView=PATH_VIEWS[window.location.pathname]||'panel';
 var _historyReady=false;
 function _pushViewState(v){var p=VIEW_PATHS[v]||'/';if(window.location.pathname!==p)history.pushState({view:v},'',p);}
 function _replaceViewState(v){history.replaceState({view:v},'',VIEW_PATHS[v]||'/');}
@@ -1544,7 +1544,7 @@ function logout(){
     '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Deseja encerrar a sessão?</p>'+
     '<div class="mbtns">'+
     '<button class="btn" onclick="closeModal()">Cancelar</button>'+
-    '<button class="btn primary" onclick="closeModal();sessionStorage.removeItem(\''+SESSION_KEY+'\');location.reload()">Sair</button>'+
+    '<button class="btn primary" onclick="closeModal();sessionStorage.removeItem(\''+SESSION_KEY+'\');history.replaceState(null,\'\',\'/\');location.reload()">Sair</button>'+
     '</div>'
   );
 }
