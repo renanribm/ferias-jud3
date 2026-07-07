@@ -193,6 +193,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .pwd-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);font-size:12px;padding:2px 4px;font-family:'DM Sans',sans-serif}
 .pwd-toggle:hover{color:var(--text-2)}
 .op-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.people-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .next-ev+.next-ev::before{content:' \00B7  '}
 .next-ev{display:inline}
 @media(max-width:640px){
@@ -201,6 +202,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .next-ev{display:block}
   .next-ev+.next-ev::before{content:''}
   .welcome-banner-actions{margin-left:24px}
+  .people-header{flex-direction:column;align-items:flex-start;gap:8px}
+  .people-header>div{align-self:flex-end}
   .cal-head span{font-size:8px;padding:5px 0}
   .day{padding:3px 3px 2px;min-height:54px}
   .dn{font-size:10px;width:18px;height:18px}
@@ -2454,7 +2457,7 @@ function render(){
     h+='</div>';
   }
   if(curView==='people'){
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
+    h+='<div class="people-header">';
     var peopleSubtitle=isMaster()?
       'Clique em um nome para ver e editar períodos de '+curYear:
       'Clique no seu nome para editar seus períodos. Clique nos demais para visualizar.';
