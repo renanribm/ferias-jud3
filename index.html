@@ -288,7 +288,7 @@ var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Ag
 var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
 var LICENSE_TYPES={maternidade:'Licença-Maternidade',paternidade:'Licença-Paternidade',gala:'Licença-Gala',nojo:'Licença-Nojo',saude:'Licença-Saúde',outros:'Outra licença'};
-var SUBS_QUEUE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','NETO','LEONARDO','MARCOS','VINICIUS','MARILIA','MAURICIO','RENAN','RODRIGO','THAYANE','VIVIANE'];
+var SUBS_QUEUE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','NETO','LEONARDO','MARCOS','VINICIUS','MARÍLIA','MAURÍCIO','RENAN','RODRIGO','THAYANE','VIVIANE'];
 function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
 function isLicense(v){return v.type&&v.type!=='ferias';}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
@@ -374,7 +374,7 @@ var DEFAULT_PEOPLE=[
   {n:'ALEX',desde:2026,ate:null},{n:'BEATRICE',desde:2026,ate:null},{n:'BRUNO',desde:2026,ate:null},
   {n:'CAMILA',desde:2026,ate:null},{n:'DANIEL',desde:2026,ate:null},{n:'EDUARDO',desde:2026,ate:null},
   {n:'FABIANA',desde:2026,ate:null},{n:'LEONARDO',desde:2026,ate:null},{n:'MARCOS',desde:2026,ate:null},
-  {n:'MARILIA',desde:2026,ate:null},{n:'MAURICIO',desde:2026,ate:null},{n:'NETO',desde:2026,ate:null},
+  {n:'MARÍLIA',desde:2026,ate:null},{n:'MAURÍCIO',desde:2026,ate:null},{n:'NETO',desde:2026,ate:null},
   {n:'RENAN',desde:2026,ate:null},{n:'RODRIGO',desde:2026,ate:null},{n:'THAYANE',desde:2026,ate:null},
   {n:'VINICIUS',desde:2026,ate:null},{n:'VIVIANE',desde:2026,ate:null}
 ];
@@ -388,8 +388,8 @@ var DEFAULT_VACS=[
   {n:'FABIANA',s:'2026-06-19',d:20},{n:'FABIANA',s:'2026-12-09',d:10},
   {n:'LEONARDO',s:'2026-05-21',d:13},{n:'LEONARDO',s:'2026-08-03',d:17},
   {n:'MARCOS',s:'2026-03-18',d:15},{n:'MARCOS',s:'2026-09-08',d:15},
-  {n:'MARILIA',s:'2026-10-13',d:15},
-  {n:'MAURICIO',s:'2026-07-15',d:15},{n:'MAURICIO',s:'2026-12-28',d:15},
+  {n:'MARÍLIA',s:'2026-10-13',d:15},
+  {n:'MAURÍCIO',s:'2026-07-15',d:15},{n:'MAURÍCIO',s:'2026-12-28',d:15},
   {n:'NETO',s:'2026-01-05',d:12},{n:'NETO',s:'2026-07-13',d:18},
   {n:'RENAN',s:'2026-02-19',d:18},{n:'RENAN',s:'2026-06-08',d:12},
   {n:'RODRIGO',s:'2026-06-24',d:15},{n:'RODRIGO',s:'2026-11-25',d:15},
