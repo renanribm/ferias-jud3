@@ -303,6 +303,15 @@ var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
 var LICENSE_TYPES={maternidade:'Licença-Maternidade',paternidade:'Licença-Paternidade',gala:'Licença-Gala',nojo:'Licença-Nojo',saude:'Licença-Saúde',outros:'Outra licença'};
 var SUBS_QUEUE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','NETO','LEONARDO','MARCOS','VINICIUS','MARÍLIA','MAURÍCIO','RENAN','RODRIGO','THAYANE','VIVIANE'];
+function getSortKey(name){
+  var p=people.find(function(x){return x.n===name;});
+  return(p&&p.sortKey?p.sortKey:name.split(' ')[0]).toUpperCase();
+}
+function getSubsQueue(year){
+  return activePeopleForYear(year).slice().sort(function(a,b){
+    return getSortKey(a).localeCompare(getSortKey(b),'pt-BR',{sensitivity:'base'});
+  });
+}
 function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
 function isLicense(v){return v.type&&v.type!=='ferias';}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
@@ -746,8 +755,9 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
   });
   var absencesByDay=getMonthAbsences(year,month);
   var active=activePeopleForYear(year);
+  var queue=getSubsQueue(year);
   var days=Object.keys(absencesByDay).sort();
-  var N=SUBS_QUEUE.length;
+  var N=queue.length;
   var pointers={};
   var newData={fabianaFixedSub:fabianaSub||existing.fabianaFixedSub||null};
   days.forEach(function(ds){
@@ -771,21 +781,20 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     }
     var remaining=absents.filter(function(a){return !dayResult[a.n]&&a.n!=='FABIANA';});
     remaining.sort(function(a,b){
-      var ia=SUBS_QUEUE.indexOf(a.n);var ib=SUBS_QUEUE.indexOf(b.n);
+      var ia=queue.indexOf(a.n);var ib=queue.indexOf(b.n);
       return(ia<0?999:ia)-(ib<0?999:ib);
     });
     remaining.forEach(function(absent){
       var n=absent.n;
-      var qIdx=SUBS_QUEUE.indexOf(n);if(qIdx<0)qIdx=0;
+      var qIdx=queue.indexOf(n);if(qIdx<0)qIdx=0;
       if(pointers[n]===undefined){
-        // A: inicializa a partir do último sub do mês anterior se disponível
         var sp=startingPoints&&startingPoints[n];
-        if(sp){var spIdx=SUBS_QUEUE.indexOf(sp);pointers[n]=spIdx>=0?(spIdx+1)%N:(qIdx+1)%N;}
+        if(sp){var spIdx=queue.indexOf(sp);pointers[n]=spIdx>=0?(spIdx+1)%N:(qIdx+1)%N;}
         else{pointers[n]=(qIdx+1)%N;}
       }
       for(var j=0;j<N;j++){
         var cidx=(pointers[n]+j)%N;
-        var candidate=SUBS_QUEUE[cidx];
+        var candidate=queue[cidx];
         if(candidate!==n&&available.indexOf(candidate)>=0){
           dayResult[n]=candidate;
           available=available.filter(function(x){return x!==candidate;});
@@ -837,7 +846,7 @@ function getCrossMonthData(year,month){
 function showStartingPointsModal(people,onConfirm,refYear,refMonth){
   var refLabel=refYear!=null?' (em '+MONTHS_PT[refMonth]+'/'+refYear+')':'';
   var fields=people.map(function(n){
-    var opts=SUBS_QUEUE.filter(function(q){return q!==n;}).map(function(q){return'<option value="'+q+'">'+q+'</option>';}).join('');
+    var opts=getSubsQueue(refYear||new Date().getFullYear()).filter(function(q){return q!==n;}).map(function(q){return'<option value="'+q+'">'+q+'</option>';}).join('');
     return'<div class="field"><label>Último substituto de '+n+refLabel+'</label><select id="_sp_'+n+'">'+opts+'</select></div>';
   }).join('');
   window._spCb=onConfirm;
@@ -1861,11 +1870,21 @@ function adminConfirm(cb){
   },90);
 }
 
+function hasPersonOverlap(person,start,days,excludeIdx){
+  var newEnd=fmt(addDays(start,days-1));
+  return vacations.some(function(v,i){
+    if(v.n!==person)return false;
+    if(excludeIdx!==undefined&&i===excludeIdx)return false;
+    var vEnd=fmt(addDays(v.s,v.d-1));
+    return start<=vEnd&&newEnd>=v.s;
+  });
+}
 function confirmAddVac(){
   var person=document.getElementById('av-person').value;
   var start=document.getElementById('av-start').value;
   var days=parseInt(document.getElementById('av-days').value);
   if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  if(hasPersonOverlap(person,start,days)){alert('Este período se sobrepõe a um período já cadastrado para '+person+'.');return;}
   var tmpVacs=vacations.concat([{n:person,s:start,d:days}]);
   var tmpMap={};
   tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
@@ -1943,6 +1962,7 @@ function confirmEditVac(idx, person){
   var start=document.getElementById('ev-start').value;
   var days=parseInt(document.getElementById('ev-days').value);
   if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  if(hasPersonOverlap(person,start,days,idx)){alert('Este período se sobrepõe a um período já cadastrado para '+person+'.');return;}
   var tmpVacs=vacations.filter(function(_,i){return i!==idx;}).concat([{n:person,s:start,d:days}]);
   var tmpMap={};
   tmpVacs.forEach(function(v){for(var i=0;i<v.d;i++){var k=fmt(addDays(v.s,i));if(!tmpMap[k])tmpMap[k]=[];tmpMap[k].push(v.n);}});
@@ -1983,6 +2003,7 @@ function showPeopleManager(){
       '<div><span style="font-weight:500">'+p.n+'</span>'+
       '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+p.desde+'</span></div></div>'+
       '<div style="display:flex;gap:6px">'+
+      '<button class="btn sm" onclick="editPersonSortKey(\''+p.n+'\')">Ordenação</button>'+
       '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
       '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
   }).join('');
@@ -2004,7 +2025,9 @@ function showPeopleManager(){
     '<div class="field"><label>Adicionar novo procurador</label>'+
     '<input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>'+
     '<div class="field"><label>Ano de entrada na unidade</label>'+
-    '<input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>';
+    '<input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>'+
+    '<div class="field"><label>Primeiro nome real <span style="font-weight:400;color:var(--text-3)">(para ordenação — deixe em branco se igual ao nome acima)</span></label>'+
+    '<input type="text" id="new-sortkey" placeholder="Ex: HONÓRIO" style="text-transform:uppercase"></div>';
   var footerHtml=
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
     '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
@@ -2029,6 +2052,23 @@ function deactivatePerson(name){
   };
 }
 
+function editPersonSortKey(name){
+  var p=people.find(function(x){return x.n===name;});
+  var cur=p&&p.sortKey?p.sortKey:'';
+  var fallback=name.split(' ')[0];
+  openModal('<h3>Ordenação de '+name+'</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Informe o primeiro nome real usado para ordenação alfabética na fila de substituições. Deixe em branco para usar <strong>'+fallback+'</strong>.</p>'+
+    '<div class="field"><label>Primeiro nome real</label>'+
+    '<input type="text" id="edit-sortkey" value="'+cur+'" placeholder="'+fallback+'" style="text-transform:uppercase"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal();showPeopleManager()">Cancelar</button>'+
+    '<button class="btn primary" onclick="confirmEditSortKey(\''+name.replace(/'/g,"\\'")+'\')" >Salvar</button></div>');
+}
+function confirmEditSortKey(name){
+  var val=(document.getElementById('edit-sortkey').value||'').trim().toUpperCase();
+  var p=people.find(function(x){return x.n===name;});
+  if(p){if(val&&val!==name.split(' ')[0])p.sortKey=val;else delete p.sortKey;}
+  closeModal();saveData('✓ Ordenação atualizada');render();
+}
 function reactivatePerson(name){
   function doReactivate(){
     var p=people.find(function(x){return x.n===name;});
@@ -2044,7 +2084,14 @@ function confirmAddPerson(){
   if(!nm){alert('Digite o nome.');return;}
   if(people.find(function(p){return p.n===nm;})){alert('Já existe.');return;}
   var desde=parseInt(document.getElementById('new-desde').value)||curYear;
-  function doAdd(){people.push({n:nm,desde:desde,ate:null});people.sort(function(a,b){return a.n.localeCompare(b.n);});saveData('✓ Procurador adicionado');render();}
+  var sk=(document.getElementById('new-sortkey').value||'').trim().toUpperCase();
+  function doAdd(){
+    var obj={n:nm,desde:desde,ate:null};
+    if(sk&&sk!==nm.split(' ')[0])obj.sortKey=sk;
+    people.push(obj);
+    people.sort(function(a,b){return a.n.localeCompare(b.n);});
+    saveData('✓ Procurador adicionado');render();
+  }
   closeModal();adminConfirm(doAdd);
 }
 
