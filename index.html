@@ -1802,7 +1802,7 @@ function confirmAddVac(){
 // ── Person vacations ───────────────────────────────────────────────────────────
 function showPersonVacs(person){
   var canEdit=canEditVac(person);
-  var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear);}).sort(function(a,b){return a.s.localeCompare(b.s);});
+  var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(curYear)&&!isLicense(v);}).sort(function(a,b){return a.s.localeCompare(b.s);});
   var items=pvacs.length?pvacs.map(function(v){
     var idx=vacations.indexOf(v);
     var startYear=parseInt(v.s.slice(0,4)),startMonth=parseInt(v.s.slice(5,7))-1;
@@ -3054,7 +3054,7 @@ function render(){
     h+='</div></div>';
     h+='<div class="people-grid">';
     activePeopleForYear(curYear).forEach(function(p){
-      var pvacs=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);});
+      var pvacs=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear)&&!isLicense(v);});
       var c=pvacs.length;
       var daysUsed=pvacs.reduce(function(sum,v){return sum+(!v.type||v.type==='ferias'?v.d:0);},0);
       var isMe=p===currentAdminUser&&currentAdminUser!=='ADMIN';
