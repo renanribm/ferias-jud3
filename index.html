@@ -1612,21 +1612,22 @@ function goToMyVacations(){
 }
 
 // ── Preview system ─────────────────────────────────────────────────────────────
-function showTestPeriod(personName){
+function showTestPeriod(personName,defaultStart,defaultDays){
   var mo=String(curMonth+1).padStart(2,'0');
   var who=personName||(currentAdminUser&&currentAdminUser!=='ADMIN'?currentAdminUser:'');
+  var startVal=defaultStart||(curYear+'-'+mo+'-01');
+  var daysVal=defaultDays||15;
   var active=activePeopleForYear(curYear);
   var personField=isMaster()?
     '<div class="field"><label>Procurador</label><select id="tp-person">'+active.map(function(p){return '<option value="'+p+'"'+(p===who?' selected':'')+'>'+p+'</option>';}).join('')+'</select></div>':
     '<div class="field"><label>Procurador</label><input type="text" value="'+who+'" disabled style="background:var(--surface2);color:var(--text-2)"></div>';
-  var applyWho=isMaster()?"document.getElementById('tp-person').value":"'"+who+"'";
   openModal(
     '<h3>Testar período</h3>'+
     '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 4px;line-height:1.6;text-align:justify">Visualize como o calendário ficará com o período que você está pensando, sem salvar ainda.</p>'+
     '<p style="font-size:12px;color:var(--text-3);margin:0 0 14px;line-height:1.6;text-align:justify">Se já decidiu o período e quiser salvar diretamente, <a href="#" onclick="event.preventDefault();closeModal();showAddVac(\''+who+'\')" style="color:var(--blue);font-weight:500;text-decoration:underline">adicione as férias</a>.</p>'+
     personField+
-    '<div class="field"><label>Data de início</label><input type="date" id="tp-start" value="'+curYear+'-'+mo+'-01"></div>'+
-    '<div class="field"><label>Número de dias</label><input type="number" id="tp-days" min="1" max="60" value="15"></div>'+
+    '<div class="field"><label>Data de início</label><input type="date" id="tp-start" value="'+startVal+'"></div>'+
+    '<div class="field"><label>Número de dias</label><input type="number" id="tp-days" min="1" max="60" value="'+daysVal+'"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="applyPreviewFromModal()">Ver no calendário</button></div>'
   );
@@ -1669,8 +1670,10 @@ function applyPreview(person){
 }
 
 function cancelPreview(){
+  var pv=previewVac;
   previewVac=null;
-  render();
+  setView('people');
+  if(pv){setTimeout(function(){showTestPeriod(pv.n,pv.s,pv.d);},80);}
 }
 
 function confirmPreview(){
