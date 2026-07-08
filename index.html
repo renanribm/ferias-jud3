@@ -2790,12 +2790,12 @@ function render(){
       if((dm[pk]||[]).length>=LIMIT)pvConflicts++;
     }
     var pvStatus=pvConflicts>0?
-      '<span class="preview-banner-conflict">⚠ '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' com mais de '+LIMIT+' procuradores ausentes simultaneamente</span>':
-      '<span class="preview-banner-ok">✓ Nenhum dia ultrapassa '+LIMIT+' procuradores ausentes simultaneamente</span>';
+      '<span class="preview-banner-conflict">⚠ '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' com mais de '+LIMIT+' férias simultâneas</span>':
+      '<span class="preview-banner-ok">✓ Nenhum dia ultrapassa '+LIMIT+' férias simultâneas</span>';
     h+='<div class="preview-banner">';
     h+='<div class="preview-banner-info">';
     h+='<div class="preview-banner-title">&#128197; Pré-visualização — '+previewVac.n+' &nbsp;'+pvStatus+'</div>';
-    h+='<div class="preview-banner-sub">'+pvStart+' → '+pvEnd+' &middot; '+previewVac.d+' dias &middot; Amarelo: período testado. Vermelho: dia com mais de '+LIMIT+' procuradores ausentes.</div>';
+    h+='<div class="preview-banner-sub">'+pvStart+' → '+pvEnd+' &middot; '+previewVac.d+' dias &middot; Amarelo: período testado. Vermelho: dia com mais de '+LIMIT+' férias simultâneas.</div>';
     h+='</div>';
     h+='<div class="preview-banner-actions">';
     h+='<button class="btn-preview-cancel" onclick="cancelPreview()">Descartar</button>';
