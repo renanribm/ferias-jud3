@@ -2736,12 +2736,12 @@ function buildPanel(year){
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
       if(distEvents.length){
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
-        h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+' <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
+        h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span> <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       if(bancaEvents.length){
         h+='<div style="font-size:12px"><span style="color:var(--text-2)">Banca começa a rodar:</span> ';
-        h+=bancaEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+' <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
+        h+=bancaEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span> <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       h+='</div>';
