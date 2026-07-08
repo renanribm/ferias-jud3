@@ -2700,11 +2700,11 @@ function buildPanel(year){
     h+='<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:2px">';
     h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Substituições do dia</div>';
     if(subsToday.length){
-      h+='<div style="display:flex;flex-wrap:wrap;gap:6px 14px">';
-      subsToday.forEach(function(x){
+      h+='<div style="font-size:12px">';
+      h+=subsToday.map(function(x){
         var subLabel=x.sub?'<strong>'+x.sub+'</strong>':'<span style="color:var(--amber);font-size:11px">não definido</span>';
-        h+='<div style="font-size:12px"><strong>'+x.absent+'</strong> <span style="color:var(--text-3)">&#8594;</span> '+subLabel+'</div>';
-      });
+        return '<span class="next-ev"><strong>'+x.absent+'</strong> <span style="color:var(--text-3)">&#8594;</span> '+subLabel+'</span>';
+      }).join('');
       h+='</div>';
     }else{
       h+='<div style="font-size:12px;color:var(--text-3)">Nenhuma substituição necessária.</div>';
