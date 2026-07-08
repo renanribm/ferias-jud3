@@ -2216,7 +2216,7 @@ function buildConflictsView(year){
         '<div class="conflict-weekday">'+d.toLocaleDateString('pt-BR',{weekday:'long'})+'</div>'+
         '</div>'+
         '<div class="conflict-body">'+
-        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' simultâneos &middot; '+extra+' acima do limite</div>'+
+        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' procuradores ausentes &middot; '+extra+' acima do limite de '+LIMIT+'</div>'+
         '<div class="conflict-names">'+
         x.ns.map(function(n){return '<div class="conflict-name-chip" onclick="showPersonVacs(\''+n+'\')"><div class="conflict-dot" style="background:'+pColor(n)+'"></div>'+n+'</div>';}).join('')+
         '</div></div></div>';
@@ -2790,8 +2790,8 @@ function render(){
       if((dm[pk]||[]).length>=LIMIT)pvConflicts++;
     }
     var pvStatus=pvConflicts>0?
-      '<span class="preview-banner-conflict">⚠ Limite de '+LIMIT+' ultrapassado em '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' </span>':
-      '<span class="preview-banner-ok">✓ Dentro do limite de '+LIMIT+' simultâneos</span>';
+      '<span class="preview-banner-conflict">⚠ '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' com mais de '+LIMIT+' procuradores ausentes simultaneamente</span>':
+      '<span class="preview-banner-ok">✓ Nenhum dia ultrapassa '+LIMIT+' procuradores ausentes simultaneamente</span>';
     h+='<div class="preview-banner">';
     h+='<div class="preview-banner-info">';
     h+='<div class="preview-banner-title">&#128197; Pré-visualização — '+previewVac.n+' &nbsp;'+pvStatus+'</div>';
