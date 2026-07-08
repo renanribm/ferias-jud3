@@ -1068,7 +1068,7 @@ function buildSubsView(year,month){
             h+='</div>';
           }
         }else{
-          h+='<div style="font-size:11px"><strong style="color:var(--text-2)">'+absent.n+'</strong><span style="font-size:10px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <span style="color:'+(curSub?'var(--accent)':'var(--text-3)')+'">'+( curSub||'—')+'</span></div>';
+          h+='<div style="font-size:11px"><span style="color:var(--text-2)">'+absent.n+'</span><span style="font-size:10px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <strong style="color:'+(curSub?'var(--accent)':'var(--text-3)')+'">'+( curSub||'—')+'</strong></div>';
         }
         if(hasCon)h+='<div style="font-size:10px;color:var(--red)">'+curSub+' também ausente.</div>';
         h+='</div>';
