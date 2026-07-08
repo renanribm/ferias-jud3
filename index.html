@@ -2589,6 +2589,7 @@ function buildPanel(year){
     var allAbsToday=buildAllAbsenceMap(year)[todayStr]||[];
     var recToday=(buildRecessoDayMap(year)[todayStr]||[]).concat(buildRecessoDayMap(year-1)[todayStr]||[]);
     var foraDistNow=[],bancaNow=[],startsToday=[],returnsToday=[];
+    var distToday=[],bancaToday=[];
     var distEvents=[],bancaEvents=[];
     var seen={dist:{},banca:{}};
 
@@ -2612,11 +2613,15 @@ function buildPanel(year){
         if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
       }
 
+      // Hoje — saída da distribuição
+      if(distStr===todayStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distToday.push(v.n);}
       // Próximos 30 dias — saída da distribuição
       if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
         seen.dist[v.n+distStr]=true;
         distEvents.push({n:v.n,date:distStr,start:v.s});
       }
+      // Hoje — banca começa a rodar
+      if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push(v.n);}
       // Próximos 30 dias — banca começa a rodar
       if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){
         seen.banca[v.n+bancaStr]=true;
@@ -2710,12 +2715,14 @@ function buildPanel(year){
     h+='</div>';
 
     // Próximos 30 dias
-    var hasNext=returnsToday.length||startsToday.length||distEvents.length||bancaEvents.length;
+    var hasNext=returnsToday.length||startsToday.length||distToday.length||bancaToday.length||distEvents.length||bancaEvents.length;
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
       if(returnsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Retorna hoje:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
       if(startsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Inicia férias hoje:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(distToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Saiu da distribuição hoje:</span> '+distToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(bancaToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Banca começou a rodar hoje:</span> '+bancaToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
       if(distEvents.length){
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
         h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+'</span>';}).join('');
