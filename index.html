@@ -2719,7 +2719,7 @@ function buildPanel(year){
       function todayEvLine(label,arr){
         if(!arr.length)return;
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">'+label+':</span> ';
-        h+=arr.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> (férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span>';}).join('');
+        h+=arr.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       todayEvLine('Retorna',returnsToday);
