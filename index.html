@@ -314,6 +314,7 @@ function getSubsQueue(year,month){
 }
 function licenseLabel(type){return(!type||type==='ferias')?'Férias':(LICENSE_TYPES[type]||type);}
 function isLicense(v){return v.type&&v.type!=='ferias';}
+function getChefe(){return(people.find(function(p){return p.chefia;})||{}).n||null;}
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
 var OFFICIAL_PIN='admin1'; // senha master
 var SESSION_KEY='ferias-jud3-session';
@@ -778,6 +779,7 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
   var days=Object.keys(absencesByDay).sort();
   var N=queue.length;
   var pointers={};
+  var chefeN=getChefe();
   var newData={fabianaFixedSub:fabianaSub||existing.fabianaFixedSub||null};
   days.forEach(function(ds){
     var active=activePeopleForDay(ds);
@@ -793,13 +795,13 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
         available=available.filter(function(n){return n!==sub;});
       }
     });
-    if(fabianaSub&&absentNames.indexOf('FABIANA')>=0&&!dayResult['FABIANA']){
+    if(chefeN&&fabianaSub&&absentNames.indexOf(chefeN)>=0&&!dayResult[chefeN]){
       if(available.indexOf(fabianaSub)>=0){
-        dayResult['FABIANA']=fabianaSub;
+        dayResult[chefeN]=fabianaSub;
         available=available.filter(function(n){return n!==fabianaSub;});
       }
     }
-    var remaining=absents.filter(function(a){return !dayResult[a.n]&&a.n!=='FABIANA';});
+    var remaining=absents.filter(function(a){return !dayResult[a.n]&&a.n!==chefeN;});
     remaining.sort(function(a,b){
       var ia=queue.indexOf(a.n);var ib=queue.indexOf(b.n);
       return(ia<0?999:ia)-(ib<0?999:ib);
@@ -847,10 +849,11 @@ function getCrossMonthData(year,month){
   var monthFirst=year+'-'+mo+'-01';
   var absences=getMonthAbsences(year,month);
   var seen={};var auto={};var needsInput=[];
+  var chefeN=getChefe();
   Object.keys(absences).forEach(function(ds){
     absences[ds].forEach(function(a){
       var n=a.n;
-      if(n==='FABIANA'||seen[n])return;
+      if(n===chefeN||seen[n])return;
       seen[n]=true;
       var isCross=vacations.some(function(v){
         return v.n===n&&v.s<monthFirst&&fmt(addDays(v.s,v.d-1))>=monthFirst;
@@ -891,11 +894,12 @@ window.clearSubsMonth=function(year,month){
   );
 };
 function getFabianaCrossMonthSub(year,month){
+  var chefeN=getChefe();
   var mo=String(month+1).padStart(2,'0');
   var monthFirst=year+'-'+mo+'-01';
   var cross=null;
   vacations.forEach(function(v){
-    if(v.n!=='FABIANA')return;
+    if(v.n!==chefeN)return;
     var endD=fmt(addDays(v.s,v.d-1));
     if(v.s<monthFirst&&endD>=monthFirst)cross=v;
   });
@@ -909,10 +913,11 @@ function getFabianaCrossMonthSub(year,month){
   return null;
 }
 function _fabianaAvail(year,month){
+  var chefeN=getChefe();
   var absences=getMonthAbsences(year,month);
-  var fabDays=Object.keys(absences).filter(function(ds){return absences[ds].some(function(a){return a.n==='FABIANA';});});
+  var fabDays=Object.keys(absences).filter(function(ds){return absences[ds].some(function(a){return a.n===chefeN;});});
   return activePeopleForMonth(year,month).filter(function(n){
-    if(n==='FABIANA')return false;
+    if(n===chefeN)return false;
     return fabDays.every(function(ds){return!absences[ds].some(function(a){return a.n===n;});});
   });
 }
@@ -974,9 +979,10 @@ window.changeFabianaSub=function(year,month){
 };
 window.generateSubs=function(year,month){
   if(!isMaster())return;
+  var chefeN=getChefe();
   var absences=getMonthAbsences(year,month);
   var fabAbsent=false;
-  Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n==='FABIANA';}))fabAbsent=true;});
+  Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n===chefeN;}))fabAbsent=true;});
   var crossData=getCrossMonthData(year,month);
   function doGenerate(fabianaSub,startingPoints){
     generateSubsMonth(year,month,fabianaSub,startingPoints);render();showToast('✓ Tabela gerada');
@@ -1019,13 +1025,14 @@ function buildSubsView(year,month){
   h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Imprimir</button>';
   h+='</div>';
   h+='</div>';
-  // Info substituto fixo Fabiana
+  // Info substituto fixo do chefe
+  var chefeN=getChefe();
   var fabianaSub=monthAssignments.fabianaFixedSub||null;
   var fabAbsentThisMonth=false;
-  days.forEach(function(ds){if(absences[ds]&&absences[ds].some(function(a){return a.n==='FABIANA';}))fabAbsentThisMonth=true;});
+  days.forEach(function(ds){if(absences[ds]&&absences[ds].some(function(a){return a.n===chefeN;}))fabAbsentThisMonth=true;});
   if(fabAbsentThisMonth&&fabianaSub){
     h+='<div style="font-size:12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;margin-bottom:12px;color:#1d4ed8;display:flex;align-items:center;justify-content:space-between">'+
-      '<span>Substituto de Fabiana: <strong>'+fabianaSub+'</strong> (período completo)</span>'+
+      '<span>Substituto de '+(chefeN||'Chefe')+': <strong>'+fabianaSub+'</strong> (período completo)</span>'+
       (isMaster()?'<button class="btn sm" onclick="changeFabianaSub('+year+','+month+')">Alterar</button>':'')+
     '</div>';
   }
@@ -1078,12 +1085,12 @@ function buildSubsView(year,month){
         var curSub=da[absent.n]||'';
         var isMan=manSet.indexOf(absent.n)>=0;
         var hasCon=curSub&&absNames.indexOf(curSub)>=0;
-        var fabCon=absent.n==='FABIANA'&&fabianaSub&&!curSub&&absNames.indexOf(fabianaSub)>=0;
+        var fabCon=absent.n===chefeN&&fabianaSub&&!curSub&&absNames.indexOf(fabianaSub)>=0;
         var avail=activePeopleForDay(cell.ds).filter(function(n){return absNames.indexOf(n)<0;});
         h+='<div style="margin-top:5px">';
         if(isMaster()){
           h+='<div style="font-size:11px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:10px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
-          if(absent.n==='FABIANA'&&fabianaSub){
+          if(absent.n===chefeN&&fabianaSub){
             h+='<div style="font-size:11px;color:var(--accent);font-weight:600">'+fabianaSub+' <span style="font-size:10px;color:#1d4ed8">fixo</span>'+(fabCon?' <span style="font-size:10px;color:var(--amber)">⚠ ausente</span>':'')+'</div>';
           }else{
             h+='<div style="display:flex;align-items:center;gap:3px;margin-top:2px">';
@@ -1125,14 +1132,14 @@ function buildSubsView(year,month){
       var currentSub=dayAssignments[absent.n]||'';
       var isManual=manualSet.indexOf(absent.n)>=0;
       var hasConflict=currentSub&&absentNames.indexOf(currentSub)>=0;
-      var fabConflict=absent.n==='FABIANA'&&fabianaSub&&!currentSub&&absentNames.indexOf(fabianaSub)>=0;
+      var fabConflict=absent.n===chefeN&&fabianaSub&&!currentSub&&absentNames.indexOf(fabianaSub)>=0;
       var available=activePeopleForDay(ds).filter(function(n){return absentNames.indexOf(n)<0;});
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
       h+='<span style="font-size:12px;font-weight:600">'+absent.n+'</span>';
       h+='<span style="font-size:11px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span>';
       h+='<span style="font-size:12px;color:var(--text-3)"> &#8594;</span>';
       if(isMaster()){
-        if(absent.n==='FABIANA'&&fabianaSub){
+        if(absent.n===chefeN&&fabianaSub){
           h+='<span style="font-size:12px;font-weight:600;color:var(--accent)">'+fabianaSub+'</span>';
           h+='<span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:1px 6px;border-radius:4px">fixo</span>';
           if(fabConflict)h+='<span style="font-size:11px;color:var(--amber)">&#9888; ausente neste dia</span>';
@@ -2017,8 +2024,10 @@ window._doRemoveVac=function(idx,person){
 function showPeopleManager(){
   var active=people.filter(function(p){return p.ate===null;});
   var inactive=people.filter(function(p){return p.ate!==null;});
+  var chefeN=getChefe();
   var listActive=active.map(function(p){
     var nameDisplay=p.fullName?'<span style="font-weight:500">'+p.n+'</span><span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.fullName+'</span>':'<span style="font-weight:500">'+p.n+'</span>';
+    if(p.chefia)nameDisplay+='<span style="font-size:10px;background:#fef9c3;color:#854d0e;border:1px solid #fde68a;padding:0 5px;border-radius:3px;margin-left:6px">Chefe</span>';
     return '<div class="vac-item">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
@@ -2077,18 +2086,25 @@ function deactivatePerson(name){
 function editPerson(name){
   var p=people.find(function(x){return x.n===name;});
   var curFull=p&&p.fullName?p.fullName:'';
+  var isChefia=!!(p&&p.chefia);
   openModal('<h3>Editar procurador</h3>'+
     '<div class="field"><label>Nome de exibição</label>'+
     '<input type="text" value="'+name+'" disabled style="opacity:.5;text-transform:uppercase"></div>'+
     '<div class="field"><label>Nome completo</label>'+
     '<input type="text" id="ep-fullname" value="'+curFull+'" placeholder="" style="text-transform:uppercase"></div>'+
+    '<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400"><input type="checkbox" id="ep-chefia"'+(isChefia?' checked':'')+'>Chefe da unidade (substituto fixo)</label></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal();showPeopleManager()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmEditPerson(\''+name.replace(/'/g,"\\'")+'\')" >Salvar</button></div>');
 }
 function confirmEditPerson(name){
   var val=(document.getElementById('ep-fullname').value||'').trim().toUpperCase();
+  var isChefia=document.getElementById('ep-chefia').checked;
   var p=people.find(function(x){return x.n===name;});
-  if(p){if(val)p.fullName=val;else delete p.fullName;}
+  if(p){
+    if(val)p.fullName=val;else delete p.fullName;
+    if(isChefia){people.forEach(function(x){delete x.chefia;});p.chefia=true;}
+    else{delete p.chefia;}
+  }
   closeModal();saveData('✓ Procurador atualizado');render();
 }
 function reactivatePerson(name){
@@ -2461,6 +2477,7 @@ function confirmAddLicense(fixedPerson){
   var start=document.getElementById('lic-start').value;
   var days=parseInt(document.getElementById('lic-days').value);
   if(!person||!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  if(hasPersonOverlap(person,start,days)){alert('Este período se sobrepõe a um período já cadastrado para '+person+'.');return;}
   closeModal();
   adminConfirm(function(){vacations.push({n:person,s:start,d:days,type:type});saveData('✓ Licença registrada');render();});
 }
@@ -2484,6 +2501,7 @@ function confirmEditLicense(idx,person){
   var start=document.getElementById('lic-start').value;
   var days=parseInt(document.getElementById('lic-days').value);
   if(!start||!days||days<1){alert('Preencha todos os campos.');return;}
+  if(hasPersonOverlap(person,start,days,idx)){alert('Este período se sobrepõe a um período já cadastrado para '+person+'.');return;}
   function doEdit(){vacations[idx]={n:person,s:start,d:days,type:type};saveData('✓ Licença atualizada');render();}
   closeModal();adminConfirm(doEdit);
 }
