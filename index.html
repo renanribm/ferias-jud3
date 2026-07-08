@@ -866,7 +866,7 @@ function getCrossMonthData(year,month){
 function showStartingPointsModal(people,onConfirm,refYear,refMonth){
   var refLabel=refYear!=null?' (em '+MONTHS_PT[refMonth]+'/'+refYear+')':'';
   var fields=people.map(function(n){
-    var opts=getSubsQueue(refYear||new Date().getFullYear()).filter(function(q){return q!==n;}).map(function(q){return'<option value="'+q+'">'+q+'</option>';}).join('');
+    var opts=getSubsQueue(refYear||new Date().getFullYear(),refMonth!=null?refMonth:new Date().getMonth()).filter(function(q){return q!==n;}).map(function(q){return'<option value="'+q+'">'+q+'</option>';}).join('');
     return'<div class="field"><label>Último substituto de '+n+refLabel+'</label><select id="_sp_'+n+'">'+opts+'</select></div>';
   }).join('');
   window._spCb=onConfirm;
@@ -1649,8 +1649,9 @@ function checkLogin(){
   if(val===OFFICIAL_PIN){matched='ADMIN';}
   else if(val===ACCESS_PASSWORD){matched='VIEWER';}
   else{
-    // Match against default people names, accent-insensitive
+    // Match against known people (DEFAULT_PEOPLE as fallback, then live Firestore list)
     DEFAULT_PEOPLE.forEach(function(p){if(normVal===normalize(p.n))matched=p.n;});
+    if(!matched)people.forEach(function(p){if(normVal===normalize(p.n))matched=p.n;});
   }
   if(matched){
     sessionStorage.setItem(SESSION_KEY,matched);
@@ -2755,30 +2756,22 @@ function buildPanel(year){
       var retD=new Date(vEndStr+'T00:00:00');retD.setDate(retD.getDate()+1);
       if(fmt(retD)===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr});
 
-      // Fora da distribuição agora: distDate<=today e ainda dentro do período de férias
       if(!isLicense(v)){
         var distD=new Date(vStartD);distD.setDate(distD.getDate()-7);
         var distStr=fmt(distD);
-        if(distStr<=todayStr&&vEndStr>=todayStr)foraDistNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
-
-        // Banca rodando agora: bancaDate<=today e ainda dentro do período de férias
         var bancaStr=subtractWorkDays(v.s,2);
+        // Fora da distribuição agora
+        if(distStr<=todayStr&&vEndStr>=todayStr)foraDistNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
+        // Banca rodando agora
         if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
-      }
-
-      // Hoje — saída da distribuição
-      if(distStr===todayStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distToday.push({n:v.n,start:v.s,end:vEndStr});}
-      // Próximos 30 dias — saída da distribuição
-      if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
-        seen.dist[v.n+distStr]=true;
-        distEvents.push({n:v.n,date:distStr,start:v.s,end:vEndStr});
-      }
-      // Hoje — banca começa a rodar
-      if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr});}
-      // Próximos 30 dias — banca começa a rodar
-      if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){
-        seen.banca[v.n+bancaStr]=true;
-        bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr});
+        // Hoje — saída da distribuição
+        if(distStr===todayStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distToday.push({n:v.n,start:v.s,end:vEndStr});}
+        // Próximos 30 dias — saída da distribuição
+        if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distEvents.push({n:v.n,date:distStr,start:v.s,end:vEndStr});}
+        // Hoje — banca começa a rodar
+        if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr});}
+        // Próximos 30 dias — banca começa a rodar
+        if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr});}
       }
     });
 
