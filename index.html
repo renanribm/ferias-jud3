@@ -306,8 +306,9 @@ function getSortKey(name){
   var p=people.find(function(x){return x.n===name;});
   return((p&&p.fullName?p.fullName:name).split(' ')[0]).toUpperCase();
 }
-function getSubsQueue(year){
-  return activePeopleForYear(year).slice().sort(function(a,b){
+function getSubsQueue(year,month){
+  var active=month!=null?activePeopleForMonth(year,month):activePeopleForYear(year);
+  return active.slice().sort(function(a,b){
     return getSortKey(a).localeCompare(getSortKey(b),'pt-BR',{sensitivity:'base'});
   });
 }
@@ -648,9 +649,23 @@ function applyData(src){
 }
 
 // Returns names of people active in a given year
+function pDesdeYear(p){return typeof p.desde==='number'?p.desde:parseInt((p.desde||'').slice(0,4));}
+function pAteYear(p){return p.ate===null?null:(typeof p.ate==='number'?p.ate:parseInt(p.ate.slice(0,4)));}
+function pDesdeDate(p){return typeof p.desde==='number'?p.desde+'-01-01':p.desde;}
+function pAteDate(p){return p.ate===null?null:(typeof p.ate==='number'?p.ate+'-12-31':p.ate);}
+function fmtPersonDate(val){if(!val)return '';return typeof val==='number'?String(val):fmtBR(val);}
 function activePeopleForYear(year){
   return people.filter(function(p){
-    return p.desde<=year&&(p.ate===null||p.ate>=year);
+    var dy=pDesdeYear(p),ay=pAteYear(p);
+    return dy<=year&&(ay===null||ay>=year);
+  }).map(function(p){return p.n;});
+}
+function activePeopleForMonth(year,month){
+  var mStart=year+'-'+String(month+1).padStart(2,'0')+'-01';
+  var mEnd=fmt(new Date(year,month+1,0));
+  return people.filter(function(p){
+    var dd=pDesdeDate(p),ad=pAteDate(p);
+    return dd<=mEnd&&(ad===null||ad>=mStart);
   }).map(function(p){return p.n;});
 }
 function saveData(msg){saveOfficial(msg||'✓ Férias salvas com sucesso');}
@@ -753,8 +768,8 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     if(manuals.length){manualOverrides[k]={};manuals.forEach(function(n){if(day[n])manualOverrides[k][n]=day[n];});}
   });
   var absencesByDay=getMonthAbsences(year,month);
-  var active=activePeopleForYear(year);
-  var queue=getSubsQueue(year);
+  var active=activePeopleForMonth(year,month);
+  var queue=getSubsQueue(year,month);
   var days=Object.keys(absencesByDay).sort();
   var N=queue.length;
   var pointers={};
@@ -890,7 +905,7 @@ function getFabianaCrossMonthSub(year,month){
 function _fabianaAvail(year,month){
   var absences=getMonthAbsences(year,month);
   var fabDays=Object.keys(absences).filter(function(ds){return absences[ds].some(function(a){return a.n==='FABIANA';});});
-  return activePeopleForYear(year).filter(function(n){
+  return activePeopleForMonth(year,month).filter(function(n){
     if(n==='FABIANA')return false;
     return fabDays.every(function(ds){return!absences[ds].some(function(a){return a.n===n;});});
   });
@@ -981,7 +996,7 @@ function buildSubsView(year,month){
   var monthAssignments=subsData[monthKey]||{};
   var absences=getMonthAbsences(year,month);
   var days=Object.keys(absences).sort();
-  var active=activePeopleForYear(year);
+  var active=activePeopleForMonth(year,month);
   var h='';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">';
   h+='<div style="display:flex;align-items:center;gap:8px">';
@@ -1281,7 +1296,7 @@ function diffSnapshots(curr, prev){
     if(pp){
       if(pp.ate!==cp.ate){
         if(cp.ate!==null&&pp.ate===null)
-          lines.push({type:'rem',text:'− '+cp.n+' desativado (saída: '+cp.ate+')'});
+          lines.push({type:'rem',text:'− '+cp.n+' desativado (saída: '+fmtPersonDate(cp.ate)+')'});
         if(cp.ate===null&&pp.ate!==null)
           lines.push({type:'add',text:'+ '+cp.n+' reativado'});
       }
@@ -2002,7 +2017,7 @@ function showPeopleManager(){
       '<div style="display:flex;align-items:center;gap:8px">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
       '<div>'+nameDisplay+
-      '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+p.desde+'</span></div></div>'+
+      '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+fmtPersonDate(p.desde)+'</span></div></div>'+
       '<div style="display:flex;gap:6px">'+
       '<button class="btn sm" onclick="editPerson(\''+p.n.replace(/'/g,"\\'")+'\')" >Editar</button>'+
       '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
@@ -2014,7 +2029,7 @@ function showPeopleManager(){
         '<div style="display:flex;align-items:center;gap:8px">'+
         '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
         '<div><span style="font-weight:500">'+p.n+'</span>'+
-        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.desde+'–'+p.ate+'</span></div></div>'+
+        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+fmtPersonDate(p.desde)+'–'+fmtPersonDate(p.ate)+'</span></div></div>'+
         '<div style="display:flex;gap:6px">'+
         '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
         '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
@@ -2027,8 +2042,8 @@ function showPeopleManager(){
     '<input type="text" id="new-fullname" placeholder="" style="text-transform:uppercase"></div>'+
     '<div class="field"><label>Nome de exibição <span style="font-weight:400;color:var(--text-3)">(deixe em branco para usar o primeiro nome)</span></label>'+
     '<input type="text" id="new-person" placeholder="Ex: NETO" style="text-transform:uppercase"></div>'+
-    '<div class="field"><label>Ano de entrada na unidade</label>'+
-    '<input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>';
+    '<div class="field"><label>Data de entrada na unidade</label>'+
+    '<input type="date" id="new-desde" value="'+today+'"></div>';
   var footerHtml=
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
     '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
@@ -2037,16 +2052,16 @@ function showPeopleManager(){
 
 function deactivatePerson(name){
   openModal('<h3>Desativar procurador</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Em qual ano <strong>'+name+'</strong> saiu da unidade?</p>'+
-    '<div class="field"><label>Ano de saída</label><input type="number" id="deact-year" value="'+curYear+'" min="2020" max="2050"></div>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Em qual data <strong>'+name+'</strong> saiu da unidade?</p>'+
+    '<div class="field"><label>Data de saída</label><input type="date" id="deact-date" value="'+today+'"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="window._deactCb()">Desativar</button></div>');
   window._deactCb=function(){
-    var yearOut=parseInt(document.getElementById('deact-year').value);
-    if(!yearOut||isNaN(yearOut))return;
+    var dateOut=document.getElementById('deact-date').value;
+    if(!dateOut)return;
     function doDeactivate(){
       var p=people.find(function(x){return x.n===name;});
-      if(p)p.ate=yearOut;
+      if(p)p.ate=dateOut;
       closeModal();saveData('✓ Procurador desativado');render();
     }
     closeModal();adminConfirm(doDeactivate);
@@ -2085,7 +2100,7 @@ function confirmAddPerson(){
   if(!rawFull){alert('Preencha o nome completo.');return;}
   var nm=rawDisp||rawFull.split(' ')[0];
   if(people.find(function(p){return p.n===nm;})){alert('Já existe um procurador com o nome de exibição "'+nm+'".');return;}
-  var desde=parseInt(document.getElementById('new-desde').value)||curYear;
+  var desde=document.getElementById('new-desde').value||today;
   function doAdd(){
     var obj={n:nm,fullName:rawFull,desde:desde,ate:null};
     people.push(obj);
