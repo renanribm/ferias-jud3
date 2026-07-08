@@ -89,6 +89,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .vtab.active{color:var(--text);border-bottom-color:var(--accent);font-weight:500}
 .vtab.conflict-tab.active{color:var(--red);border-bottom-color:var(--red)}
 .vtab.conflict-tab:not(.active){color:var(--amber)}
+.vtab.config-tab{color:var(--text-3)}
+.vtab.config-tab.active{color:var(--amber);border-bottom-color:var(--amber)}
 .month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .month-label{font-size:16px;font-weight:600;min-width:170px;text-align:center;letter-spacing:-.01em}
 .cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
@@ -2772,40 +2774,14 @@ function renderStatus(){
 function buildConfigView(){
   var active=people.filter(function(p){return p.ate===null;});
   var inactive=people.filter(function(p){return p.ate!==null;});
-  var h='<div style="max-width:600px">';
-  h+='<div style="margin-bottom:20px"><h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Procuradores</h2>';
-  h+='<p style="font-size:13px;color:var(--text-3)">Gerencie a lista de procuradores ativos na unidade.</p></div>';
-  h+='<div class="vac-list">';
-  h+=active.map(function(p){
-    return '<div class="vac-item">'+
-      '<div style="display:flex;align-items:center;gap:8px">'+
-      '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
-      '<div><span style="font-weight:500">'+p.n+'</span>'+
-      '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+p.desde+'</span></div></div>'+
-      '<div style="display:flex;gap:6px">'+
-      '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
-      '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
-  }).join('');
+  var h='<div style="max-width:520px;display:flex;flex-direction:column;gap:12px">';
+  h+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px">';
+  h+='<div>';
+  h+='<div style="font-size:14px;font-weight:600;margin-bottom:3px">Procuradores</div>';
+  h+='<div style="font-size:12px;color:var(--text-3)">'+active.length+' ativo'+(active.length!==1?'s':'')+(inactive.length?' &middot; '+inactive.length+' inativo'+(inactive.length!==1?'s':''):'')+'</div>';
   h+='</div>';
-  if(inactive.length){
-    h+='<div style="margin-top:14px"><div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Inativos</div>';
-    h+=inactive.map(function(p){
-      return '<div class="vac-item" style="opacity:.6">'+
-        '<div style="display:flex;align-items:center;gap:8px">'+
-        '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
-        '<div><span style="font-weight:500">'+p.n+'</span>'+
-        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.desde+'–'+p.ate+'</span></div></div>'+
-        '<div style="display:flex;gap:6px">'+
-        '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
-        '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
-    }).join('');
-    h+='</div>';
-  }
-  h+='<hr class="divider">';
-  h+='<div style="font-size:14px;font-weight:600;margin-bottom:12px">Adicionar procurador</div>';
-  h+='<div class="field"><label>Nome</label><input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>';
-  h+='<div class="field"><label>Ano de entrada na unidade</label><input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>';
-  h+='<div><button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
+  h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar</button>';
+  h+='</div>';
   h+='</div>';
   return h;
 }
@@ -2923,7 +2899,7 @@ function render(){
   h+='<button class="vtab'+(curView==='licenses'?' active':'')+'" onclick="setView(\'licenses\')">Licenças</button>';
   h+='<button class="vtab'+(curView==='subs'?' active':'')+'" onclick="setView(\'subs\')">Substituições</button>';
   h+='<button class="vtab'+(curView==='recesso'?' active':'')+'" onclick="setView(\'recesso\')">Recesso</button>';
-  if(isMaster())h+='<button class="vtab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')">Configurações</button>';
+  if(isMaster())h+='<button class="vtab config-tab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')">⚙ Configurações</button>';
   h+='</div>';
 
   // Year tabs — mostrar para panel, calendar e people; recesso tem seus próprios
