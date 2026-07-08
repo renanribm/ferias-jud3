@@ -2106,12 +2106,44 @@ function confirmEditPerson(name){
   var val=(document.getElementById('ep-fullname').value||'').trim().toUpperCase();
   var isChefia=document.getElementById('ep-chefia').checked;
   var p=people.find(function(x){return x.n===name;});
-  if(p){
-    if(val)p.fullName=val;else delete p.fullName;
-    if(isChefia){people.forEach(function(x){delete x.chefia;});p.chefia=true;}
-    else{delete p.chefia;}
+  var wasChefe=!!(p&&p.chefia);
+  var currentChefe=getChefe();
+
+  function doSave(){
+    if(p){
+      if(val)p.fullName=val;else delete p.fullName;
+      if(isChefia){people.forEach(function(x){delete x.chefia;});p.chefia=true;}
+      else{delete p.chefia;}
+    }
+    saveData('✓ Procurador atualizado');showPeopleManager();
   }
-  saveData('✓ Procurador atualizado');showPeopleManager();
+
+  // Transferência de chefia: outro procurador já é chefe
+  if(isChefia&&!wasChefe&&currentChefe&&currentChefe!==name){
+    window._doSaveEditPerson=doSave;
+    openModal(
+      '<h3>Transferir chefia</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px;line-height:1.6">A chefia está atualmente com <strong>'+currentChefe+'</strong>. Ao confirmar, ela será transferida para <strong>'+name+'</strong>.</p>'+
+      '<div class="mbtns"><button class="btn" onclick="showPeopleManager()">Cancelar</button>'+
+      '<button class="btn danger" onclick="closeModal();adminConfirm(window._doSaveEditPerson)">Transferir</button></div>'
+    );
+    return;
+  }
+
+  // Remoção de chefia sem substituto
+  if(!isChefia&&wasChefe){
+    window._doSaveEditPerson=doSave;
+    openModal(
+      '<h3>Remover chefia</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 4px;line-height:1.6">Nenhum procurador ficará designado como chefe da unidade.</p>'+
+      '<p style="font-size:12px;color:var(--amber);margin:0 0 16px;line-height:1.6">&#9888; A lógica de substituto fixo deixará de funcionar até que uma nova chefia seja atribuída.</p>'+
+      '<div class="mbtns"><button class="btn" onclick="showPeopleManager()">Cancelar</button>'+
+      '<button class="btn danger" onclick="closeModal();adminConfirm(window._doSaveEditPerson)">Remover chefia</button></div>'
+    );
+    return;
+  }
+
+  adminConfirm(doSave);
 }
 function reactivatePerson(name){
   function doReactivate(){
