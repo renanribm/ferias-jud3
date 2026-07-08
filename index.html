@@ -2655,7 +2655,8 @@ function buildPanel(year){
         return '<div style="font-size:12px;line-height:1.6"><strong>'+n+'</strong>'+badge+(ret?' <span style="color:var(--text-3);font-size:11px">retorna '+ret+'</span>':'')+'</div>';
       }).join('');
     }else{
-      h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
+      h+='<div style="font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:2px">Nenhuma ausência hoje</div>';
+      h+='<div style="font-size:11px;color:var(--text-3)">Todos os procuradores ativos em serviço.</div>';
     }
     h+='</div>';
 
@@ -2668,7 +2669,8 @@ function buildPanel(year){
         return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">'+info+'</span></div>';
       }).join('');
     }else{
-      h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
+      h+='<div style="font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:2px">Nenhum fora da distribuição</div>';
+      h+='<div style="font-size:11px;color:var(--text-3)">Nenhum procurador saiu da distribuição hoje.</div>';
     }
     h+='</div>';
 
@@ -2681,11 +2683,31 @@ function buildPanel(year){
         return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">'+info+'</span></div>';
       }).join('');
     }else{
-      h+='<div style="color:var(--text-3);font-size:12px">Nenhum</div>';
+      h+='<div style="font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:2px">Nenhuma banca ativa hoje</div>';
+      h+='<div style="font-size:11px;color:var(--text-3)">Nenhuma banca em rodagem no momento.</div>';
     }
     h+='</div>';
 
     h+='</div>'; // end grid
+
+    // Bloco 4 — Substituições do dia
+    var monthKey=todayStr.slice(0,7);
+    var todaySubMap=(subsData[monthKey]||{})[todayStr]||{};
+    var subsToday=bancaNow.map(function(e){return {absent:e.n,sub:todaySubMap[e.n]||null};});
+    h+='<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:2px">';
+    h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Substituições do dia</div>';
+    if(subsToday.length){
+      h+='<div style="display:flex;flex-wrap:wrap;gap:6px 14px">';
+      subsToday.forEach(function(x){
+        var subLabel=x.sub?'<strong>'+x.sub+'</strong>':'<span style="color:var(--amber);font-size:11px">não definido</span>';
+        h+='<div style="font-size:12px">'+subLabel+' <span style="color:var(--text-3)">&#8594;</span> <strong>'+x.absent+'</strong></div>';
+      });
+      h+='</div>';
+    }else{
+      h+='<div style="font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:2px">Nenhuma substituição necessária</div>';
+      h+='<div style="font-size:11px;color:var(--text-3)">Sem ausências em dias úteis hoje.</div>';
+    }
+    h+='</div>';
 
     // Próximos 30 dias
     var hasNext=returnsToday.length||startsToday.length||distEvents.length||bancaEvents.length;
