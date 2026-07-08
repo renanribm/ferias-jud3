@@ -2025,7 +2025,7 @@ function showPeopleManager(){
     '<div class="vac-list">'+listActive+listInactive+'</div>'+
     '<hr class="divider">'+
     '<div class="field"><label>Nome completo</label>'+
-    '<input type="text" id="new-fullname" placeholder="Ex: HONÓRIO AMADEU NETO" style="text-transform:uppercase"></div>'+
+    '<input type="text" id="new-fullname" placeholder="" style="text-transform:uppercase"></div>'+
     '<div class="field"><label>Nome de exibição <span style="font-weight:400;color:var(--text-3)">(deixe em branco para usar o primeiro nome)</span></label>'+
     '<input type="text" id="new-person" placeholder="Ex: NETO" style="text-transform:uppercase"></div>'+
     '<div class="field"><label>Ano de entrada na unidade</label>'+
@@ -2061,7 +2061,7 @@ function editPerson(name){
     '<div class="field"><label>Nome de exibição</label>'+
     '<input type="text" value="'+name+'" disabled style="opacity:.5;text-transform:uppercase"></div>'+
     '<div class="field"><label>Nome completo</label>'+
-    '<input type="text" id="ep-fullname" value="'+curFull+'" placeholder="Ex: HONÓRIO AMADEU NETO" style="text-transform:uppercase"></div>'+
+    '<input type="text" id="ep-fullname" value="'+curFull+'" placeholder="" style="text-transform:uppercase"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal();showPeopleManager()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmEditPerson(\''+name.replace(/'/g,"\\'")+'\')" >Salvar</button></div>');
 }
