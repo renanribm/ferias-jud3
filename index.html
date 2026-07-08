@@ -2718,8 +2718,9 @@ function buildPanel(year){
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Hoje</div>';
       function todayEvLine(label,arr){
         if(!arr.length)return;
-        h+='<div style="font-size:11px;font-weight:600;color:var(--text-3);margin:4px 0 2px">'+label+'</div>';
-        arr.forEach(function(e){h+='<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+'</span></div>';});
+        h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">'+label+':</span> ';
+        h+=arr.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+'</span>';}).join('');
+        h+='</div>';
       }
       todayEvLine('Retorna',returnsToday);
       todayEvLine('Inicia férias',startsToday);
