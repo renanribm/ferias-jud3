@@ -668,6 +668,12 @@ function activePeopleForMonth(year,month){
     return dd<=mEnd&&(ad===null||ad>=mStart);
   }).map(function(p){return p.n;});
 }
+function activePeopleForDay(ds){
+  return people.filter(function(p){
+    var dd=pDesdeDate(p),ad=pAteDate(p);
+    return dd<=ds&&(ad===null||ad>=ds);
+  }).map(function(p){return p.n;});
+}
 function saveData(msg){saveOfficial(msg||'✓ Férias salvas com sucesso');}
 
 // ── Recesso Firebase ────────────────────────────────────────────────────────────
@@ -768,13 +774,13 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     if(manuals.length){manualOverrides[k]={};manuals.forEach(function(n){if(day[n])manualOverrides[k][n]=day[n];});}
   });
   var absencesByDay=getMonthAbsences(year,month);
-  var active=activePeopleForMonth(year,month);
   var queue=getSubsQueue(year,month);
   var days=Object.keys(absencesByDay).sort();
   var N=queue.length;
   var pointers={};
   var newData={fabianaFixedSub:fabianaSub||existing.fabianaFixedSub||null};
   days.forEach(function(ds){
+    var active=activePeopleForDay(ds);
     var absents=absencesByDay[ds];
     var absentNames=absents.map(function(a){return a.n;});
     var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
@@ -996,7 +1002,6 @@ function buildSubsView(year,month){
   var monthAssignments=subsData[monthKey]||{};
   var absences=getMonthAbsences(year,month);
   var days=Object.keys(absences).sort();
-  var active=activePeopleForMonth(year,month);
   var h='';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">';
   h+='<div style="display:flex;align-items:center;gap:8px">';
@@ -1074,7 +1079,7 @@ function buildSubsView(year,month){
         var isMan=manSet.indexOf(absent.n)>=0;
         var hasCon=curSub&&absNames.indexOf(curSub)>=0;
         var fabCon=absent.n==='FABIANA'&&fabianaSub&&!curSub&&absNames.indexOf(fabianaSub)>=0;
-        var avail=active.filter(function(n){return absNames.indexOf(n)<0;});
+        var avail=activePeopleForDay(cell.ds).filter(function(n){return absNames.indexOf(n)<0;});
         h+='<div style="margin-top:5px">';
         if(isMaster()){
           h+='<div style="font-size:11px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:10px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
@@ -1121,7 +1126,7 @@ function buildSubsView(year,month){
       var isManual=manualSet.indexOf(absent.n)>=0;
       var hasConflict=currentSub&&absentNames.indexOf(currentSub)>=0;
       var fabConflict=absent.n==='FABIANA'&&fabianaSub&&!currentSub&&absentNames.indexOf(fabianaSub)>=0;
-      var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
+      var available=activePeopleForDay(ds).filter(function(n){return absentNames.indexOf(n)<0;});
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
       h+='<span style="font-size:12px;font-weight:600">'+absent.n+'</span>';
       h+='<span style="font-size:11px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span>';
