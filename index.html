@@ -227,7 +227,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .subs-cal-cell{background:#f7f6f3;border:1px solid var(--border);border-radius:6px;padding:8px 10px;min-height:82px;box-sizing:border-box}
 .subs-cal-out{background:transparent!important;border-color:transparent!important;min-height:0!important}
 .subs-cal-off{background:#fafaf9!important}
-.subs-cal-done{border-color:#bbf7d0!important}
+.subs-cal-pending{background:#fffbeb!important}
+.subs-cal-done{background:#f0fdf4!important}
 .subs-cal-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px}
 .subs-cal-daynum{font-size:12px;font-weight:700;color:var(--text-2);white-space:nowrap}
 @media(min-width:641px){.subs-cal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}.subs-list{display:none}}
@@ -1033,8 +1034,8 @@ function buildSubsView(year,month){
       var manSet=da._m||[];
       var absNames=abs.map(function(a){return a.n;});
       var cellDone=abs.length>0&&abs.every(function(a){return da[a.n];});
-      var isLight=isOff||!abs.length;
-      h+='<div class="subs-cal-cell'+(isLight?' subs-cal-off':'')+(cellDone?' subs-cal-done':'')+'">';
+      var cellCls=isOff||!abs.length?' subs-cal-off':cellDone?' subs-cal-done':' subs-cal-pending';
+      h+='<div class="subs-cal-cell'+cellCls+'">';
       h+='<div class="subs-cal-top"><span></span>';
       h+='<span class="subs-cal-daynum">'+cell.dayNum+'</span>';
       h+='</div>';
