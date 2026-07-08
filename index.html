@@ -1033,7 +1033,8 @@ function buildSubsView(year,month){
       var manSet=da._m||[];
       var absNames=abs.map(function(a){return a.n;});
       var cellDone=abs.length>0&&abs.every(function(a){return da[a.n];});
-      h+='<div class="subs-cal-cell'+(cellDone?' subs-cal-done':'')+'">';
+      var isLight=isOff||!abs.length;
+      h+='<div class="subs-cal-cell'+(isLight?' subs-cal-off':'')+(cellDone?' subs-cal-done':'')+'">';
       h+='<div class="subs-cal-top"><span></span>';
       h+='<span class="subs-cal-daynum">'+cell.dayNum+'</span>';
       h+='</div>';
