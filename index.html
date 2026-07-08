@@ -222,6 +222,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .stab.active{background:var(--accent);color:#fff;border-color:transparent;font-weight:500}
 .recesso-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
 @media(max-width:600px){.recesso-cols{grid-template-columns:1fr}}
+.subs-cal-grid{display:none}
+.subs-cal-head{font-size:10px;font-weight:600;text-align:center;color:var(--text-3);padding:4px 0;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);margin-bottom:4px}
+.subs-cal-cell{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 10px;min-height:82px;box-sizing:border-box}
+.subs-cal-out{background:transparent!important;border-color:transparent!important;min-height:0!important}
+.subs-cal-off{background:var(--surface)!important}
+.subs-cal-done{border-color:#bbf7d0!important}
+.subs-cal-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px}
+.subs-cal-daynum{font-size:12px;font-weight:700;color:var(--text-2);white-space:nowrap}
+@media(min-width:641px){.subs-cal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}.subs-list{display:none}}
 .recesso-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
 .recesso-group-title{font-size:14px;font-weight:600;margin-bottom:3px}
 .recesso-group-dates{font-size:12px;color:var(--text-3);margin-bottom:12px}
@@ -997,6 +1006,72 @@ function buildSubsView(year,month){
   var totalPairs=days.reduce(function(acc,ds){return acc+absences[ds].length;},0);
   var assignedPairs=days.reduce(function(acc,ds){var da=monthAssignments[ds]||{};return acc+absences[ds].filter(function(a){return da[a.n];}).length;},0);
   h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' substituição'+(totalPairs!==1?'ões':'')+' &middot; '+assignedPairs+'/'+totalPairs+' definidas</div>';
+  // ── Desktop: calendário semanal ───────────────────────────────────────────────
+  var DAYS_FULL=['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira'];
+  var calFirst=new Date(year,month,1),calLast=new Date(year,month+1,0);
+  var calDow=calFirst.getDay(),calBack=calDow===0?6:calDow-1;
+  var calWkStart=new Date(calFirst);calWkStart.setDate(calWkStart.getDate()-calBack);
+  var calWeeks=[],calCur=new Date(calWkStart);
+  while(calCur<=calLast){
+    var calWkFri=new Date(calCur);calWkFri.setDate(calWkFri.getDate()+4);
+    if(calWkFri>=calFirst){
+      var calWk=[];
+      for(var di=0;di<5;di++){var cd=new Date(calCur);cd.setDate(cd.getDate()+di);calWk.push({ds:fmt(cd),dayNum:cd.getDate(),inMonth:cd.getMonth()===month});}
+      calWeeks.push(calWk);
+    }
+    calCur.setDate(calCur.getDate()+7);
+  }
+  h+='<div class="subs-cal-grid">';
+  DAYS_FULL.forEach(function(d){h+='<div class="subs-cal-head">'+d+'</div>';});
+  calWeeks.forEach(function(week){
+    week.forEach(function(cell){
+      if(!cell.inMonth){h+='<div class="subs-cal-cell subs-cal-out"></div>';return;}
+      var hol=getHoliday(cell.ds);
+      var isOff=hol&&(hol.type==='holiday'||hol.type==='suspended'||(hol.type==='optional'&&!(hol.label&&hol.label.indexOf('Cinzas')>=0)));
+      var abs=absences[cell.ds]||[];
+      var da=monthAssignments[cell.ds]||{};
+      var manSet=da._m||[];
+      var absNames=abs.map(function(a){return a.n;});
+      var cellDone=abs.length>0&&abs.every(function(a){return da[a.n];});
+      h+='<div class="subs-cal-cell'+(isOff?' subs-cal-off':'')+(cellDone?' subs-cal-done':'')+'">';
+      h+='<div class="subs-cal-top">';
+      if(isOff&&hol){var hType=hol.type==='suspended'?'Suspensão':hol.type==='optional'?'Ponto facultativo':'Feriado';var hText=(hol.label&&hol.type!=='suspended')?hType+': '+hol.label:hol.label||hType;h+='<span style="font-size:9px;color:var(--text-3);font-style:italic;line-height:1.3;flex:1;margin-right:4px">'+hText+'</span>';}else{h+='<span></span>';}
+      h+='<span class="subs-cal-daynum">'+(cellDone?'<span style="font-size:9px;color:#16a34a;font-weight:400;margin-right:2px">✓</span>':'')+cell.dayNum+'</span>';
+      h+='</div>';
+      if(isOff){h+='</div>';return;}
+      if(!abs.length){h+='<div style="font-size:10px;color:var(--text-3);margin-top:2px">Sem ausências</div>';h+='</div>';return;}
+      abs.forEach(function(absent){
+        var curSub=da[absent.n]||'';
+        var isMan=manSet.indexOf(absent.n)>=0;
+        var hasCon=curSub&&absNames.indexOf(curSub)>=0;
+        var fabCon=absent.n==='FABIANA'&&fabianaSub&&!curSub&&absNames.indexOf(fabianaSub)>=0;
+        var avail=active.filter(function(n){return absNames.indexOf(n)<0;});
+        h+='<div style="margin-top:5px">';
+        h+='<div style="font-size:10px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:9px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
+        if(isMaster()){
+          if(absent.n==='FABIANA'&&fabianaSub){
+            h+='<div style="font-size:10px;color:var(--accent);font-weight:600">'+fabianaSub+' <span style="font-size:9px;color:#1d4ed8">fixo</span>'+(fabCon?' <span style="font-size:9px;color:var(--amber)">⚠ ausente</span>':'')+'</div>';
+          }else{
+            h+='<select style="font-size:10px;padding:2px 3px;border-radius:3px;border:1px solid '+(hasCon?'var(--red)':'var(--border)')+';background:var(--surface);width:100%;margin-top:2px;box-sizing:border-box" onchange="setSub(\''+monthKey+'\',\''+cell.ds+'\',\''+absent.n+'\',this.value)">';
+            h+='<option value="">— escolher —</option>';
+            avail.forEach(function(n){h+='<option value="'+n+'"'+(curSub===n?' selected':'')+'>'+n+'</option>';});
+            h+='</select>';
+            if(hasCon)h+='<div style="font-size:9px;color:var(--red)">⚠ conflito</div>';
+            else if(curSub)h+='<div style="font-size:9px;color:#16a34a">✓'+(isMan?' ✎':'')+'</div>';
+          }
+        }else{
+          h+='<div style="font-size:10px;color:'+(curSub?'var(--accent)':'var(--text-3)')+'">&#8594; '+(curSub||'—')+(isMan&&curSub?' <span style="font-size:9px;color:var(--text-3)">✎</span>':'')+'</div>';
+        }
+        if(hasCon)h+='<div style="font-size:9px;color:var(--red)">'+curSub+' também ausente.</div>';
+        h+='</div>';
+      });
+      h+='</div>';
+    });
+  });
+  h+='</div>';
+
+  // ── Mobile: lista por dia ──────────────────────────────────────────────────────
+  h+='<div class="subs-list">';
   days.forEach(function(ds){
     var dow=new Date(ds+'T00:00:00').getDay();
     var dayLabel=DAYS_PT[dow]+' '+fmtBR(ds).slice(0,5);
@@ -1013,9 +1088,7 @@ function buildSubsView(year,month){
     absentToday.forEach(function(absent){
       var currentSub=dayAssignments[absent.n]||'';
       var isManual=manualSet.indexOf(absent.n)>=0;
-      // Conflito: sub atribuído também está ausente hoje
       var hasConflict=currentSub&&absentNames.indexOf(currentSub)>=0;
-      // Fabiana com sub fixo indisponível
       var fabConflict=absent.n==='FABIANA'&&fabianaSub&&!currentSub&&absentNames.indexOf(fabianaSub)>=0;
       var available=active.filter(function(n){return absentNames.indexOf(n)<0;});
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
@@ -1049,6 +1122,7 @@ function buildSubsView(year,month){
     });
     h+='</div>';
   });
+  h+='</div>';
   return h;
 }
 window.printSubs=function(year,month){
