@@ -302,7 +302,6 @@ var MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Ag
 var LIMIT=4;
 var VAC_LIMIT=30; // max vacation days per person per year
 var LICENSE_TYPES={maternidade:'Licença-Maternidade',paternidade:'Licença-Paternidade',gala:'Licença-Gala',nojo:'Licença-Nojo',saude:'Licença-Saúde',outros:'Outra licença'};
-var SUBS_QUEUE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','NETO','LEONARDO','MARCOS','VINICIUS','MARÍLIA','MAURÍCIO','RENAN','RODRIGO','THAYANE','VIVIANE'];
 function getSortKey(name){
   var p=people.find(function(x){return x.n===name;});
   return((p&&p.fullName?p.fullName:name).split(' ')[0]).toUpperCase();
