@@ -2790,12 +2790,12 @@ function render(){
       if((dm[pk]||[]).length>=LIMIT)pvConflicts++;
     }
     var pvStatus=pvConflicts>0?
-      '<span class="preview-banner-conflict">⚠ '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' com conflito</span>':
-      '<span class="preview-banner-ok">✓ Sem conflitos</span>';
+      '<span class="preview-banner-conflict">⚠ Limite de '+LIMIT+' ultrapassado em '+pvConflicts+' dia'+(pvConflicts>1?'s':'')+' </span>':
+      '<span class="preview-banner-ok">✓ Dentro do limite de '+LIMIT+' simultâneos</span>';
     h+='<div class="preview-banner">';
     h+='<div class="preview-banner-info">';
     h+='<div class="preview-banner-title">&#128197; Pré-visualização — '+previewVac.n+' &nbsp;'+pvStatus+'</div>';
-    h+='<div class="preview-banner-sub">'+pvStart+' → '+pvEnd+' &middot; '+previewVac.d+' dias &middot; As células amarelas mostram o período. Vermelho indica conflito com o limite.</div>';
+    h+='<div class="preview-banner-sub">'+pvStart+' → '+pvEnd+' &middot; '+previewVac.d+' dias &middot; Amarelo: período testado. Vermelho: dia com mais de '+LIMIT+' procuradores ausentes.</div>';
     h+='</div>';
     h+='<div class="preview-banner-actions">';
     h+='<button class="btn-preview-cancel" onclick="cancelPreview()">Descartar</button>';
