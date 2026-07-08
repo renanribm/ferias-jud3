@@ -1033,12 +1033,11 @@ function buildSubsView(year,month){
       var manSet=da._m||[];
       var absNames=abs.map(function(a){return a.n;});
       var cellDone=abs.length>0&&abs.every(function(a){return da[a.n];});
-      h+='<div class="subs-cal-cell'+(isOff?' subs-cal-off':'')+(cellDone?' subs-cal-done':'')+'">';
-      h+='<div class="subs-cal-top">';
-      if(isOff&&hol){var hType=hol.type==='suspended'?'Suspensão':hol.type==='optional'?'Ponto facultativo':'Feriado';var hText=(hol.label&&hol.type!=='suspended')?hType+': '+hol.label:hol.label||hType;h+='<span style="font-size:9px;color:var(--text-3);font-style:italic;line-height:1.3;flex:1;margin-right:4px">'+hText+'</span>';}else{h+='<span></span>';}
+      h+='<div class="subs-cal-cell'+(cellDone?' subs-cal-done':'')+'">';
+      h+='<div class="subs-cal-top"><span></span>';
       h+='<span class="subs-cal-daynum">'+cell.dayNum+'</span>';
       h+='</div>';
-      if(isOff){h+='</div>';return;}
+      if(isOff){if(hol){var hType=hol.type==='suspended'?'Suspensão':hol.type==='optional'?'Ponto facultativo':'Feriado';var hText=(hol.label&&hol.type!=='suspended')?hType+': '+hol.label:hol.label||hType;h+='<div style="font-size:10px;color:var(--text-3);margin-top:2px">'+hText+'</div>';}h+='</div>';return;}
       if(!abs.length){h+='<div style="font-size:10px;color:var(--text-3);margin-top:2px">Sem ausências</div>';h+='</div>';return;}
       abs.forEach(function(absent){
         var curSub=da[absent.n]||'';
@@ -1047,8 +1046,8 @@ function buildSubsView(year,month){
         var fabCon=absent.n==='FABIANA'&&fabianaSub&&!curSub&&absNames.indexOf(fabianaSub)>=0;
         var avail=active.filter(function(n){return absNames.indexOf(n)<0;});
         h+='<div style="margin-top:5px">';
-        h+='<div style="font-size:10px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:9px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
         if(isMaster()){
+          h+='<div style="font-size:10px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:9px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
           if(absent.n==='FABIANA'&&fabianaSub){
             h+='<div style="font-size:10px;color:var(--accent);font-weight:600">'+fabianaSub+' <span style="font-size:9px;color:#1d4ed8">fixo</span>'+(fabCon?' <span style="font-size:9px;color:var(--amber)">⚠ ausente</span>':'')+'</div>';
           }else{
@@ -1062,7 +1061,7 @@ function buildSubsView(year,month){
             h+='</div>';
           }
         }else{
-          h+='<div style="font-size:10px;color:'+(curSub?'var(--accent)':'var(--text-3)')+'">&#8594; '+(curSub||'—')+(isMan&&curSub?' <span style="font-size:9px;color:var(--text-3)">✎</span>':'')+'</div>';
+          h+='<div style="font-size:10px"><strong style="color:var(--text-2)">'+absent.n+'</strong> <span style="color:var(--text-3)">&#8594;</span> <span style="color:'+(curSub?'var(--accent)':'var(--text-3)')+'">'+( curSub||'—')+'</span></div>';
         }
         if(hasCon)h+='<div style="font-size:9px;color:var(--red)">'+curSub+' também ausente.</div>';
         h+='</div>';
