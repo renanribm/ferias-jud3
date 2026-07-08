@@ -681,7 +681,7 @@ function subscribeSubs(){
     if(!snap.exists)return;
     var d=snap.data();
     try{subsData=JSON.parse(d.data||'{}');}catch(e){subsData={};}
-    if(curView==='subs')render();
+    render();
   },function(err){console.warn('Subs sync error:',err);});
 }
 function saveSubs(){
@@ -2703,7 +2703,7 @@ function buildPanel(year){
       h+='<div style="display:flex;flex-wrap:wrap;gap:6px 14px">';
       subsToday.forEach(function(x){
         var subLabel=x.sub?'<strong>'+x.sub+'</strong>':'<span style="color:var(--amber);font-size:11px">não definido</span>';
-        h+='<div style="font-size:12px">'+subLabel+' <span style="color:var(--text-3)">&#8594;</span> <strong>'+x.absent+'</strong></div>';
+        h+='<div style="font-size:12px"><strong>'+x.absent+'</strong> <span style="color:var(--text-3)">&#8594;</span> '+subLabel+'</div>';
       });
       h+='</div>';
     }else{
