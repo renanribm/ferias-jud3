@@ -1599,11 +1599,12 @@ function openModal(html){
   bg.addEventListener('click',function(e){if(e.target===bg)closeModal();});
   document.body.appendChild(bg);_modal=bg;
 }
-function openTallModal(bodyHtml, footerHtml){
+function openTallModal(bodyHtml, footerHtml, width){
   closeModal();
   var bg=document.createElement('div');
   bg.className='modal-bg';
-  bg.innerHTML='<div class="modal"><div class="modal-body">'+bodyHtml+'</div><div class="modal-footer">'+footerHtml+'</div></div>';
+  var wStyle=width?'style="width:'+width+'px"':'';
+  bg.innerHTML='<div class="modal" '+wStyle+'><div class="modal-body">'+bodyHtml+'</div><div class="modal-footer">'+footerHtml+'</div></div>';
   bg.addEventListener('click',function(e){if(e.target===bg)closeModal();});
   document.body.appendChild(bg);_modal=bg;
 }
@@ -2032,7 +2033,7 @@ function showPeopleManager(){
   var footerHtml=
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
     '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
-  openTallModal(bodyHtml, footerHtml);
+  openTallModal(bodyHtml, footerHtml, 660);
 }
 
 function deactivatePerson(name){
