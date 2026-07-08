@@ -2618,14 +2618,14 @@ function buildPanel(year){
       // Próximos 30 dias — saída da distribuição
       if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){
         seen.dist[v.n+distStr]=true;
-        distEvents.push({n:v.n,date:distStr,start:v.s});
+        distEvents.push({n:v.n,date:distStr,start:v.s,end:vEndStr});
       }
       // Hoje — banca começa a rodar
       if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr});}
       // Próximos 30 dias — banca começa a rodar
       if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){
         seen.banca[v.n+bancaStr]=true;
-        bancaEvents.push({n:v.n,date:bancaStr,start:v.s});
+        bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr});
       }
     });
 
@@ -2736,12 +2736,12 @@ function buildPanel(year){
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
       if(distEvents.length){
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
-        h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+'</span>';}).join('');
+        h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+' <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       if(bancaEvents.length){
         h+='<div style="font-size:12px"><span style="color:var(--text-2)">Banca começa a rodar:</span> ';
-        h+=bancaEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+'</span>';}).join('');
+        h+=bancaEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+' <span style="color:var(--text-3);font-size:11px">(férias '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       h+='</div>';
