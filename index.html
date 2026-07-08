@@ -1006,7 +1006,9 @@ function buildSubsView(year,month){
   }
   var totalPairs=days.reduce(function(acc,ds){return acc+absences[ds].length;},0);
   var assignedPairs=days.reduce(function(acc,ds){var da=monthAssignments[ds]||{};return acc+absences[ds].filter(function(a){return da[a.n];}).length;},0);
-  h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' '+(totalPairs===1?'substituição':'substituições')+' &middot; '+assignedPairs+'/'+totalPairs+' definidas</div>';
+  var allDef=assignedPairs===totalPairs&&totalPairs>0;
+  var defIcon=allDef?'<span style="color:#16a34a">&#10003;</span>':'<span style="color:var(--amber)">&#9888;</span>';
+  h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' '+(totalPairs===1?'substituição':'substituições')+' &middot; '+defIcon+' '+assignedPairs+'/'+totalPairs+' definidas</div>';
   // ── Desktop: calendário semanal ───────────────────────────────────────────────
   var DAYS_FULL=['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira'];
   var calFirst=new Date(year,month,1),calLast=new Date(year,month+1,0);
