@@ -2027,7 +2027,7 @@ function showPeopleManager(){
   var chefeN=getChefe();
   var listActive=active.map(function(p){
     var nameDisplay=p.fullName?'<span style="font-weight:500">'+p.n+'</span><span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.fullName+'</span>':'<span style="font-weight:500">'+p.n+'</span>';
-    if(p.chefia)nameDisplay+='<span style="font-size:10px;background:#fef9c3;color:#854d0e;border:1px solid #fde68a;padding:0 5px;border-radius:3px;margin-left:6px">Chefe</span>';
+    if(p.chefia)nameDisplay+='<span style="font-size:10px;background:#fef9c3;color:#854d0e;border:1px solid #fde68a;padding:0 5px;border-radius:3px;margin-left:6px">Chefia</span>';
     return '<div class="vac-item">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
@@ -2049,18 +2049,24 @@ function showPeopleManager(){
         '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
         '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
     }).join('')+'</div>':'';
-  var bodyHtml=
-    '<h3>Gerenciar procuradores</h3>'+
-    '<div class="vac-list">'+listActive+listInactive+'</div>'+
-    '<hr class="divider">'+
-    '<div class="field"><label>Nome completo</label>'+
-    '<input type="text" id="new-fullname" placeholder="" style="text-transform:uppercase"></div>'+
-    '<div class="field"><label>Nome de exibição <span style="font-weight:400;color:var(--text-3)">(deixe em branco para usar o primeiro nome)</span></label>'+
-    '<input type="text" id="new-person" placeholder="Ex: NETO" style="text-transform:uppercase"></div>'+
-    '<div class="field"><label>Data de entrada na unidade</label>'+
-    '<input type="date" id="new-desde" value="'+today+'"></div>';
+  var bodyHtml='<h3>Gerenciar procuradores</h3><div class="vac-list">'+listActive+listInactive+'</div>';
   var footerHtml=
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
+    '<button class="btn primary" onclick="showAddPerson()">+ Adicionar</button></div>';
+  openTallModal(bodyHtml, footerHtml, 660);
+}
+
+function showAddPerson(){
+  var bodyHtml=
+    '<h3>Adicionar procurador</h3>'+
+    '<div class="field"><label>Nome completo</label>'+
+    '<input type="text" id="ap-fullname" placeholder="" style="text-transform:uppercase" autofocus></div>'+
+    '<div class="field"><label>Nome de exibição <span style="font-weight:400;color:var(--text-3)">(deixe em branco para usar o primeiro nome)</span></label>'+
+    '<input type="text" id="ap-person" placeholder="Ex: NETO" style="text-transform:uppercase"></div>'+
+    '<div class="field"><label>Data de entrada na unidade</label>'+
+    '<input type="date" id="ap-desde" value="'+today+'"></div>';
+  var footerHtml=
+    '<div class="mbtns"><button class="btn" onclick="showPeopleManager()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
   openTallModal(bodyHtml, footerHtml, 660);
 }
@@ -2069,7 +2075,7 @@ function deactivatePerson(name){
   openModal('<h3>Desativar procurador</h3>'+
     '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Em qual data <strong>'+name+'</strong> saiu da unidade?</p>'+
     '<div class="field"><label>Data de saída</label><input type="date" id="deact-date" value="'+today+'"></div>'+
-    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<div class="mbtns"><button class="btn" onclick="showPeopleManager()">Cancelar</button>'+
     '<button class="btn primary" onclick="window._deactCb()">Desativar</button></div>');
   window._deactCb=function(){
     var dateOut=document.getElementById('deact-date').value;
@@ -2105,7 +2111,7 @@ function confirmEditPerson(name){
     if(isChefia){people.forEach(function(x){delete x.chefia;});p.chefia=true;}
     else{delete p.chefia;}
   }
-  closeModal();saveData('✓ Procurador atualizado');render();
+  saveData('✓ Procurador atualizado');showPeopleManager();
 }
 function reactivatePerson(name){
   function doReactivate(){
@@ -2117,19 +2123,19 @@ function reactivatePerson(name){
 }
 
 function confirmAddPerson(){
-  var rawFull=(document.getElementById('new-fullname').value||'').trim().toUpperCase();
-  var rawDisp=(document.getElementById('new-person').value||'').trim().toUpperCase();
+  var rawFull=(document.getElementById('ap-fullname').value||'').trim().toUpperCase();
+  var rawDisp=(document.getElementById('ap-person').value||'').trim().toUpperCase();
   if(!rawFull){alert('Preencha o nome completo.');return;}
   var nm=rawDisp||rawFull.split(' ')[0];
   if(people.find(function(p){return p.n===nm;})){alert('Já existe um procurador com o nome de exibição "'+nm+'".');return;}
-  var desde=document.getElementById('new-desde').value||today;
+  var desde=document.getElementById('ap-desde').value||today;
   function doAdd(){
     var obj={n:nm,fullName:rawFull,desde:desde,ate:null};
     people.push(obj);
     people.sort(function(a,b){return a.n.localeCompare(b.n);});
-    saveData('✓ Procurador adicionado');render();
+    saveData('✓ Procurador adicionado');showPeopleManager();
   }
-  closeModal();adminConfirm(doAdd);
+  adminConfirm(doAdd);
 }
 
 function removePerson(name){
