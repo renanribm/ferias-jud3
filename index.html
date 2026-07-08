@@ -2756,23 +2756,19 @@ function buildPanel(year){
       var retD=new Date(vEndStr+'T00:00:00');retD.setDate(retD.getDate()+1);
       if(fmt(retD)===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr});
 
+      // Saída da distribuição — somente férias (7 dias antes)
       if(!isLicense(v)){
         var distD=new Date(vStartD);distD.setDate(distD.getDate()-7);
         var distStr=fmt(distD);
-        var bancaStr=subtractWorkDays(v.s,2);
-        // Fora da distribuição agora
         if(distStr<=todayStr&&vEndStr>=todayStr)foraDistNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
-        // Banca rodando agora
-        if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
-        // Hoje — saída da distribuição
         if(distStr===todayStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distToday.push({n:v.n,start:v.s,end:vEndStr});}
-        // Próximos 30 dias — saída da distribuição
         if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distEvents.push({n:v.n,date:distStr,start:v.s,end:vEndStr});}
-        // Hoje — banca começa a rodar
-        if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr});}
-        // Próximos 30 dias — banca começa a rodar
-        if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr});}
       }
+      // Banca rodando — férias (2 dias úteis antes) e licenças (a partir do 1º dia)
+      var bancaStr=isLicense(v)?v.s:subtractWorkDays(v.s,2);
+      if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr});
+      if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr});}
+      if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr});}
     });
 
     distEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
