@@ -401,8 +401,8 @@ var DEFAULT_VACS=[
 // ── State ──────────────────────────────────────────────────────────────────────
 var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
 var vacations=[],people=[];
-var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso'};
-var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso'};
+var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso',config:'/configuracoes'};
+var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso','/configuracoes':'config'};
 var curYear=new Date().getFullYear(),curMonth=new Date().getMonth(),curView=PATH_VIEWS[window.location.pathname]||'panel';
 var _historyReady=false;
 function _pushViewState(v){var p=VIEW_PATHS[v]||'/';if(window.location.pathname!==p)history.pushState({view:v},'',p);}
@@ -1914,14 +1914,21 @@ function showPeopleManager(){
 }
 
 function deactivatePerson(name){
-  var yearOut=parseInt(prompt('Em qual ano '+name+' saiu da unidade?',curYear));
-  if(!yearOut||isNaN(yearOut))return;
-  function doDeactivate(){
-    var p=people.find(function(x){return x.n===name;});
-    if(p)p.ate=yearOut;
-    closeModal();saveData('✓ Procurador desativado');render();
-  }
-  adminConfirm(doDeactivate);
+  openModal('<h3>Desativar procurador</h3>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Em qual ano <strong>'+name+'</strong> saiu da unidade?</p>'+
+    '<div class="field"><label>Ano de saída</label><input type="number" id="deact-year" value="'+curYear+'" min="2020" max="2050"></div>'+
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+    '<button class="btn primary" onclick="window._deactCb()">Desativar</button></div>');
+  window._deactCb=function(){
+    var yearOut=parseInt(document.getElementById('deact-year').value);
+    if(!yearOut||isNaN(yearOut))return;
+    function doDeactivate(){
+      var p=people.find(function(x){return x.n===name;});
+      if(p)p.ate=yearOut;
+      closeModal();saveData('✓ Procurador desativado');render();
+    }
+    closeModal();adminConfirm(doDeactivate);
+  };
 }
 
 function reactivatePerson(name){
@@ -2516,7 +2523,6 @@ function buildRecessoView(year){
     h+='<div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
     h+='<span style="font-size:12px;color:var(--text-3)">'+grupo1.length+' no Grupo 1 &middot; '+grupo2.length+' no Grupo 2 &middot; '+pending.length+' pendente'+(pending.length!==1?'s':'')+'</span>';
     h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
-    h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
     h+='<button class="btn sm" onclick="showRecessoDatesModal('+year+')">&#9998; Definir datas das semanas</button>';
     h+='</div>';
     h+='</div>';
@@ -2763,6 +2769,47 @@ function renderStatus(){
   el.innerHTML=txt;
 }
 
+function buildConfigView(){
+  var active=people.filter(function(p){return p.ate===null;});
+  var inactive=people.filter(function(p){return p.ate!==null;});
+  var h='<div style="max-width:600px">';
+  h+='<div style="margin-bottom:20px"><h2 style="font-size:16px;font-weight:600;margin-bottom:4px">Procuradores</h2>';
+  h+='<p style="font-size:13px;color:var(--text-3)">Gerencie a lista de procuradores ativos na unidade.</p></div>';
+  h+='<div class="vac-list">';
+  h+=active.map(function(p){
+    return '<div class="vac-item">'+
+      '<div style="display:flex;align-items:center;gap:8px">'+
+      '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
+      '<div><span style="font-weight:500">'+p.n+'</span>'+
+      '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+p.desde+'</span></div></div>'+
+      '<div style="display:flex;gap:6px">'+
+      '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
+      '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
+  }).join('');
+  h+='</div>';
+  if(inactive.length){
+    h+='<div style="margin-top:14px"><div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Inativos</div>';
+    h+=inactive.map(function(p){
+      return '<div class="vac-item" style="opacity:.6">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+        '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
+        '<div><span style="font-weight:500">'+p.n+'</span>'+
+        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.desde+'–'+p.ate+'</span></div></div>'+
+        '<div style="display:flex;gap:6px">'+
+        '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
+        '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
+    }).join('');
+    h+='</div>';
+  }
+  h+='<hr class="divider">';
+  h+='<div style="font-size:14px;font-weight:600;margin-bottom:12px">Adicionar procurador</div>';
+  h+='<div class="field"><label>Nome</label><input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>';
+  h+='<div class="field"><label>Ano de entrada na unidade</label><input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>';
+  h+='<div><button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
+  h+='</div>';
+  return h;
+}
+
 function render(){
   var st=getStats(curYear);
   var dm=buildDayMap(curYear);
@@ -2876,6 +2923,7 @@ function render(){
   h+='<button class="vtab'+(curView==='licenses'?' active':'')+'" onclick="setView(\'licenses\')">Licenças</button>';
   h+='<button class="vtab'+(curView==='subs'?' active':'')+'" onclick="setView(\'subs\')">Substituições</button>';
   h+='<button class="vtab'+(curView==='recesso'?' active':'')+'" onclick="setView(\'recesso\')">Recesso</button>';
+  if(isMaster())h+='<button class="vtab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')">Configurações</button>';
   h+='</div>';
 
   // Year tabs — mostrar para panel, calendar e people; recesso tem seus próprios
@@ -2884,6 +2932,12 @@ function render(){
     YEARS.forEach(function(y){h+='<button class="ytab'+(y===curRecessoYear?' active':'')+'" onclick="setRecessoYear('+y+')">'+y+'</button>';});
     h+='</div>';
     h+=buildRecessoView(curRecessoYear);
+    h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' por '+(lastSavedBy||'?'):statusMsg)+'</div>';
+    document.getElementById('app').innerHTML=h;
+    return;
+  }
+  if(curView==='config'){
+    h+=buildConfigView();
     h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' por '+(lastSavedBy||'?'):statusMsg)+'</div>';
     document.getElementById('app').innerHTML=h;
     return;
@@ -2968,7 +3022,6 @@ function render(){
     h+='<div style="display:flex;gap:6px">';
     h+='<button class="btn sm primary" onclick="showAddVac(\''+( !isMaster()?currentAdminUser:'')+'\')">+ Adicionar férias</button>';
     h+='<button class="btn sm" onclick="showTestPeriod(\''+ (!isMaster()?currentAdminUser:'')+'\')">&#128197; Testar período</button>';
-    if(isMaster())h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar procuradores</button>';
     h+='</div></div>';
     h+='<div class="people-grid">';
     activePeopleForYear(curYear).forEach(function(p){
