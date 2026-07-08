@@ -1685,7 +1685,7 @@ function confirmPreview(){
   function _proceed(){previewVac=null;adminConfirm(function(){vacations.push({n:pv.n,s:pv.s,d:pv.d});saveData();render();});}
   if(over){
     openModal('<h3>Atenção</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período ultrapassa o limite de <strong>'+LIMIT+'</strong> simultâneos. Confirmar mesmo assim?</p>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período resulta em mais de <strong>'+LIMIT+'</strong> procuradores ausentes simultaneamente. Confirmar mesmo assim?</p>'+
       '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
       '<button class="btn danger" onclick="closeModal();window._overLimitCb()">Confirmar mesmo assim</button></div>');
     window._overLimitCb=_proceed;
@@ -1773,9 +1773,9 @@ function confirmAddVac(){
   function _proceed(){closeModal();adminConfirm(function(){vacations.push({n:person,s:start,d:days});saveData();render();});}
   if(over){
     openModal('<h3>Atenção</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período ultrapassa o limite de <strong>'+LIMIT+'</strong> simultâneos. Continuar mesmo assim?</p>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período resulta em mais de <strong>'+LIMIT+'</strong> procuradores ausentes simultaneamente. Confirmar mesmo assim?</p>'+
       '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn danger" onclick="window._overLimitCb()">Continuar mesmo assim</button></div>');
+      '<button class="btn danger" onclick="window._overLimitCb()">Confirmar mesmo assim</button></div>');
     window._overLimitCb=_proceed;
   }else{_proceed();}
 }
@@ -1851,9 +1851,9 @@ function confirmEditVac(idx, person){
   function _proceed(){closeModal();adminConfirm(doEdit);}
   if(over){
     openModal('<h3>Atenção</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período ultrapassa o limite de <strong>'+LIMIT+'</strong> simultâneos. Continuar mesmo assim?</p>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período resulta em mais de <strong>'+LIMIT+'</strong> procuradores ausentes simultaneamente. Confirmar mesmo assim?</p>'+
       '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn danger" onclick="window._overLimitCb()">Continuar mesmo assim</button></div>');
+      '<button class="btn danger" onclick="window._overLimitCb()">Confirmar mesmo assim</button></div>');
     window._overLimitCb=_proceed;
   }else{_proceed();}
 }
