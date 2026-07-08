@@ -2712,15 +2712,23 @@ function buildPanel(year){
     }
     h+='</div>';
 
+    // Hoje
+    var hasToday=returnsToday.length||startsToday.length||distToday.length||bancaToday.length;
+    if(hasToday){
+      h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
+      h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Hoje</div>';
+      if(returnsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Retorna:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(startsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Inicia férias:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(distToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Saiu da distribuição:</span> '+distToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      if(bancaToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Banca começou a rodar:</span> '+bancaToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
+      h+='</div>';
+    }
+
     // Próximos 30 dias
-    var hasNext=returnsToday.length||startsToday.length||distToday.length||bancaToday.length||distEvents.length||bancaEvents.length;
+    var hasNext=distEvents.length||bancaEvents.length;
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
-      if(returnsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Retorna hoje:</span> '+returnsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
-      if(startsToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Inicia férias hoje:</span> '+startsToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
-      if(distToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Saiu da distribuição hoje:</span> '+distToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
-      if(bancaToday.length)h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Banca começou a rodar hoje:</span> '+bancaToday.map(function(n){return '<strong>'+n+'</strong>';}).join(', ')+'</div>';
       if(distEvents.length){
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">Sai da distribuição:</span> ';
         h+=distEvents.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> em '+fmtBR(e.date)+'</span>';}).join('');
