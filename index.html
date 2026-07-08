@@ -2458,6 +2458,10 @@ function recessoRemoveFor(personName){
     saveRecesso();render();
   });
 }
+function recessoRemoveSelf(){
+  if(recessoChoices[curRecessoYear])delete recessoChoices[curRecessoYear][currentAdminUser];
+  saveRecesso();render();
+}
 function recessoChangePerson(personName){
   var cur=recessoChoices[curRecessoYear]&&recessoChoices[curRecessoYear][personName];
   var dates=recessoDates[curRecessoYear]||{};
@@ -2602,7 +2606,7 @@ function buildRecessoView(year){
           +(isMaster()?' onclick="recessoChangePerson(\''+p+'\')" title="Clique para alterar"':'')+'>'+
           '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+
           p+
-          (mine&&isMe?' <a href="#" style="font-size:10px;color:var(--text-3);margin-left:4px" onclick="event.stopPropagation();event.preventDefault();recessoChoose(\''+otherVal+'\')">alterar</a>':'')+
+          (mine&&isMe?' <a href="#" style="font-size:10px;color:var(--text-3);margin-left:4px" onclick="event.stopPropagation();event.preventDefault();recessoChoose(\''+otherVal+'\')">alterar</a> <a href="#" style="font-size:10px;color:var(--text-3);margin-left:2px" onclick="event.stopPropagation();event.preventDefault();recessoRemoveSelf()">remover</a>':'')+
           (isMaster()?' <span style="font-size:10px;color:var(--text-3);margin-left:2px">&#8646;</span>':'')+
           '</span>';
       });
