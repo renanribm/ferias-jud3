@@ -1049,23 +1049,23 @@ function buildSubsView(year,month){
         var avail=active.filter(function(n){return absNames.indexOf(n)<0;});
         h+='<div style="margin-top:5px">';
         if(isMaster()){
-          h+='<div style="font-size:10px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:9px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
+          h+='<div style="font-size:11px;font-weight:600;color:var(--text-2)">'+absent.n+'<span style="font-size:10px;font-weight:400;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span></div>';
           if(absent.n==='FABIANA'&&fabianaSub){
-            h+='<div style="font-size:10px;color:var(--accent);font-weight:600">'+fabianaSub+' <span style="font-size:9px;color:#1d4ed8">fixo</span>'+(fabCon?' <span style="font-size:9px;color:var(--amber)">⚠ ausente</span>':'')+'</div>';
+            h+='<div style="font-size:11px;color:var(--accent);font-weight:600">'+fabianaSub+' <span style="font-size:10px;color:#1d4ed8">fixo</span>'+(fabCon?' <span style="font-size:10px;color:var(--amber)">⚠ ausente</span>':'')+'</div>';
           }else{
             h+='<div style="display:flex;align-items:center;gap:3px;margin-top:2px">';
-            h+='<select style="font-size:10px;padding:2px 3px;border-radius:3px;border:1px solid '+(hasCon?'var(--red)':'var(--border)')+';background:var(--surface);flex:1;min-width:0;box-sizing:border-box" onchange="setSub(\''+monthKey+'\',\''+cell.ds+'\',\''+absent.n+'\',this.value)">';
+            h+='<select style="font-size:11px;padding:2px 3px;border-radius:3px;border:1px solid '+(hasCon?'var(--red)':'var(--border)')+';background:var(--surface);flex:1;min-width:0;box-sizing:border-box" onchange="setSub(\''+monthKey+'\',\''+cell.ds+'\',\''+absent.n+'\',this.value)">';
             h+='<option value="">— escolher —</option>';
             avail.forEach(function(n){h+='<option value="'+n+'"'+(curSub===n?' selected':'')+'>'+n+'</option>';});
             h+='</select>';
-            if(hasCon)h+='<span style="font-size:9px;color:var(--red);flex-shrink:0">⚠</span>';
-            else if(curSub){h+='<span style="font-size:9px;color:#16a34a;flex-shrink:0">✓</span>';if(isMan)h+='<span style="font-size:9px;color:var(--text-3);flex-shrink:0">✎</span>';}
+            if(hasCon)h+='<span style="font-size:10px;color:var(--red);flex-shrink:0">⚠</span>';
+            else if(curSub){h+='<span style="font-size:10px;color:#16a34a;flex-shrink:0">✓</span>';if(isMan)h+='<span style="font-size:10px;color:var(--text-3);flex-shrink:0">✎</span>';}
             h+='</div>';
           }
         }else{
-          h+='<div style="font-size:10px"><strong style="color:var(--text-2)">'+absent.n+'</strong><span style="font-size:9px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <span style="color:'+(curSub?'var(--accent)':'var(--text-3)')+'">'+( curSub||'—')+'</span></div>';
+          h+='<div style="font-size:11px"><strong style="color:var(--text-2)">'+absent.n+'</strong><span style="font-size:10px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <span style="color:'+(curSub?'var(--accent)':'var(--text-3)')+'">'+( curSub||'—')+'</span></div>';
         }
-        if(hasCon)h+='<div style="font-size:9px;color:var(--red)">'+curSub+' também ausente.</div>';
+        if(hasCon)h+='<div style="font-size:10px;color:var(--red)">'+curSub+' também ausente.</div>';
         h+='</div>';
       });
       h+='</div>';
