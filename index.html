@@ -2899,7 +2899,7 @@ function render(){
   h+='<button class="vtab'+(curView==='licenses'?' active':'')+'" onclick="setView(\'licenses\')">Licenças</button>';
   h+='<button class="vtab'+(curView==='subs'?' active':'')+'" onclick="setView(\'subs\')">Substituições</button>';
   h+='<button class="vtab'+(curView==='recesso'?' active':'')+'" onclick="setView(\'recesso\')">Recesso</button>';
-  if(isMaster())h+='<button class="vtab config-tab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')">⚙ Configurações</button>';
+  if(isMaster())h+='<button class="vtab config-tab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')"><span style="font-size:16px;line-height:1;vertical-align:middle">⚙</span> Configurações</button>';
   h+='</div>';
 
   // Year tabs — mostrar para panel, calendar e people; recesso tem seus próprios
