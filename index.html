@@ -282,6 +282,7 @@ var _db = firebase.firestore();
 var _docRef = _db.collection("jud3").doc("oficial");
 var _recessoRef = _db.collection("jud3").doc("recesso");
 var _subsRef = _db.collection("jud3").doc("subs");
+var _configRef = _db.collection("jud3").doc("config");
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 var YEARS=[2026,2027,2028,2029,2030];
@@ -370,7 +371,11 @@ function buildHolidayMap(y){
 // Cache per year
 var _holidayCache={};
 function getHolidayMap(y){if(!_holidayCache[y])_holidayCache[y]=buildHolidayMap(y);return _holidayCache[y];}
-function getHoliday(ds){return getHolidayMap(parseInt(ds.slice(0,4)))[ds]||null;}
+function getHoliday(ds){
+  var builtin=getHolidayMap(parseInt(ds.slice(0,4)))[ds]||null;
+  if(builtin)return builtin;
+  return customHolidays.find(function(h){return h.date===ds;})||null;
+}
 
 var DEFAULT_PEOPLE=[
   {n:'ALEX',desde:2026,ate:null},{n:'BEATRICE',desde:2026,ate:null},{n:'BRUNO',desde:2026,ate:null},
@@ -402,7 +407,7 @@ var DEFAULT_VACS=[
 
 // ── State ──────────────────────────────────────────────────────────────────────
 var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
-var vacations=[],people=[];
+var vacations=[],people=[],customHolidays=[];
 var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso',config:'/configuracoes'};
 var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso','/configuracoes':'config'};
 var curYear=new Date().getFullYear(),curMonth=new Date().getMonth(),curView=PATH_VIEWS[window.location.pathname]||'panel';
@@ -642,6 +647,15 @@ function saveRecesso(){
   }).then(function(){
     showToast('✓ Recesso salvo');
   }).catch(function(e){showToast('Erro ao salvar recesso: '+e.message);});
+}
+function loadConfig(cb){
+  _configRef.get().then(function(doc){
+    if(doc.exists){var d=doc.data();customHolidays=d.customHolidays?JSON.parse(d.customHolidays):[];}
+    if(cb)cb();
+  }).catch(function(){if(cb)cb();});
+}
+function saveConfig(){
+  _configRef.set({customHolidays:JSON.stringify(customHolidays),savedAt:new Date().toISOString()});
 }
 function loadRecesso(cb){
   _recessoRef.get().then(function(snap){
@@ -2771,17 +2785,58 @@ function renderStatus(){
   el.innerHTML=txt;
 }
 
+function showCustomHolidaysModal(){
+  var sorted=customHolidays.slice().sort(function(a,b){return a.date.localeCompare(b.date);});
+  var list=sorted.length?sorted.map(function(ch){
+    var typeLabel=ch.type==='holiday'?'Feriado':ch.type==='optional'?'Ponto facultativo':'Suspensão de expediente';
+    return '<div class="vac-item">'+
+      '<div><div style="font-size:13px;font-weight:500">'+fmtBR(ch.date).slice(0,5)+' &middot; '+ch.label+'</div>'+
+      '<div style="font-size:11px;color:var(--text-3)">'+typeLabel+'</div></div>'+
+      '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removeCustomHoliday(\''+ch.date+'\')">Remover</button>'+
+      '</div>';
+  }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum feriado customizado cadastrado.</div>';
+  var typeOpts='<option value="holiday">Feriado</option><option value="optional">Ponto facultativo</option><option value="suspended">Suspensão de expediente</option>';
+  openTallModal(
+    '<h3>Feriados customizados</h3>'+
+    '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 12px;line-height:1.6">Datas específicas da unidade que não constam no calendário automático.</p>'+
+    '<div class="vac-list">'+list+'</div>'+
+    '<hr class="divider">'+
+    '<div class="field"><label>Data</label><input type="date" id="ch-date"></div>'+
+    '<div class="field"><label>Descrição</label><input type="text" id="ch-label" placeholder="Ex: Corpus Christi"></div>'+
+    '<div class="field"><label>Tipo</label><select id="ch-type">'+typeOpts+'</select></div>',
+    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
+    '<button class="btn primary" onclick="addCustomHoliday()">Adicionar</button></div>'
+  );
+}
+window.removeCustomHoliday=function(date){
+  customHolidays=customHolidays.filter(function(h){return h.date!==date;});
+  saveConfig();render();showCustomHolidaysModal();
+};
+function addCustomHoliday(){
+  var date=document.getElementById('ch-date').value;
+  var label=(document.getElementById('ch-label').value||'').trim();
+  var type=document.getElementById('ch-type').value;
+  if(!date||!label){alert('Preencha todos os campos.');return;}
+  if(customHolidays.find(function(h){return h.date===date;})){alert('Esta data já está cadastrada.');return;}
+  customHolidays.push({date:date,label:label,type:type});
+  customHolidays.sort(function(a,b){return a.date.localeCompare(b.date);});
+  saveConfig();render();showCustomHolidaysModal();
+}
+function _configCard(title,sub,btnLabel,action){
+  return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px">'+
+    '<div><div style="font-size:14px;font-weight:600;margin-bottom:3px">'+title+'</div>'+
+    '<div style="font-size:12px;color:var(--text-3)">'+sub+'</div></div>'+
+    '<button class="btn sm" onclick="'+action+'">'+btnLabel+'</button>'+
+    '</div>';
+}
 function buildConfigView(){
   var active=people.filter(function(p){return p.ate===null;});
   var inactive=people.filter(function(p){return p.ate!==null;});
   var h='<div style="max-width:520px;display:flex;flex-direction:column;gap:12px">';
-  h+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px">';
-  h+='<div>';
-  h+='<div style="font-size:14px;font-weight:600;margin-bottom:3px">Procuradores</div>';
-  h+='<div style="font-size:12px;color:var(--text-3)">'+active.length+' ativo'+(active.length!==1?'s':'')+(inactive.length?' &middot; '+inactive.length+' inativo'+(inactive.length!==1?'s':''):'')+'</div>';
-  h+='</div>';
-  h+='<button class="btn sm" onclick="showPeopleManager()">Gerenciar</button>';
-  h+='</div>';
+  h+=_configCard('Procuradores',active.length+' ativo'+(active.length!==1?'s':'')+(inactive.length?' &middot; '+inactive.length+' inativo'+(inactive.length!==1?'s':''):''),'Gerenciar','showPeopleManager()');
+  h+=_configCard('Histórico','Versões anteriores e restauração de dados','Ver histórico','showHistoryModal()');
+  h+=_configCard('Exportar','Exportar dados em formato de tabela ou CSV','Exportar','showExportModal()');
+  h+=_configCard('Feriados customizados',customHolidays.length?customHolidays.length+' feriado'+(customHolidays.length!==1?'s':'')+' cadastrado'+(customHolidays.length!==1?'s':''):'Nenhum feriado customizado cadastrado','Gerenciar','showCustomHolidaysModal()');
   h+='</div>';
   return h;
 }
@@ -2832,8 +2887,6 @@ function render(){
   h+='<div><div class="logo-text">Controle de Ausências e Substituições</div>';
   h+='<div class="logo-sub">PGM/SP JUD-3 &middot; '+YEARS[0]+'&ndash;'+YEARS[YEARS.length-1]+'</div></div></div>';
   h+='<div class="topbar-right">';
-  h+='<button class="btn export" onclick="showExportModal()"><span class="btn-mobile-hide">&#8595; Exportar</span><span class="btn-mobile-show">&#8595;</span></button>';
-  if(isMaster())h+='<button class="btn" onclick="showHistoryModal()">&#128336; Histórico</button>';
   h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px">';
   h+='<span style="font-size:12px;font-weight:500;color:var(--text-2)">'+(currentAdminUser==='ADMIN'?'Administrador':currentAdminUser)+'</span>';
   h+='<button class="btn sm" style="padding:3px 10px;font-size:11px" onclick="logout()">Sair</button>';
@@ -2899,7 +2952,7 @@ function render(){
   h+='<button class="vtab'+(curView==='licenses'?' active':'')+'" onclick="setView(\'licenses\')">Licenças</button>';
   h+='<button class="vtab'+(curView==='subs'?' active':'')+'" onclick="setView(\'subs\')">Substituições</button>';
   h+='<button class="vtab'+(curView==='recesso'?' active':'')+'" onclick="setView(\'recesso\')">Recesso</button>';
-  if(isMaster())h+='<button class="vtab config-tab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')"><span style="font-size:16px;line-height:1;vertical-align:middle">⚙</span> Configurações</button>';
+  if(isMaster())h+='<button class="vtab config-tab'+(curView==='config'?' active':'')+'" onclick="setView(\'config\')">Configurações</button>';
   h+='</div>';
 
   // Year tabs — mostrar para panel, calendar e people; recesso tem seus próprios
@@ -3133,12 +3186,14 @@ function bootDashboard(user){
       var matched=getAdminPasswords().find(function(p){return normalize(p)===normUser;});
       if(matched){currentAdminUser=matched;}else{currentAdminUser=null;}
     }
-    loadRecesso(function(){
-      render();
-      window.scrollTo(0,0);
-      subscribeOfficial();
-      subscribeRecesso();
-      subscribeSubs();
+    loadConfig(function(){
+      loadRecesso(function(){
+        render();
+        window.scrollTo(0,0);
+        subscribeOfficial();
+        subscribeRecesso();
+        subscribeSubs();
+      });
     });
   });
 }
