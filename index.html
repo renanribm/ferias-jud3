@@ -1572,7 +1572,7 @@ function goToMyVacations(){
   var foundEmpty=false;
   YEARS.forEach(function(y){
     var pvacs=vacations.filter(function(v){return v.n===user&&v.s.slice(0,4)===String(y);});
-    var daysUsed=pvacs.reduce(function(s,v){return s+v.d;},0);
+    var daysUsed=pvacs.reduce(function(s,v){return s+(!v.type||v.type==='ferias'?v.d:0);},0);
     var hasData=pvacs.length>0;
     if(hasData||!foundEmpty){
       yearsToShow.push({year:y,periods:pvacs.length,days:daysUsed});
@@ -1808,7 +1808,7 @@ function showPersonVacs(person){
   }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum período cadastrado.</div>';
   var addBtn=canEdit?'<button class="btn primary" onclick="closeModal();showAddVac(\''+person+'\')">+ Adicionar férias</button>':'';
   var testBtn='<button class="btn" onclick="closeModal();showTestPeriod(\''+person+'\')">&#128197; Testar período</button>';
-  var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
+  var daysUsed=pvacs.reduce(function(sum,v){return sum+(!v.type||v.type==='ferias'?v.d:0);},0);
   var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
   var daysLabel='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--surface2);color:'+daysColor+'">'+daysUsed+' / '+VAC_LIMIT+' dias em '+curYear+'</span>';
   var bodyHtml=
@@ -2974,7 +2974,7 @@ function render(){
     activePeopleForYear(curYear).forEach(function(p){
       var pvacs=vacations.filter(function(v){return v.n===p&&v.s.slice(0,4)===String(curYear);});
       var c=pvacs.length;
-      var daysUsed=pvacs.reduce(function(sum,v){return sum+v.d;},0);
+      var daysUsed=pvacs.reduce(function(sum,v){return sum+(!v.type||v.type==='ferias'?v.d:0);},0);
       var isMe=p===currentAdminUser&&currentAdminUser!=='ADMIN';
       var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--text-3)';
       h+='<div class="pchip'+(isMe?' mine':'')+'" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
