@@ -2703,8 +2703,8 @@ function buildPanel(year){
       h+='<div style="font-size:12px">';
       h+=subsToday.map(function(x){
         var subLabel=x.sub?'<strong>'+x.sub+'</strong>':'<span style="color:var(--amber);font-size:11px">não definido</span>';
-        return '<span class="next-ev"><strong>'+x.absent+'</strong> <span style="color:var(--text-3)">&#8594;</span> '+subLabel+'</span>';
-      }).join('');
+        return '<span><strong>'+x.absent+'</strong> <span style="color:var(--text-3)">&#8594;</span> '+subLabel+'</span>';
+      }).join('<span style="color:var(--text-3);padding:0 8px">&middot;</span>');
       h+='</div>';
     }else{
       h+='<div style="font-size:12px;color:var(--text-3)">Nenhuma substituição necessária.</div>';
