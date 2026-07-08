@@ -129,6 +129,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .mr-sp{width:98px;flex-shrink:0}
 .mr-m{font-size:9px;color:var(--text-3);text-align:center;overflow:hidden}
 .people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:20px}
+.config-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:800px}
+@media(max-width:640px){.config-grid{grid-template-columns:1fr}}
 .pchip{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:border-color .12s,background .12s}
 .pchip:hover{border-color:var(--border-md);background:var(--surface2)}
 .pchip.mine{border:2px solid var(--accent);background:var(--surface)}
@@ -3091,7 +3093,7 @@ function _configCard(title,sub,btnLabel,action){
 function buildConfigView(){
   var active=people.filter(function(p){return p.ate===null;});
   var inactive=people.filter(function(p){return p.ate!==null;});
-  var h='<div style="max-width:520px;display:flex;flex-direction:column;gap:12px">';
+  var h='<div class="config-grid">';
   h+=_configCard('Procuradores',active.length+' ativo'+(active.length!==1?'s':'')+(inactive.length?' &middot; '+inactive.length+' inativo'+(inactive.length!==1?'s':''):''),'Gerenciar','showPeopleManager()');
   h+=_configCard('Histórico','Versões anteriores e restauração de dados','Ver histórico','showHistoryModal()');
   h+=_configCard('Exportar','Exportar dados em formato de tabela ou CSV','Exportar','showExportModal()');
