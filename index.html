@@ -230,7 +230,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .subs-cal-pending{background:#fffbeb!important}
 .subs-cal-done{background:#f0fdf4!important}
 .subs-cal-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px}
-.subs-cal-daynum{font-size:12px;font-weight:700;color:var(--text-2);white-space:nowrap}
+.subs-cal-daynum{font-size:12px;font-weight:700;color:var(--text-2);white-space:nowrap;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+.subs-cal-daynum.today{background:var(--accent);color:#fff;border-radius:50%}
 @media(min-width:641px){.subs-cal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}.subs-list{display:none}}
 .recesso-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
 .recesso-group-title{font-size:14px;font-weight:600;margin-bottom:3px}
@@ -979,6 +980,8 @@ function buildSubsView(year,month){
   h+='<button class="btn sm" onclick="subsMonth--;if(subsMonth<0){subsMonth=11;subsYear--;}render()">&#8592;</button>';
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
+  var _subsNotToday=(year!==new Date().getFullYear()||month!==new Date().getMonth());
+  if(_subsNotToday)h+='<button class="btn sm" style="margin-left:6px;white-space:nowrap" onclick="subsYear=new Date().getFullYear();subsMonth=new Date().getMonth();render()">Hoje</button>';
   h+='</div>';
   h+='<div style="display:flex;gap:6px">';
   if(isMaster()){
@@ -1039,7 +1042,7 @@ function buildSubsView(year,month){
       var cellCls=isOff||!abs.length?' subs-cal-off':cellDone?' subs-cal-done':' subs-cal-pending';
       h+='<div class="subs-cal-cell'+cellCls+'">';
       h+='<div class="subs-cal-top"><span></span>';
-      h+='<span class="subs-cal-daynum">'+cell.dayNum+'</span>';
+      h+='<span class="subs-cal-daynum'+(cell.ds===today?' today':'')+'">' +cell.dayNum+'</span>';
       h+='</div>';
       if(isOff){if(hol){var hType=hol.type==='suspended'?'Suspensão':hol.type==='optional'?'Ponto facultativo':'Feriado';var hText=(hol.label&&hol.type!=='suspended')?hType+': '+hol.label:hol.label||hType;h+='<div style="font-size:10px;color:var(--text-3);margin-top:2px">'+hText+'</div>';}h+='</div>';return;}
       if(!abs.length){h+='<div style="font-size:10px;color:var(--text-3);margin-top:2px">Sem ausências</div>';h+='</div>';return;}
