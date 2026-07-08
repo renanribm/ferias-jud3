@@ -3155,7 +3155,7 @@ function render(){
   h+='</div></div>';
 
   // Welcome banner — shown once per session for non-master users
-  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac&&!_welcomeDismissed&&curView!=='recesso'){
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac&&!_welcomeDismissed){
     h+='<div class="welcome-banner">';
     h+='<div class="welcome-banner-text">';
     h+='<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="var(--blue)" stroke-width="1.2"/><path d="M8 5v4M8 11v.5" stroke="var(--blue)" stroke-width="1.4" stroke-linecap="round"/></svg>';
