@@ -305,7 +305,7 @@ var LICENSE_TYPES={maternidade:'Licença-Maternidade',paternidade:'Licença-Pate
 var SUBS_QUEUE=['ALEX','BEATRICE','BRUNO','CAMILA','DANIEL','EDUARDO','FABIANA','NETO','LEONARDO','MARCOS','VINICIUS','MARÍLIA','MAURÍCIO','RENAN','RODRIGO','THAYANE','VIVIANE'];
 function getSortKey(name){
   var p=people.find(function(x){return x.n===name;});
-  return(p&&p.sortKey?p.sortKey:name.split(' ')[0]).toUpperCase();
+  return((p&&p.fullName?p.fullName:name).split(' ')[0]).toUpperCase();
 }
 function getSubsQueue(year){
   return activePeopleForYear(year).slice().sort(function(a,b){
@@ -1997,13 +1997,14 @@ function showPeopleManager(){
   var active=people.filter(function(p){return p.ate===null;});
   var inactive=people.filter(function(p){return p.ate!==null;});
   var listActive=active.map(function(p){
+    var nameDisplay=p.fullName?'<span style="font-weight:500">'+p.n+'</span><span style="font-size:10px;color:var(--text-3);margin-left:6px">'+p.fullName+'</span>':'<span style="font-weight:500">'+p.n+'</span>';
     return '<div class="vac-item">'+
       '<div style="display:flex;align-items:center;gap:8px">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
-      '<div><span style="font-weight:500">'+p.n+'</span>'+
+      '<div>'+nameDisplay+
       '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+p.desde+'</span></div></div>'+
       '<div style="display:flex;gap:6px">'+
-      '<button class="btn sm" onclick="editPersonSortKey(\''+p.n+'\')">Ordenação</button>'+
+      '<button class="btn sm" onclick="editPerson(\''+p.n.replace(/'/g,"\\'")+'\')" >Editar</button>'+
       '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
       '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
   }).join('');
@@ -2022,12 +2023,12 @@ function showPeopleManager(){
     '<h3>Gerenciar procuradores</h3>'+
     '<div class="vac-list">'+listActive+listInactive+'</div>'+
     '<hr class="divider">'+
-    '<div class="field"><label>Adicionar novo procurador</label>'+
-    '<input type="text" id="new-person" placeholder="Nome em maiúsculas" style="text-transform:uppercase"></div>'+
+    '<div class="field"><label>Nome completo</label>'+
+    '<input type="text" id="new-fullname" placeholder="Ex: HONÓRIO NETO" style="text-transform:uppercase"></div>'+
+    '<div class="field"><label>Nome de exibição <span style="font-weight:400;color:var(--text-3)">(deixe em branco para usar o primeiro nome)</span></label>'+
+    '<input type="text" id="new-person" placeholder="Ex: NETO" style="text-transform:uppercase"></div>'+
     '<div class="field"><label>Ano de entrada na unidade</label>'+
-    '<input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>'+
-    '<div class="field"><label>Primeiro nome real <span style="font-weight:400;color:var(--text-3)">(para ordenação — deixe em branco se igual ao nome acima)</span></label>'+
-    '<input type="text" id="new-sortkey" placeholder="Ex: HONÓRIO" style="text-transform:uppercase"></div>';
+    '<input type="number" id="new-desde" value="'+curYear+'" min="2020" max="2050"></div>';
   var footerHtml=
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
     '<button class="btn primary" onclick="confirmAddPerson()">Adicionar</button></div>';
@@ -2052,22 +2053,22 @@ function deactivatePerson(name){
   };
 }
 
-function editPersonSortKey(name){
+function editPerson(name){
   var p=people.find(function(x){return x.n===name;});
-  var cur=p&&p.sortKey?p.sortKey:'';
-  var fallback=name.split(' ')[0];
-  openModal('<h3>Ordenação de '+name+'</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Informe o primeiro nome real usado para ordenação alfabética na fila de substituições. Deixe em branco para usar <strong>'+fallback+'</strong>.</p>'+
-    '<div class="field"><label>Primeiro nome real</label>'+
-    '<input type="text" id="edit-sortkey" value="'+cur+'" placeholder="'+fallback+'" style="text-transform:uppercase"></div>'+
+  var curFull=p&&p.fullName?p.fullName:'';
+  openModal('<h3>Editar procurador</h3>'+
+    '<div class="field"><label>Nome de exibição</label>'+
+    '<input type="text" value="'+name+'" disabled style="opacity:.5;text-transform:uppercase"></div>'+
+    '<div class="field"><label>Nome completo</label>'+
+    '<input type="text" id="ep-fullname" value="'+curFull+'" placeholder="Ex: HONÓRIO NETO" style="text-transform:uppercase"></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal();showPeopleManager()">Cancelar</button>'+
-    '<button class="btn primary" onclick="confirmEditSortKey(\''+name.replace(/'/g,"\\'")+'\')" >Salvar</button></div>');
+    '<button class="btn primary" onclick="confirmEditPerson(\''+name.replace(/'/g,"\\'")+'\')" >Salvar</button></div>');
 }
-function confirmEditSortKey(name){
-  var val=(document.getElementById('edit-sortkey').value||'').trim().toUpperCase();
+function confirmEditPerson(name){
+  var val=(document.getElementById('ep-fullname').value||'').trim().toUpperCase();
   var p=people.find(function(x){return x.n===name;});
-  if(p){if(val&&val!==name.split(' ')[0])p.sortKey=val;else delete p.sortKey;}
-  closeModal();saveData('✓ Ordenação atualizada');render();
+  if(p){if(val)p.fullName=val;else delete p.fullName;}
+  closeModal();saveData('✓ Procurador atualizado');render();
 }
 function reactivatePerson(name){
   function doReactivate(){
@@ -2079,15 +2080,14 @@ function reactivatePerson(name){
 }
 
 function confirmAddPerson(){
-  var raw=document.getElementById('new-person').value||'';
-  var nm=raw.trim().toUpperCase();
-  if(!nm){alert('Digite o nome.');return;}
-  if(people.find(function(p){return p.n===nm;})){alert('Já existe.');return;}
+  var rawFull=(document.getElementById('new-fullname').value||'').trim().toUpperCase();
+  var rawDisp=(document.getElementById('new-person').value||'').trim().toUpperCase();
+  if(!rawFull){alert('Preencha o nome completo.');return;}
+  var nm=rawDisp||rawFull.split(' ')[0];
+  if(people.find(function(p){return p.n===nm;})){alert('Já existe um procurador com o nome de exibição "'+nm+'".');return;}
   var desde=parseInt(document.getElementById('new-desde').value)||curYear;
-  var sk=(document.getElementById('new-sortkey').value||'').trim().toUpperCase();
   function doAdd(){
-    var obj={n:nm,desde:desde,ate:null};
-    if(sk&&sk!==nm.split(' ')[0])obj.sortKey=sk;
+    var obj={n:nm,fullName:rawFull,desde:desde,ate:null};
     people.push(obj);
     people.sort(function(a,b){return a.n.localeCompare(b.n);});
     saveData('✓ Procurador adicionado');render();
