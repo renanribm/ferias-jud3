@@ -1448,21 +1448,14 @@ function exportXLS(year){
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Dias de férias</th>';
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Data de início</th>';
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Data de término</th>';
-    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Acima do limite ('+LIMIT+')?</th></tr>';
+    tbl+='</tr>';
 
     src.forEach(function(v){
-      var maxCount=0;
-      for(var i=0;i<v.d;i++){
-        var k=fmt(addDays(v.s,i));
-        if(cDays.indexOf(k)>=0&&dm2[k]&&dm2[k].length>maxCount)maxCount=dm2[k].length;
-      }
-      var rowColor=maxCount>0?'background:#fae8e8':'';
-      tbl+='<tr style="'+rowColor+'">';
+      tbl+='<tr>';
       tbl+='<td style="padding:5px 10px">'+v.n+'</td>';
       tbl+='<td style="padding:5px 10px;text-align:center">'+v.d+'</td>';
       tbl+='<td style="padding:5px 10px">'+fmtBR(v.s)+'</td>';
       tbl+='<td style="padding:5px 10px">'+fmtBR(fmt(addDays(v.s,v.d-1)))+'</td>';
-      tbl+='<td style="padding:5px 10px;text-align:center;color:'+(maxCount>0?'#8a1a1a':'#1a7a4a')+'">'+(maxCount>0?'⚠ Sim ('+maxCount+' em férias)':'✓ Não')+'</td>';
       tbl+='</tr>';
     });
     tbl+='</table><br><br>';
@@ -1501,14 +1494,9 @@ function exportCSV(year){
       lines.push('"Dias acima do limite: '+cDays.map(function(d){return fmtBR(d)+' ('+dm2[d].join('+')+')';}).join(' | ')+'"');
     }
     lines.push('');
-    lines.push('"Procurador";"Dias de ferias";"Data de inicio";"Data de termino";"Acima do limite ('+LIMIT+')?"');
+    lines.push('"Procurador";"Dias de ferias";"Data de inicio";"Data de termino"');
     src.forEach(function(v){
-      var maxCount=0;
-      for(var i=0;i<v.d;i++){
-        var k=fmt(addDays(v.s,i));
-        if(cDays.indexOf(k)>=0&&dm2[k]&&dm2[k].length>maxCount)maxCount=dm2[k].length;
-      }
-      lines.push('"'+v.n+'";"'+v.d+'";"'+fmtBR(v.s)+'";"'+fmtBR(fmt(addDays(v.s,v.d-1)))+'";"'+(maxCount>0?'SIM ('+maxCount+' EM FERIAS)':'NAO')+'"');
+      lines.push('"'+v.n+'";"'+v.d+'";"'+fmtBR(v.s)+'";"'+fmtBR(fmt(addDays(v.s,v.d-1)))+'"');
     });
     lines.push('');lines.push('');
   });
