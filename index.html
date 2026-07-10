@@ -2307,7 +2307,7 @@ function _subsExpRenderCal(){
   var backDays=dowFirst===0?6:dowFirst-1;
   var start=new Date(firstDay);start.setDate(start.getDate()-backDays);
   var days=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-  var grid='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">';
+  var grid='<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
   days.forEach(function(d){grid+='<div style="text-align:center;font-size:10px;font-weight:600;color:var(--text-3);padding:3px 0">'+d+'</div>';});
   var cur=new Date(start);
   for(var row=0;row<6;row++){
@@ -2322,13 +2322,19 @@ function _subsExpRenderCal(){
       var isEnd=ds===_subsExp.end;
       var rangeEnd=_subsExp.end||((_subsExp.start&&_subsExp.hover&&!_subsExp.end)?_subsExp.hover:null);
       var inRange=_subsExp.start&&rangeEnd&&ds>_subsExp.start&&ds<rangeEnd;
-      var bg='transparent',color=inMonth?'var(--text)':'var(--text-3)',fw='400',br='4px',cursor='pointer';
-      if(isStart||isEnd){bg='var(--accent)';color='#fff';fw='600';br='50%';}
-      else if(inRange){bg='#e5e7eb';color='var(--text)';}
-      else if(!inMonth){cursor='default';}
-      grid+='<div style="text-align:center;font-size:12px;padding:5px 2px;background:'+bg+';color:'+color+';font-weight:'+fw+';border-radius:'+br+';cursor:'+cursor+'"'+
+      var isEdge=isStart||isEnd;
+      // Cell background: range tint for in-range days; transparent otherwise
+      var cellBg=inRange?'rgba(26,26,24,0.07)':'transparent';
+      // Round the left edge of range at start, right edge at end
+      var cellRadius=isStart?'50% 0 0 50%':isEnd?'0 50% 50% 0':'0';
+      // Inner circle for start/end days
+      var dotBg=isEdge?'var(--accent)':'transparent';
+      var dotColor=isEdge?'#fff':inMonth?'var(--text)':'var(--text-3)';
+      var dotFw=isEdge?'600':'400';
+      var cursor=inMonth?'pointer':'default';
+      grid+='<div style="background:'+cellBg+';border-radius:'+cellRadius+';padding:2px 0;display:flex;align-items:center;justify-content:center;cursor:'+cursor+'"'+
         (inMonth?' onmouseover="_subsExpHover(\''+ds+'\')" onmouseout="_subsExpHover(null)" onmousedown="event.preventDefault();_subsExpClick(\''+ds+'\')"':'')+
-        '>'+cur.getDate()+'</div>';
+        '><div style="width:26px;height:26px;border-radius:50%;background:'+dotBg+';color:'+dotColor+';font-weight:'+dotFw+';font-size:12px;display:flex;align-items:center;justify-content:center">'+cur.getDate()+'</div></div>';
       cur.setDate(cur.getDate()+1);
     }
   }
