@@ -1211,7 +1211,7 @@ window.printSubs=function(year,month){
       if(holText)rows+='<div style="font-size:9px;color:#888;font-style:italic;margin-bottom:4px;line-height:1.3">'+holText+'</div>';
       abs.forEach(function(absent){
         var sub=da[absent.n]||'—';
-        rows+='<div style="font-size:10px;margin-bottom:3px"><span style="color:#999">'+absent.n+'</span> → <strong>'+sub+'</strong></div>';
+        rows+='<div style="font-size:12px;margin-bottom:3px"><span style="color:#999">'+absent.n+'</span> → <strong>'+sub+'</strong></div>';
       });
       rows+='</td>';
     });
