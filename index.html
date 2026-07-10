@@ -2256,148 +2256,42 @@ function showExportModal(){
   _subsExpInit();
 }
 
-// ── Substituições export date-range picker ──────────────────────────────────
-var _subsExp={start:null,end:null,hover:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),calOpen:false};
-
+// ── Substituições export month/year selector ────────────────────────────────
 function _subsExpInit(){
   var now=new Date();
-  _subsExp.start=fmt(new Date(now.getFullYear(),now.getMonth(),1));
-  _subsExp.end=fmt(new Date(now.getFullYear(),now.getMonth()+1,0));
-  _subsExp.hover=null;
-  _subsExp.calYear=now.getFullYear();
-  _subsExp.calMonth=now.getMonth();
-  _subsExp.calOpen=false;
-  _subsExpRender();
-  setTimeout(function(){
-    document.addEventListener('mousedown',function _sExpOutside(e){
-      var el=document.getElementById('subs-exp-range');
-      if(el&&!el.contains(e.target)){_subsExp.calOpen=false;_subsExpRenderCal();}
-      else if(!el){document.removeEventListener('mousedown',_sExpOutside);}
-    });
-  },0);
-}
-
-function _subsExpRender(){
+  var selStyle='padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);width:100%;box-sizing:border-box';
+  var moOpts=MONTHS_PT.map(function(n,i){return '<option value="'+i+'">'+n+'</option>';}).join('');
+  var yrOpts=YEARS.map(function(y){return '<option value="'+y+'">'+y+'</option>';}).join('');
   var el=document.getElementById('subs-exp-range');
   if(!el)return;
-  var fmtInput=function(ds){return ds?ds.slice(8,10)+'/'+ds.slice(5,7)+'/'+ds.slice(0,4):'';};
-  var inputStyle='width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);cursor:pointer';
   el.innerHTML=
-    '<div style="position:relative;margin-bottom:12px">'+
-    '<div style="display:flex;align-items:center;gap:8px">'+
-    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">De</div>'+
-    '<input type="text" id="sexp-start" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.start)+'" oninput="_subsExpInput(\'start\',this.value)" onfocus="_subsExpOpen(\'start\')" style="'+inputStyle+'"></div>'+
-    '<div style="padding-top:18px;color:var(--text-3)">→</div>'+
-    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Até</div>'+
-    '<input type="text" id="sexp-end" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.end)+'" oninput="_subsExpInput(\'end\',this.value)" onfocus="_subsExpOpen(\'end\')" style="'+inputStyle+'"></div>'+
-    '</div>'+
-    '<div id="sexp-cal" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:200;background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,0,0,.12);padding:12px;margin-top:4px"></div>'+
+    '<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:12px">'+
+    '<div style="flex:2"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">De</div>'+
+    '<div style="display:flex;gap:6px">'+
+    '<select id="sexp-sm" style="'+selStyle+'">'+moOpts+'</select>'+
+    '<select id="sexp-sy" style="'+selStyle+'">'+yrOpts+'</select>'+
+    '</div></div>'+
+    '<div style="padding-bottom:10px;color:var(--text-3)">→</div>'+
+    '<div style="flex:2"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Até</div>'+
+    '<div style="display:flex;gap:6px">'+
+    '<select id="sexp-em" style="'+selStyle+'">'+moOpts+'</select>'+
+    '<select id="sexp-ey" style="'+selStyle+'">'+yrOpts+'</select>'+
+    '</div></div>'+
     '</div>';
-  _subsExpRenderCal();
-}
-
-function _subsExpRenderCal(){
-  var cal=document.getElementById('sexp-cal');
-  if(!cal)return;
-  if(!_subsExp.calOpen){cal.style.display='none';return;}
-  cal.style.display='block';
-  var y=_subsExp.calYear,m=_subsExp.calMonth;
-  var firstDay=new Date(y,m,1);
-  var dowFirst=firstDay.getDay();
-  var backDays=dowFirst===0?6:dowFirst-1;
-  var start=new Date(firstDay);start.setDate(start.getDate()-backDays);
-  var days=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-  var grid='<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
-  days.forEach(function(d){grid+='<div style="text-align:center;font-size:10px;font-weight:600;color:var(--text-3);padding:3px 0">'+d+'</div>';});
-  var cur=new Date(start);
-  for(var row=0;row<6;row++){
-    var hasMonth=false;
-    var tmp=new Date(cur);
-    for(var col=0;col<7;col++){if(tmp.getMonth()===m)hasMonth=true;tmp.setDate(tmp.getDate()+1);}
-    if(!hasMonth)break;
-    for(var c=0;c<7;c++){
-      var ds=fmt(cur);
-      var inMonth=cur.getMonth()===m;
-      var isStart=ds===_subsExp.start;
-      var isEnd=ds===_subsExp.end;
-      var rangeEnd=_subsExp.end||((_subsExp.start&&_subsExp.hover&&!_subsExp.end)?_subsExp.hover:null);
-      var inRange=_subsExp.start&&rangeEnd&&ds>_subsExp.start&&ds<rangeEnd;
-      var isEdge=isStart||isEnd;
-      // Cell background: range tint for in-range days; transparent otherwise
-      var cellBg=inRange?'rgba(26,26,24,0.07)':'transparent';
-      // Round the left edge of range at start, right edge at end
-      var cellRadius=isStart?'50% 0 0 50%':isEnd?'0 50% 50% 0':'0';
-      // Inner circle for start/end days
-      var dotBg=isEdge?'var(--accent)':'transparent';
-      var dotColor=isEdge?'#fff':inMonth?'var(--text)':'var(--text-3)';
-      var dotFw=isEdge?'600':'400';
-      var cursor=inMonth?'pointer':'default';
-      grid+='<div style="background:'+cellBg+';border-radius:'+cellRadius+';padding:2px 0;display:flex;align-items:center;justify-content:center;cursor:'+cursor+'"'+
-        (inMonth?' onmouseover="_subsExpHover(\''+ds+'\')" onmouseout="_subsExpHover(null)" onmousedown="event.preventDefault();_subsExpClick(\''+ds+'\')"':'')+
-        '><div style="width:26px;height:26px;border-radius:50%;background:'+dotBg+';color:'+dotColor+';font-weight:'+dotFw+';font-size:12px;display:flex;align-items:center;justify-content:center">'+cur.getDate()+'</div></div>';
-      cur.setDate(cur.getDate()+1);
-    }
-  }
-  grid+='</div>';
-  cal.innerHTML=
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-    '<button onmousedown="event.preventDefault();_subsExpNav(-1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 8px">&#8592;</button>'+
-    '<span style="font-size:13px;font-weight:600">'+MONTHS_PT[m]+' '+y+'</span>'+
-    '<button onmousedown="event.preventDefault();_subsExpNav(1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 8px">&#8594;</button>'+
-    '</div>'+grid;
-}
-
-function _subsExpOpen(field){
-  var ref=field==='end'&&_subsExp.end?_subsExp.end:(_subsExp.start||null);
-  if(ref){var d=new Date(ref+'T00:00:00');_subsExp.calYear=d.getFullYear();_subsExp.calMonth=d.getMonth();}
-  _subsExp.calOpen=true;
-  _subsExpRenderCal();
-}
-
-function _subsExpNav(dir){
-  _subsExp.calMonth+=dir;
-  if(_subsExp.calMonth>11){_subsExp.calMonth=0;_subsExp.calYear++;}
-  if(_subsExp.calMonth<0){_subsExp.calMonth=11;_subsExp.calYear--;}
-  _subsExpRenderCal();
-}
-
-function _subsExpHover(ds){
-  if(_subsExp.start&&!_subsExp.end){_subsExp.hover=ds;_subsExpRenderCal();}
-}
-
-function _subsExpClick(ds){
-  if(!_subsExp.start||(_subsExp.start&&_subsExp.end)){
-    _subsExp.start=ds;_subsExp.end=null;_subsExp.hover=null;
-  }else{
-    if(ds<_subsExp.start){_subsExp.end=_subsExp.start;_subsExp.start=ds;}
-    else{_subsExp.end=ds;}
-    _subsExp.hover=null;
-    _subsExp.calOpen=false;
-  }
-  _subsExpRenderCal();
-  var fi=function(d){return d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';};
-  var s=document.getElementById('sexp-start');if(s)s.value=fi(_subsExp.start);
-  var e=document.getElementById('sexp-end');if(e)e.value=fi(_subsExp.end);
-}
-
-function _subsExpInput(field,val){
-  var match=val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(match){
-    var ds=match[3]+'-'+match[2]+'-'+match[1];
-    var d=new Date(ds+'T00:00:00');
-    if(!isNaN(d)){
-      _subsExp[field]=ds;
-      _subsExp.calYear=d.getFullYear();
-      _subsExp.calMonth=d.getMonth();
-      _subsExpRenderCal();
-    }
-  }
+  document.getElementById('sexp-sm').value=now.getMonth();
+  document.getElementById('sexp-sy').value=now.getFullYear();
+  document.getElementById('sexp-em').value=now.getMonth();
+  document.getElementById('sexp-ey').value=now.getFullYear();
 }
 
 function doExportSubs(format){
-  var s=_subsExp.start,e=_subsExp.end;
-  if(!s||!e){alert('Selecione o período de início e fim.');return;}
-  if(s>e){alert('A data de início deve ser anterior à data de fim.');return;}
+  var sm=parseInt(document.getElementById('sexp-sm').value);
+  var sy=parseInt(document.getElementById('sexp-sy').value);
+  var em=parseInt(document.getElementById('sexp-em').value);
+  var ey=parseInt(document.getElementById('sexp-ey').value);
+  var s=sy+'-'+String(sm+1).padStart(2,'0')+'-01';
+  var e=fmt(new Date(ey,em+1,0));
+  if(s>e){alert('O mês de início deve ser anterior ou igual ao mês de fim.');return;}
   var rows=[];
   var cur=new Date(s+'T00:00:00');
   var endD=new Date(e+'T00:00:00');
@@ -2420,8 +2314,9 @@ function doExportSubs(format){
 
   if(format==='xls'){
     var tbl='<html><head><meta charset="UTF-8"></head><body>';
+    var perLabel=sm===em&&sy===ey?MONTHS_PT[sm]+'/'+sy:MONTHS_PT[sm]+'/'+sy+' a '+MONTHS_PT[em]+'/'+ey;
     tbl+='<h2 style="font-family:Arial">Substituições — PGM/SP JUD-3</h2>';
-    tbl+='<p style="font-family:Arial">Período: '+fmtBR(s)+' a '+fmtBR(e)+'</p>';
+    tbl+='<p style="font-family:Arial">Período: '+perLabel+'</p>';
     tbl+='<table border="1" style="font-family:Arial;border-collapse:collapse;margin-top:8px">';
     tbl+='<tr><th style="background:#1a1a18;color:#fff;padding:6px 10px">Data</th>';
     tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Ausente</th>';
@@ -2438,7 +2333,7 @@ function doExportSubs(format){
     var a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='substituicoes_jud3_'+s+'_'+e+'.xls';a.click();
   }else{
-    var lines=['"Substituições - PGM/SP JUD-3"','"Período: '+fmtBR(s)+' a '+fmtBR(e)+'"',''];
+    var lines=['"Substituições - PGM/SP JUD-3"','"Período: '+perLabel+'"',''];
     lines.push('"Data";"Ausente";"Tipo de ausência";"Substituto"');
     rows.forEach(function(r){
       lines.push('"'+fmtBR(r.date)+'";"'+r.absent+'";"'+r.type+'";"'+(r.sub||'—')+'"');
