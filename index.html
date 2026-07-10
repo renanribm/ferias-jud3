@@ -2239,11 +2239,191 @@ function showExportModal(){
     '<button class="btn export" data-fmt="xls" onclick="doExportRecesso(this.dataset.fmt)">&#8595; Excel</button>'+
     '</div>'+
 
+    '<div style="border-top:1px solid var(--border);margin-bottom:16px"></div>'+
+
+    '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Substituições</div>'+
+    '<p style="font-size:13px;color:var(--text-2);margin-bottom:14px">Exporta a tabela de substituições por período.</p>'+
+    '<div id="subs-exp-range"></div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:4px" id="subs-exp-btns">'+
+    '<button class="btn export" onclick="doExportSubs(\'csv\')">&#8595; CSV</button>'+
+    '<button class="btn export" onclick="doExportSubs(\'xls\')">&#8595; Excel</button>'+
+    '</div>'+
+
     '<div class="mbtns" style="justify-content:flex-end;margin-top:16px">'+
     '<button class="btn" onclick="closeModal()">Fechar</button>'+
     '</div>'
   );
+  _subsExpInit();
 }
+
+// ── Substituições export date-range picker ──────────────────────────────────
+var _subsExp={start:null,end:null,hover:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
+
+function _subsExpInit(){
+  var now=new Date();
+  _subsExp.start=fmt(new Date(now.getFullYear(),now.getMonth(),1));
+  _subsExp.end=fmt(new Date(now.getFullYear(),now.getMonth()+1,0));
+  _subsExp.hover=null;
+  _subsExp.calYear=now.getFullYear();
+  _subsExp.calMonth=now.getMonth();
+  _subsExpRender();
+}
+
+function _subsExpRender(){
+  var el=document.getElementById('subs-exp-range');
+  if(!el)return;
+  var y=_subsExp.calYear,m=_subsExp.calMonth;
+  var firstDay=new Date(y,m,1);
+  var lastDay=new Date(y,m+1,0);
+  var dowFirst=firstDay.getDay();
+  var backDays=dowFirst===0?6:dowFirst-1;
+  var start=new Date(firstDay);start.setDate(start.getDate()-backDays);
+
+  // calendar grid
+  var days=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+  var grid='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px">';
+  days.forEach(function(d){grid+='<div style="text-align:center;font-size:10px;font-weight:600;color:var(--text-3);padding:3px 0">'+d+'</div>';});
+
+  var cur=new Date(start);
+  for(var row=0;row<6;row++){
+    var hasMonth=false;
+    for(var col=0;col<7;col++){if(cur.getMonth()===m)hasMonth=true;cur.setDate(cur.getDate()+1);}
+    if(!hasMonth)break;
+    cur=new Date(start);cur.setDate(cur.getDate()+row*7);
+    for(var c=0;c<7;c++){
+      var ds=fmt(cur);
+      var inMonth=cur.getMonth()===m;
+      var isStart=ds===_subsExp.start;
+      var isEnd=ds===_subsExp.end;
+      var rangeEnd=_subsExp.end||((_subsExp.start&&_subsExp.hover&&!_subsExp.end)?_subsExp.hover:null);
+      var inRange=_subsExp.start&&rangeEnd&&ds>_subsExp.start&&ds<rangeEnd;
+      var bg='transparent',color=inMonth?'var(--text)':'var(--text-3)',fw='400',br='4px',cursor='pointer';
+      if(isStart||isEnd){bg='var(--accent)';color='#fff';fw='600';br='50%';}
+      else if(inRange){bg='#e5e7eb';color='var(--text)';}
+      else if(!inMonth){cursor='default';}
+      grid+='<div style="text-align:center;font-size:12px;padding:5px 2px;background:'+bg+';color:'+color+';font-weight:'+fw+';border-radius:'+br+';cursor:'+cursor+'"'+
+        (inMonth?' onmouseover="_subsExpHover(\''+ds+'\')" onmouseout="_subsExpHover(null)" onclick="_subsExpClick(\''+ds+'\')"':'')+
+        '>'+cur.getDate()+'</div>';
+      cur.setDate(cur.getDate()+1);
+    }
+  }
+  grid+='</div>';
+
+  var fmtInput=function(ds){return ds?ds.slice(8,10)+'/'+ds.slice(5,7)+'/'+ds.slice(0,4):'';};
+  var h=
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'+
+    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">De</div>'+
+    '<input type="text" id="sexp-start" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.start)+'" oninput="_subsExpInput(\'start\',this.value)" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text)"></div>'+
+    '<div style="padding-top:18px;color:var(--text-3)">→</div>'+
+    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Até</div>'+
+    '<input type="text" id="sexp-end" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.end)+'" oninput="_subsExpInput(\'end\',this.value)" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text)"></div>'+
+    '</div>'+
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+    '<button onclick="_subsExpNav(-1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 6px">&#8592;</button>'+
+    '<span style="font-size:13px;font-weight:600">'+MONTHS_PT[m]+' '+y+'</span>'+
+    '<button onclick="_subsExpNav(1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 6px">&#8594;</button>'+
+    '</div>'+
+    grid+
+    '</div>';
+  el.innerHTML=h;
+}
+
+function _subsExpNav(dir){
+  _subsExp.calMonth+=dir;
+  if(_subsExp.calMonth>11){_subsExp.calMonth=0;_subsExp.calYear++;}
+  if(_subsExp.calMonth<0){_subsExp.calMonth=11;_subsExp.calYear--;}
+  _subsExpRender();
+}
+
+function _subsExpHover(ds){
+  if(_subsExp.start&&!_subsExp.end){_subsExp.hover=ds;_subsExpRender();}
+}
+
+function _subsExpClick(ds){
+  if(!_subsExp.start||(_subsExp.start&&_subsExp.end)){
+    _subsExp.start=ds;_subsExp.end=null;_subsExp.hover=null;
+  }else{
+    if(ds<_subsExp.start){_subsExp.end=_subsExp.start;_subsExp.start=ds;}
+    else{_subsExp.end=ds;}
+    _subsExp.hover=null;
+  }
+  _subsExpRender();
+  var fmtInput=function(d){return d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';};
+  var s=document.getElementById('sexp-start');if(s)s.value=fmtInput(_subsExp.start);
+  var e=document.getElementById('sexp-end');if(e)e.value=fmtInput(_subsExp.end);
+}
+
+function _subsExpInput(field,val){
+  var m=val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(m){
+    var ds=m[3]+'-'+m[2]+'-'+m[1];
+    var d=new Date(ds+'T00:00:00');
+    if(!isNaN(d)){
+      _subsExp[field]=ds;
+      _subsExp.calYear=d.getFullYear();
+      _subsExp.calMonth=d.getMonth();
+      _subsExpRender();
+    }
+  }
+}
+
+function doExportSubs(format){
+  var s=_subsExp.start,e=_subsExp.end;
+  if(!s||!e){alert('Selecione o período de início e fim.');return;}
+  if(s>e){alert('A data de início deve ser anterior à data de fim.');return;}
+  var rows=[];
+  var cur=new Date(s+'T00:00:00');
+  var endD=new Date(e+'T00:00:00');
+  while(cur<=endD){
+    var ds=fmt(cur);
+    var mk=ds.slice(0,7);
+    var dayMap=(subsData[mk]||{})[ds];
+    if(dayMap){
+      var absYear=parseInt(ds.slice(0,4)),absMonth=parseInt(ds.slice(5,7))-1;
+      var absences=getMonthAbsences(absYear,absMonth);
+      var dayAbs=absences[ds]||[];
+      dayAbs.forEach(function(a){
+        var sub=dayMap[a.n]||'';
+        rows.push({date:ds,absent:a.n,type:licenseLabel(a.type||'ferias'),sub:sub});
+      });
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  if(!rows.length){alert('Nenhuma substituição registrada no período selecionado.');return;}
+
+  if(format==='xls'){
+    var tbl='<html><head><meta charset="UTF-8"></head><body>';
+    tbl+='<h2 style="font-family:Arial">Substituições — PGM/SP JUD-3</h2>';
+    tbl+='<p style="font-family:Arial">Período: '+fmtBR(s)+' a '+fmtBR(e)+'</p>';
+    tbl+='<table border="1" style="font-family:Arial;border-collapse:collapse;margin-top:8px">';
+    tbl+='<tr><th style="background:#1a1a18;color:#fff;padding:6px 10px">Data</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Ausente</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Tipo de ausência</th>';
+    tbl+='<th style="background:#1a1a18;color:#fff;padding:6px 10px">Substituto</th></tr>';
+    rows.forEach(function(r){
+      tbl+='<tr><td style="padding:5px 10px">'+fmtBR(r.date)+'</td>';
+      tbl+='<td style="padding:5px 10px">'+r.absent+'</td>';
+      tbl+='<td style="padding:5px 10px">'+r.type+'</td>';
+      tbl+='<td style="padding:5px 10px">'+(r.sub||'—')+'</td></tr>';
+    });
+    tbl+='</table></body></html>';
+    var blob=new Blob([tbl],{type:'application/vnd.ms-excel;charset=utf-8'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='substituicoes_jud3_'+s+'_'+e+'.xls';a.click();
+  }else{
+    var lines=['"Substituições - PGM/SP JUD-3"','"Período: '+fmtBR(s)+' a '+fmtBR(e)+'"',''];
+    lines.push('"Data";"Ausente";"Tipo de ausência";"Substituto"');
+    rows.forEach(function(r){
+      lines.push('"'+fmtBR(r.date)+'";"'+r.absent+'";"'+r.type+'";"'+(r.sub||'—')+'"');
+    });
+    var csv=lines.join('\n');
+    var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='substituicoes_jud3_'+s+'_'+e+'.csv';a.click();
+  }
+}
+
 
 // ── Calendar ───────────────────────────────────────────────────────────────────
 function selectDay(ds){
