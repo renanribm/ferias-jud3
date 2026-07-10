@@ -2257,7 +2257,7 @@ function showExportModal(){
 }
 
 // ── Substituições export date-range picker ──────────────────────────────────
-var _subsExp={start:null,end:null,hover:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
+var _subsExp={start:null,end:null,hover:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth(),calOpen:false};
 
 function _subsExpInit(){
   var now=new Date();
@@ -2266,30 +2266,55 @@ function _subsExpInit(){
   _subsExp.hover=null;
   _subsExp.calYear=now.getFullYear();
   _subsExp.calMonth=now.getMonth();
+  _subsExp.calOpen=false;
   _subsExpRender();
+  setTimeout(function(){
+    document.addEventListener('mousedown',function _sExpOutside(e){
+      var el=document.getElementById('subs-exp-range');
+      if(el&&!el.contains(e.target)){_subsExp.calOpen=false;_subsExpRenderCal();}
+      else if(!el){document.removeEventListener('mousedown',_sExpOutside);}
+    });
+  },0);
 }
 
 function _subsExpRender(){
   var el=document.getElementById('subs-exp-range');
   if(!el)return;
+  var fmtInput=function(ds){return ds?ds.slice(8,10)+'/'+ds.slice(5,7)+'/'+ds.slice(0,4):'';};
+  var inputStyle='width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text);cursor:pointer';
+  el.innerHTML=
+    '<div style="position:relative;margin-bottom:12px">'+
+    '<div style="display:flex;align-items:center;gap:8px">'+
+    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">De</div>'+
+    '<input type="text" id="sexp-start" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.start)+'" oninput="_subsExpInput(\'start\',this.value)" onfocus="_subsExpOpen(\'start\')" style="'+inputStyle+'"></div>'+
+    '<div style="padding-top:18px;color:var(--text-3)">→</div>'+
+    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Até</div>'+
+    '<input type="text" id="sexp-end" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.end)+'" oninput="_subsExpInput(\'end\',this.value)" onfocus="_subsExpOpen(\'end\')" style="'+inputStyle+'"></div>'+
+    '</div>'+
+    '<div id="sexp-cal" style="display:none;position:absolute;left:0;right:0;top:100%;z-index:200;background:var(--surface);border:1px solid var(--border-md);border-radius:var(--r-sm);box-shadow:0 4px 16px rgba(0,0,0,.12);padding:12px;margin-top:4px"></div>'+
+    '</div>';
+  _subsExpRenderCal();
+}
+
+function _subsExpRenderCal(){
+  var cal=document.getElementById('sexp-cal');
+  if(!cal)return;
+  if(!_subsExp.calOpen){cal.style.display='none';return;}
+  cal.style.display='block';
   var y=_subsExp.calYear,m=_subsExp.calMonth;
   var firstDay=new Date(y,m,1);
-  var lastDay=new Date(y,m+1,0);
   var dowFirst=firstDay.getDay();
   var backDays=dowFirst===0?6:dowFirst-1;
   var start=new Date(firstDay);start.setDate(start.getDate()-backDays);
-
-  // calendar grid
   var days=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-  var grid='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px">';
+  var grid='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">';
   days.forEach(function(d){grid+='<div style="text-align:center;font-size:10px;font-weight:600;color:var(--text-3);padding:3px 0">'+d+'</div>';});
-
   var cur=new Date(start);
   for(var row=0;row<6;row++){
     var hasMonth=false;
-    for(var col=0;col<7;col++){if(cur.getMonth()===m)hasMonth=true;cur.setDate(cur.getDate()+1);}
+    var tmp=new Date(cur);
+    for(var col=0;col<7;col++){if(tmp.getMonth()===m)hasMonth=true;tmp.setDate(tmp.getDate()+1);}
     if(!hasMonth)break;
-    cur=new Date(start);cur.setDate(cur.getDate()+row*7);
     for(var c=0;c<7;c++){
       var ds=fmt(cur);
       var inMonth=cur.getMonth()===m;
@@ -2302,42 +2327,36 @@ function _subsExpRender(){
       else if(inRange){bg='#e5e7eb';color='var(--text)';}
       else if(!inMonth){cursor='default';}
       grid+='<div style="text-align:center;font-size:12px;padding:5px 2px;background:'+bg+';color:'+color+';font-weight:'+fw+';border-radius:'+br+';cursor:'+cursor+'"'+
-        (inMonth?' onmouseover="_subsExpHover(\''+ds+'\')" onmouseout="_subsExpHover(null)" onclick="_subsExpClick(\''+ds+'\')"':'')+
+        (inMonth?' onmouseover="_subsExpHover(\''+ds+'\')" onmouseout="_subsExpHover(null)" onmousedown="event.preventDefault();_subsExpClick(\''+ds+'\')"':'')+
         '>'+cur.getDate()+'</div>';
       cur.setDate(cur.getDate()+1);
     }
   }
   grid+='</div>';
-
-  var fmtInput=function(ds){return ds?ds.slice(8,10)+'/'+ds.slice(5,7)+'/'+ds.slice(0,4):'';};
-  var h=
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'+
-    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">De</div>'+
-    '<input type="text" id="sexp-start" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.start)+'" oninput="_subsExpInput(\'start\',this.value)" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text)"></div>'+
-    '<div style="padding-top:18px;color:var(--text-3)">→</div>'+
-    '<div style="flex:1"><div style="font-size:11px;color:var(--text-3);margin-bottom:3px">Até</div>'+
-    '<input type="text" id="sexp-end" placeholder="DD/MM/AAAA" maxlength="10" value="'+fmtInput(_subsExp.end)+'" oninput="_subsExpInput(\'end\',this.value)" style="width:100%;box-sizing:border-box;padding:7px 10px;border:1px solid var(--border-md);border-radius:var(--r-sm);font-size:13px;font-family:\'DM Sans\',sans-serif;background:var(--surface);color:var(--text)"></div>'+
-    '</div>'+
-    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px">'+
+  cal.innerHTML=
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-    '<button onclick="_subsExpNav(-1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 6px">&#8592;</button>'+
+    '<button onmousedown="event.preventDefault();_subsExpNav(-1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 8px">&#8592;</button>'+
     '<span style="font-size:13px;font-weight:600">'+MONTHS_PT[m]+' '+y+'</span>'+
-    '<button onclick="_subsExpNav(1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 6px">&#8594;</button>'+
-    '</div>'+
-    grid+
-    '</div>';
-  el.innerHTML=h;
+    '<button onmousedown="event.preventDefault();_subsExpNav(1)" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-2);padding:2px 8px">&#8594;</button>'+
+    '</div>'+grid;
+}
+
+function _subsExpOpen(field){
+  var ref=field==='end'&&_subsExp.end?_subsExp.end:(_subsExp.start||null);
+  if(ref){var d=new Date(ref+'T00:00:00');_subsExp.calYear=d.getFullYear();_subsExp.calMonth=d.getMonth();}
+  _subsExp.calOpen=true;
+  _subsExpRenderCal();
 }
 
 function _subsExpNav(dir){
   _subsExp.calMonth+=dir;
   if(_subsExp.calMonth>11){_subsExp.calMonth=0;_subsExp.calYear++;}
   if(_subsExp.calMonth<0){_subsExp.calMonth=11;_subsExp.calYear--;}
-  _subsExpRender();
+  _subsExpRenderCal();
 }
 
 function _subsExpHover(ds){
-  if(_subsExp.start&&!_subsExp.end){_subsExp.hover=ds;_subsExpRender();}
+  if(_subsExp.start&&!_subsExp.end){_subsExp.hover=ds;_subsExpRenderCal();}
 }
 
 function _subsExpClick(ds){
@@ -2347,23 +2366,24 @@ function _subsExpClick(ds){
     if(ds<_subsExp.start){_subsExp.end=_subsExp.start;_subsExp.start=ds;}
     else{_subsExp.end=ds;}
     _subsExp.hover=null;
+    _subsExp.calOpen=false;
   }
-  _subsExpRender();
-  var fmtInput=function(d){return d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';};
-  var s=document.getElementById('sexp-start');if(s)s.value=fmtInput(_subsExp.start);
-  var e=document.getElementById('sexp-end');if(e)e.value=fmtInput(_subsExp.end);
+  _subsExpRenderCal();
+  var fi=function(d){return d?d.slice(8,10)+'/'+d.slice(5,7)+'/'+d.slice(0,4):'';};
+  var s=document.getElementById('sexp-start');if(s)s.value=fi(_subsExp.start);
+  var e=document.getElementById('sexp-end');if(e)e.value=fi(_subsExp.end);
 }
 
 function _subsExpInput(field,val){
-  var m=val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(m){
-    var ds=m[3]+'-'+m[2]+'-'+m[1];
+  var match=val.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(match){
+    var ds=match[3]+'-'+match[2]+'-'+match[1];
     var d=new Date(ds+'T00:00:00');
     if(!isNaN(d)){
       _subsExp[field]=ds;
       _subsExp.calYear=d.getFullYear();
       _subsExp.calMonth=d.getMonth();
-      _subsExpRender();
+      _subsExpRenderCal();
     }
   }
 }
