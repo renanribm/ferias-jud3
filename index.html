@@ -1043,8 +1043,10 @@ function buildSubsView(year,month){
     h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
     h+='<button class="btn sm danger" onclick="clearSubsMonth('+year+','+month+')">Limpar</button>';
   }
-  h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Versão para impressão</button>';
   h+='</div>';
+  h+='</div>';
+  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">';
+  h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Versão para impressão</button>';
   h+='</div>';
   // Info substituto fixo do chefe
   var chefeN=getChefe();
