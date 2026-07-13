@@ -981,26 +981,42 @@ window.changeFabianaSub=function(year,month){
 };
 window.generateSubs=function(year,month){
   if(!isMaster())return;
-  var chefeN=getChefe();
-  var absences=getMonthAbsences(year,month);
-  var fabAbsent=false;
-  Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n===chefeN;}))fabAbsent=true;});
-  var crossData=getCrossMonthData(year,month);
-  function doGenerate(fabianaSub,startingPoints){
-    generateSubsMonth(year,month,fabianaSub,startingPoints);render();showToast('✓ Tabela gerada');
-  }
-  function afterStartingPoints(startingPoints){
-    if(fabAbsent){showFabianaSubModal(year,month,function(fab){doGenerate(fab,startingPoints);});}
-    else{doGenerate(null,startingPoints);}
-  }
-  if(crossData.needsInput.length>0){
+  var monthKey=year+'-'+String(month+1).padStart(2,'0');
+  var existing=subsData[monthKey];
+  var hasExisting=existing&&Object.keys(existing).some(function(k){return /^\d{4}-\d{2}-\d{2}$/.test(k);});
+  function proceed(){
+    var chefeN=getChefe();
+    var absences=getMonthAbsences(year,month);
+    var fabAbsent=false;
+    Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n===chefeN;}))fabAbsent=true;});
+    var crossData=getCrossMonthData(year,month);
+    function doGenerate(fabianaSub,startingPoints){
+      generateSubsMonth(year,month,fabianaSub,startingPoints);render();showToast('✓ Tabela gerada');
+    }
+    function afterStartingPoints(startingPoints){
+      if(fabAbsent){showFabianaSubModal(year,month,function(fab){doGenerate(fab,startingPoints);});}
+      else{doGenerate(null,startingPoints);}
+    }
+    if(crossData.needsInput.length>0){
     var prevMo=month>0?month-1:11;var prevYr=month>0?year:year-1;
     showStartingPointsModal(crossData.needsInput,function(inputs){
       var sp=Object.assign({},crossData.auto,inputs);
       afterStartingPoints(sp);
     },prevYr,prevMo);
+    }else{
+      afterStartingPoints(crossData.auto);
+    }
+  }
+  if(hasExisting){
+    window._proceedGenerate=proceed;
+    openModal(
+      '<h3>Regerar tabela</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">A tabela de substituições de <strong>'+MONTHS_PT[month]+' '+year+'</strong> já está preenchida. Regerar irá recalcular todas as atribuições automáticas. Substituições definidas manualmente serão preservadas.</p>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn primary" onclick="closeModal();window._proceedGenerate()">Regerar</button></div>'
+    );
   }else{
-    afterStartingPoints(crossData.auto);
+    proceed();
   }
 };
 
