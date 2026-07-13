@@ -1649,6 +1649,7 @@ function openTallModal(bodyHtml, footerHtml, width){
 }
 function closeModal(){if(_modal){_modal.remove();_modal=null;}}
 function showTip(el){document.querySelectorAll('[data-tip].tip-active').forEach(function(e){e.classList.remove('tip-active');});el.classList.add('tip-active');setTimeout(function(){el.classList.remove('tip-active');},2000);}
+document.addEventListener('click',function(e){if(!e.target.closest('[data-tip]')){document.querySelectorAll('[data-tip].tip-active').forEach(function(e){e.classList.remove('tip-active');});}});
 
 // ── Password toggle ────────────────────────────────────────────────────────────
 function togglePwd(inputId,btn){
