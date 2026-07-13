@@ -3055,7 +3055,7 @@ function buildPanel(year){
       function todayEvLine(label,arr){
         if(!arr.length)return;
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">'+label+':</span> ';
-        h+=arr.map(function(e){var lbl=e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias';return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
+        h+=arr.map(function(e){var lbl=e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias';return '<span class="next-ev"><a href="#" onclick="event.preventDefault();showAbsenceModal(\''+e.n+'\',\''+e.start+'\')" style="color:var(--text);font-weight:700;text-decoration:underline;text-decoration-color:var(--border-md)">'+e.n+'</a> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       todayEvLine('Retorna',returnsToday);
