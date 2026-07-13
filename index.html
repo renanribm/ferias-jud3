@@ -2946,8 +2946,7 @@ function buildPanel(year){
 
       if(v.s===todayStr){if(isLicense(v))licToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});else startsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
       if(v.s>todayStr&&v.s<=windowEndStr&&!seen.starts[v.n+v.s]){seen.starts[v.n+v.s]=true;if(isLicense(v))licEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});else startsEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});}
-      var retD=new Date(vEndStr+'T00:00:00');retD.setDate(retD.getDate()+1);
-      if(fmt(retD)===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr});
+      if(nextWorkDay(vEndStr)===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});
 
       // Saída da distribuição — férias (7 dias antes), licenças (a partir do 1º dia)
       var distD=new Date(vStartD);if(!isLicense(v))distD.setDate(distD.getDate()-7);
@@ -3160,6 +3159,13 @@ function isWorkDayForBanca(ds){
   return true;
 }
 
+function nextWorkDay(ds){
+  var d=new Date(ds+'T00:00:00');
+  d.setDate(d.getDate()+1);
+  var next=fmt(d);
+  while(!isWorkDayForBanca(next)){d.setDate(d.getDate()+1);next=fmt(d);}
+  return next;
+}
 function subtractWorkDays(startDs,n){
   var ds=startDs;
   var count=0;
