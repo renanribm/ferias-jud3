@@ -1325,8 +1325,8 @@ function diffSnapshots(curr, prev){
 
 function showHistoryModal(){
   openTallModal(
-    '<h3>Histórico de versões</h3><div id="hist-body" style="font-size:13px;color:var(--text-3);padding:8px 0">Carregando...</div>',
-    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button></div>'
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0">Histórico de versões</h3><button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button></div><div id="hist-body" style="font-size:13px;color:var(--text-3);padding:8px 0">Carregando...</div>',
+    ''
   );
   _histRef.get().then(function(snap){
     var el=document.getElementById('hist-body');if(!el)return;
@@ -1949,16 +1949,17 @@ function showPersonVacs(person){
   var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
   var daysLabel='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--surface2);color:'+daysColor+'">'+daysUsed+' / '+VAC_LIMIT+' dias em '+curYear+'</span>';
   var bodyHtml=
-    '<h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+    '<h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0">'+
     '<span style="display:flex;align-items:center;gap:8px">'+
     '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+'</span>'+
     daysLabel+'</h3>'+
+    '<button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button>'+
+    '</div>'+
     (!canEdit?'<div style="background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--text-3);margin-bottom:12px">Você está visualizando as férias de '+person+'. Apenas '+person+' pode editar seus próprios períodos.</div>':'')+
     '<div class="vac-list">'+items+'</div>';
   var footerHtml=
-    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">'+
-    '<div style="display:flex;gap:6px">'+addBtn+(canEdit?testBtn:'')+'</div>'+
-    '<button class="btn" onclick="closeModal()">Fechar</button></div>';
+    '<div style="display:flex;gap:6px">'+addBtn+(canEdit?testBtn:'')+'</div>';
   openTallModal(bodyHtml, footerHtml);
 }
 
@@ -2041,10 +2042,8 @@ function showPeopleManager(){
         '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
         '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
     }).join('')+'</div>':'';
-  var bodyHtml='<h3>Gerenciar procuradores</h3><div class="vac-list">'+listActive+listInactive+'</div>';
-  var footerHtml=
-    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
-    '<button class="btn primary" onclick="showAddPerson()">+ Adicionar</button></div>';
+  var bodyHtml='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0">Gerenciar procuradores</h3><button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button></div><div class="vac-list">'+listActive+listInactive+'</div>';
+  var footerHtml='<div class="mbtns"><button class="btn primary" onclick="showAddPerson()">+ Adicionar</button></div>';
   openTallModal(bodyHtml, footerHtml, 660);
 }
 
@@ -2221,7 +2220,7 @@ function showExportModal(){
     recYearOpts+='<option value="'+y+'"'+(y===curRecessoYear?' selected':'')+'>'+y+(rCount>0?' ('+rCount+' indicações)':' (sem dados)')+' </option>';
   });
   openModal(
-    '<h3>Exportar dados</h3>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0">Exportar dados</h3><button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button></div>'+
 
     '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:10px">Férias</div>'+
     '<p style="font-size:13px;color:var(--text-2);margin-bottom:12px">Exporta os períodos de férias por procurador.</p>'+
@@ -2251,9 +2250,7 @@ function showExportModal(){
     '<button class="btn export" onclick="doExportSubs(\'xls\')">&#8595; Excel</button>'+
     '</div>'+
 
-    '<div class="mbtns" style="justify-content:flex-end;margin-top:16px">'+
-    '<button class="btn" onclick="closeModal()">Fechar</button>'+
-    '</div>'
+    ''
   );
   _subsExpInit();
 }
@@ -2776,7 +2773,7 @@ function recessoChangePerson(personName){
 function showEditGroupsModal(year){
   var choices=recessoChoices[year]||{};
   var active=activePeopleForYear(year);
-  var h='<h3>Editar equipes — '+year+'</h3>';
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0">Editar equipes — '+year+'</h3><button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button></div>';
   h+='<div style="font-size:12px;color:var(--text-2);margin-bottom:12px">Clique em <em>Alterar</em> para mover um procurador de equipe.</div>';
   h+='<div style="display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto">';
   active.forEach(function(p){
@@ -2790,7 +2787,6 @@ function showEditGroupsModal(year){
     h+='</div></div>';
   });
   h+='</div>';
-  h+='<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button></div>';
   openModal(h);
 }
 function showRecessoDatesModal(year){
@@ -3204,15 +3200,14 @@ function showCustomHolidaysModal(){
   }).join(''):'<div style="font-size:13px;color:var(--text-3);padding:8px 0">Nenhum feriado customizado cadastrado.</div>';
   var typeOpts='<option value="holiday">Feriado</option><option value="optional">Ponto facultativo</option><option value="suspended">Suspensão de expediente</option>';
   openTallModal(
-    '<h3>Feriados customizados</h3>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0">Feriados customizados</h3><button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button></div>'+
     '<p style="font-size:12px;color:var(--text-3);margin:-4px 0 12px;line-height:1.6">Datas específicas da unidade que não constam no calendário automático.</p>'+
     '<div class="vac-list">'+list+'</div>'+
     '<hr class="divider">'+
     '<div class="field"><label>Data</label><input type="date" id="ch-date"></div>'+
     '<div class="field"><label>Descrição</label><input type="text" id="ch-label" placeholder="Ex: Corpus Christi"></div>'+
     '<div class="field"><label>Tipo</label><select id="ch-type">'+typeOpts+'</select></div>',
-    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button>'+
-    '<button class="btn primary" onclick="addCustomHoliday()">Adicionar</button></div>'
+    '<div class="mbtns"><button class="btn primary" onclick="addCustomHoliday()">Adicionar</button></div>'
   );
 }
 window.removeCustomHoliday=function(date){
@@ -3526,15 +3521,17 @@ function _setReturnPerson(p){
 function showGanttBar(person, vacStart, vacDays, year, month){
   var endDate=fmt(addDays(vacStart,vacDays-1));
   openModal(
-    '<h3 style="display:flex;align-items:center;gap:8px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
+    '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:0">'+
     '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block;flex-shrink:0"></span>'+
     person+'</h3>'+
+    '<button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button>'+
+    '</div>'+
     '<div style="margin:12px 0;font-size:13px;color:var(--text-2)">'+
     '<div style="margin-bottom:6px">&#128197; '+fmtBR(vacStart)+' &rarr; '+fmtBR(endDate)+'</div>'+
     '<div style="color:var(--text-3)">'+vacDays+' dias</div>'+
     '</div>'+
-    '<div class="mbtns" style="justify-content:space-between">'+
-    '<button class="btn" onclick="closeModal()">Fechar</button>'+
+    '<div class="mbtns">'+
     '<button class="btn primary" onclick="closeModal();goToCalendarDate('+year+','+month+',\''+vacStart+'\','+vacDays+')">Ver no calendário</button>'+
     '</div>'
   );
