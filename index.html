@@ -3074,7 +3074,7 @@ function buildPanel(year){
       function nextEvLine(label,arr){
         if(!arr.length)return;
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">'+label+':</span> ';
-        h+=arr.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span></span>';}).join('');
+        h+=arr.map(function(e){return '<span class="next-ev"><a href="#" onclick="event.preventDefault();showAbsenceModal(\''+e.n+'\',\''+e.start+'\')" style="color:var(--text);font-weight:700;text-decoration:underline;text-decoration-color:var(--border-md)">'+e.n+'</a> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span></span>';}).join('');
         h+='</div>';
       }
       nextEvLine('Sai da distribuição',distEvents);
