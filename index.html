@@ -1213,6 +1213,7 @@ window.printSubs=function(year,month){
         var sub=da[absent.n]||'—';
         rows+='<div style="font-size:10px;margin-bottom:3px"><span style="color:#999">'+absent.n+'</span> → <strong>'+sub+'</strong></div>';
       });
+      if(!isOff&&abs.length===0)rows+='<div style="font-size:10px;color:#888;font-style:italic;line-height:1.3">Sem ausências registradas</div>';
       rows+='</td>';
     });
     rows+='</tr>';
