@@ -198,6 +198,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .pwd-toggle:hover{color:var(--text-2)}
 .op-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
 .people-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.print-btn-mobile{display:none}
 .next-ev+.next-ev::before{content:' \00B7  '}
 .next-ev{display:inline}
 [data-tip]{position:relative}
@@ -211,6 +212,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .welcome-banner-actions{width:100%;justify-content:center}
   .people-header{flex-direction:column;align-items:flex-start;gap:8px}
   .people-header>div{align-self:flex-end}
+  .print-btn-desktop{display:none}
+  .print-btn-mobile{display:inline-flex}
   .cal-head span{font-size:8px;padding:5px 0}
   .day{padding:3px 3px 2px;min-height:54px}
   .dn{font-size:10px;width:18px;height:18px}
@@ -1035,6 +1038,7 @@ function buildSubsView(year,month){
   h+='<button class="btn sm" onclick="subsMonth--;if(subsMonth<0){subsMonth=11;subsYear--;}render()">&#8592;</button>';
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
+  h+='<button class="btn sm print-btn-mobile" onclick="printSubs('+year+','+month+')" title="Versão para impressão">&#128424;</button>';
   var _subsNotToday=(year!==new Date().getFullYear()||month!==new Date().getMonth());
   if(_subsNotToday)h+='<button class="btn sm" style="margin-left:6px;white-space:nowrap" onclick="subsYear=new Date().getFullYear();subsMonth=new Date().getMonth();render()">Hoje</button>';
   h+='</div>';
@@ -1045,7 +1049,7 @@ function buildSubsView(year,month){
   }
   h+='</div>';
   h+='</div>';
-  h+='<div style="display:flex;justify-content:flex-end;margin-bottom:12px">';
+  h+='<div class="print-btn-desktop" style="display:flex;justify-content:flex-end;margin-bottom:12px">';
   h+='<button class="btn sm" onclick="printSubs('+year+','+month+')">&#128424; Versão para impressão</button>';
   h+='</div>';
   // Info substituto fixo do chefe
