@@ -892,7 +892,7 @@ window.clearSubsMonth=function(year,month){
   openModal('<h3>Limpar tabela</h3>'+
     '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Remover todas as substituições de <strong>'+MONTHS_PT[month]+' '+year+'</strong>?</p>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-    '<button class="btn danger" onclick="closeModal();adminConfirm(function(){delete subsData[\''+mk+'\'];saveSubs();render();showToast(\'✓ Tabela limpa\');})">Limpar</button></div>'
+    '<button class="btn danger" onclick="closeModal();delete subsData[\''+mk+'\'];saveSubs();render();showToast(\'✓ Tabela limpa\')">Limpar</button></div>'
   );
 };
 function getFabianaCrossMonthSub(year,month){
