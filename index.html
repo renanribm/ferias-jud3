@@ -2369,7 +2369,7 @@ function showAbsenceModal(name, ds){
   var typeBg=lic?'#eff6ff':'var(--green-bg)';
   var typeBorder=lic?'#bfdbfe':'#a7d7b8';
   var endStr=fmt(addDays(v.s,v.d-1));
-  var canEdit=lic?isMaster():canEditVac(name);
+  var canEdit=isMaster();
   var bodyHtml=
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
     '<h3 style="display:flex;align-items:center;gap:8px;margin-bottom:0">'+
@@ -2388,7 +2388,7 @@ function showAbsenceModal(name, ds){
       '<button class="btn danger" onclick="'+(lic?'removeLicense('+idx+',\''+name+'\')':'removeVac('+idx+',\''+name+'\')')+'">Remover</button>'
     :'')+
     '</div>';
-  openTallModal(bodyHtml, footerHtml);
+  openTallModal(bodyHtml, footerHtml, 360);
 }
 
 function selectDay(ds){
