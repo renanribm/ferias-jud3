@@ -1239,7 +1239,7 @@ window.printSubs=function(year,month){
   var summary=summaryLines.length?
     '<div style="margin-top:24px;border-top:1px solid #ddd;padding-top:16px">'+
     '<p style="font-size:12px;font-weight:600;margin-bottom:8px">Ausências em '+MONTHS_PT[month]+' '+year+'</p>'+
-    summaryLines.map(function(l){return '<p style="font-size:11px;margin:3px 0">'+l+'</p>';}).join('')+
+    summaryLines.map(function(l){return '<p style="font-size:12px;margin:3px 0">'+l+'</p>';}).join('')+
     '</div>':'';
   var colStyle='th{background:#e8e8e8;font-weight:600;padding:8px;text-align:center;font-size:12px;width:20%}';
   var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Substituições JUD-3 — '+MONTHS_PT[month]+' '+year+'</title>'+
