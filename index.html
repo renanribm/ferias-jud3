@@ -971,7 +971,7 @@ window.changeFabianaSub=function(year,month){
     '&#9888; Alterar o substituto de Fabiana recalculará toda a tabela de <strong>'+MONTHS_PT[month]+'</strong>. Os ajustes manuais serão preservados.</div>'+
     '<div class="field"><label>Novo substituto</label><select id="_fab-alt-sel">'+opts+'</select></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-    '<button class="btn primary" onclick="var _v=document.getElementById(\'_fab-alt-sel\').value;closeModal();window._changeFabCb(_v)">Alterar e Regerar</button></div>'
+    '<button class="btn primary" onclick="var _v=document.getElementById(\'_fab-alt-sel\').value;closeModal();window._changeFabCb(_v)">Alterar e Gerar novamente</button></div>'
   );
   window._changeFabCb=function(newFab){
     var crossData=getCrossMonthData(year,month);
@@ -1010,10 +1010,10 @@ window.generateSubs=function(year,month){
   if(hasExisting){
     window._proceedGenerate=proceed;
     openModal(
-      '<h3>Regerar tabela</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">A tabela de substituições de <strong>'+MONTHS_PT[month]+' '+year+'</strong> já está preenchida. Regerar irá recalcular todas as atribuições automáticas. Substituições definidas manualmente serão preservadas.</p>'+
+      '<h3>Gerar novamente tabela</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">A tabela de substituições de <strong>'+MONTHS_PT[month]+' '+year+'</strong> já está preenchida. Gerar novamente irá recalcular todas as atribuições automáticas. Substituições definidas manualmente serão preservadas.</p>'+
       '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn primary" onclick="closeModal();window._proceedGenerate()">Regerar</button></div>'
+      '<button class="btn primary" onclick="closeModal();window._proceedGenerate()">Gerar novamente</button></div>'
     );
   }else{
     proceed();
