@@ -892,7 +892,7 @@ window.clearSubsMonth=function(year,month){
   openModal('<h3>Limpar tabela</h3>'+
     '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Remover todas as substituições de <strong>'+MONTHS_PT[month]+' '+year+'</strong>?</p>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
-    '<button class="btn danger" onclick="closeModal();delete subsData[\''+mk+'\'];saveSubs();render();showToast(\'✓ Tabela limpa\')">Limpar</button></div>'
+    '<button class="btn danger" onclick="closeModal();adminConfirm(function(){delete subsData[\''+mk+'\'];saveSubs();render();showToast(\'✓ Tabela limpa\');})">Limpar</button></div>'
   );
 };
 function getFabianaCrossMonthSub(year,month){
@@ -2824,7 +2824,7 @@ function saveRecessoDatesConfirm(year){
   // limpa campos de texto antigos para evitar exibição inconsistente
   delete recessoDates[year].natal;
   delete recessoDates[year].ano_novo;
-  closeModal();saveRecesso();render();
+  closeModal();adminConfirm(function(){saveRecesso();render();});
 }
 function recessoDateLabel(s,e,fallback){
   if(s&&e)return fmtBR(s).slice(0,5)+' a '+fmtBR(e).slice(0,5);
@@ -3213,8 +3213,10 @@ function showCustomHolidaysModal(){
   );
 }
 window.removeCustomHoliday=function(date){
-  customHolidays=customHolidays.filter(function(h){return h.date!==date;});
-  saveConfig();render();showCustomHolidaysModal();
+  adminConfirm(function(){
+    customHolidays=customHolidays.filter(function(h){return h.date!==date;});
+    saveConfig();render();showCustomHolidaysModal();
+  });
 };
 function addCustomHoliday(){
   var date=document.getElementById('ch-date').value;
@@ -3222,9 +3224,11 @@ function addCustomHoliday(){
   var type=document.getElementById('ch-type').value;
   if(!date||!label){alert('Preencha todos os campos.');return;}
   if(customHolidays.find(function(h){return h.date===date;})){alert('Esta data já está cadastrada.');return;}
-  customHolidays.push({date:date,label:label,type:type});
-  customHolidays.sort(function(a,b){return a.date.localeCompare(b.date);});
-  saveConfig();render();showCustomHolidaysModal();
+  adminConfirm(function(){
+    customHolidays.push({date:date,label:label,type:type});
+    customHolidays.sort(function(a,b){return a.date.localeCompare(b.date);});
+    saveConfig();render();showCustomHolidaysModal();
+  });
 }
 function _configCard(title,sub,btnLabel,action){
   return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px">'+
