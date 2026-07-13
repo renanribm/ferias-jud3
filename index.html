@@ -1722,13 +1722,16 @@ function goToMyVacations(){
       '</div>';
   }).join('');
   openTallModal(
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:2px">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">'+
+    '<div style="display:flex;align-items:center;gap:10px">'+
     '<div style="width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:500;flex-shrink:0">'+initials+'</div>'+
     '<div><div style="font-size:15px;font-weight:600">Minhas férias</div>'+
     '<div style="font-size:12px;color:var(--text-3)">'+user+' &mdash; selecione o ano</div></div>'+
     '</div>'+
+    '<button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button>'+
+    '</div>'+
     '<div style="margin:14px -24px 0;border-top:0.5px solid var(--border)">'+rows+'</div>',
-    '<div class="mbtns"><button class="btn" onclick="closeModal()">Fechar</button></div>'
+    ''
   );
   window._openYearVacs=function(year){
     curYear=year;
@@ -2089,7 +2092,7 @@ function editPerson(name){
     '<input type="text" value="'+name+'" disabled style="opacity:.5;text-transform:uppercase"></div>'+
     '<div class="field"><label>Nome completo</label>'+
     '<input type="text" id="ep-fullname" value="'+curFull+'" placeholder="" style="text-transform:uppercase"></div>'+
-    '<div style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ep-chefia"'+(isChefia?' checked':'')+' style="width:auto;cursor:pointer"><label for="ep-chefia" style="display:inline;font-size:12px;color:var(--text-2);font-weight:400;margin:0;cursor:pointer">Chefe da unidade</label></div>'+
+    '<div style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><input type="checkbox" id="ep-chefia"'+(isChefia?' checked':'')+' style="width:auto;cursor:pointer"><label for="ep-chefia" style="display:inline;font-size:12px;color:var(--text-2);font-weight:400;margin:0;cursor:pointer">Chefia da unidade</label></div>'+
     '<div class="mbtns"><button class="btn" onclick="closeModal();showPeopleManager()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmEditPerson(\''+name.replace(/'/g,"\\'")+'\')" >Salvar</button></div>');
 }
