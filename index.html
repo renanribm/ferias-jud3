@@ -1117,7 +1117,7 @@ function buildSubsView(year,month){
             avail.forEach(function(n){h+='<option value="'+n+'"'+(curSub===n?' selected':'')+'>'+n+'</option>';});
             h+='</select>';
             if(hasCon)h+='<span style="font-size:10px;color:var(--red);flex-shrink:0">⚠</span>';
-            else if(curSub){h+='<span style="font-size:10px;color:#16a34a;flex-shrink:0">✓</span>';if(isMan)h+='<span style="font-size:10px;color:var(--text-3);flex-shrink:0">✎</span>';}
+            else if(curSub){h+='<span style="font-size:10px;color:#16a34a;flex-shrink:0">✓</span>';if(isMan)h+='<span style="font-size:10px;color:var(--text-3);flex-shrink:0" title="Definido manualmente">✎</span>';}
             h+='</div>';
           }
         }else{
@@ -1174,7 +1174,7 @@ function buildSubsView(year,month){
         }
       }else{
         h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
-        if(isManual&&currentSub)h+='<span style="font-size:10px;color:var(--text-3)">&#9998;</span>';
+        if(isManual&&currentSub)h+='<span style="font-size:10px;color:var(--text-3)" title="Definido manualmente">&#9998;</span>';
       }
       h+='</div>';
       if(hasConflict){
