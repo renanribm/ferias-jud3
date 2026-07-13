@@ -3060,10 +3060,10 @@ function buildPanel(year){
         h+='</div>';
       }
       todayEvLine('Retorna',returnsToday);
-      todayEvLine('Inicia férias',startsToday);
-      todayEvLine('Inicia licença',licToday);
       todayEvLine('Sai da distribuição',distToday);
       todayEvLine('Banca começa a rodar',bancaToday);
+      todayEvLine('Inicia férias',startsToday);
+      todayEvLine('Inicia licença',licToday);
       h+='</div>';
     }
 
@@ -3075,13 +3075,13 @@ function buildPanel(year){
       function nextEvLine(label,arr){
         if(!arr.length)return;
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">'+label+':</span> ';
-        h+=arr.map(function(e){var lbl=e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias';return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
+        h+=arr.map(function(e){return '<span class="next-ev"><strong>'+e.n+'</strong> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span></span>';}).join('');
         h+='</div>';
       }
-      nextEvLine('Inicia férias',startsEvents);
-      nextEvLine('Inicia licença',licEvents);
       nextEvLine('Sai da distribuição',distEvents);
       nextEvLine('Banca começa a rodar',bancaEvents);
+      nextEvLine('Inicia férias',startsEvents);
+      nextEvLine('Inicia licença',licEvents);
       h+='</div>';
     }
 
