@@ -2934,9 +2934,9 @@ function buildPanel(year){
     var onVacToday=dm[todayStr]||[];
     var allAbsToday=buildAllAbsenceMap(year)[todayStr]||[];
     var recToday=(buildRecessoDayMap(year)[todayStr]||[]).concat(buildRecessoDayMap(year-1)[todayStr]||[]);
-    var foraDistNow=[],bancaNow=[],startsToday=[],returnsToday=[];
+    var foraDistNow=[],bancaNow=[],startsToday=[],licToday=[],returnsToday=[];
     var distToday=[],bancaToday=[];
-    var distEvents=[],bancaEvents=[],startsEvents=[];
+    var distEvents=[],bancaEvents=[],startsEvents=[],licEvents=[];
     var seen={dist:{},banca:{},starts:{}};
 
     vacations.forEach(function(v){
@@ -2944,8 +2944,8 @@ function buildPanel(year){
       var vEndD=new Date(vEndStr+'T00:00:00');
       var vStartD=new Date(v.s+'T00:00:00');
 
-      if(v.s===todayStr)startsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});
-      if(v.s>todayStr&&v.s<=windowEndStr&&!seen.starts[v.n+v.s]){seen.starts[v.n+v.s]=true;startsEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});}
+      if(v.s===todayStr){if(isLicense(v))licToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});else startsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
+      if(v.s>todayStr&&v.s<=windowEndStr&&!seen.starts[v.n+v.s]){seen.starts[v.n+v.s]=true;if(isLicense(v))licEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});else startsEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});}
       var retD=new Date(vEndStr+'T00:00:00');retD.setDate(retD.getDate()+1);
       if(fmt(retD)===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr});
 
@@ -2965,6 +2965,7 @@ function buildPanel(year){
     distEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
     bancaEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
     startsEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
+    licEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
 
     var todayFmt=new Date(todayStr+'T00:00:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
 
@@ -3060,13 +3061,14 @@ function buildPanel(year){
       }
       todayEvLine('Retorna',returnsToday);
       todayEvLine('Inicia férias',startsToday);
+      todayEvLine('Inicia licença',licToday);
       todayEvLine('Sai da distribuição',distToday);
       todayEvLine('Banca começa a rodar',bancaToday);
       h+='</div>';
     }
 
     // Próximos 30 dias
-    var hasNext=startsEvents.length||distEvents.length||bancaEvents.length;
+    var hasNext=startsEvents.length||licEvents.length||distEvents.length||bancaEvents.length;
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
@@ -3077,6 +3079,7 @@ function buildPanel(year){
         h+='</div>';
       }
       nextEvLine('Inicia férias',startsEvents);
+      nextEvLine('Inicia licença',licEvents);
       nextEvLine('Sai da distribuição',distEvents);
       nextEvLine('Banca começa a rodar',bancaEvents);
       h+='</div>';
