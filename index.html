@@ -1622,7 +1622,7 @@ function openTallModal(bodyHtml, footerHtml, width){
   var bg=document.createElement('div');
   bg.className='modal-bg';
   var wStyle=width?'style="width:'+width+'px"':'';
-  bg.innerHTML='<div class="modal" '+wStyle+'><div class="modal-body">'+bodyHtml+'</div><div class="modal-footer">'+footerHtml+'</div></div>';
+  bg.innerHTML='<div class="modal" '+wStyle+'><div class="modal-body">'+bodyHtml+'</div>'+(footerHtml?'<div class="modal-footer">'+footerHtml+'</div>':'')+'</div>';
   bg.addEventListener('click',function(e){if(e.target===bg)closeModal();});
   document.body.appendChild(bg);_modal=bg;
 }
@@ -2382,12 +2382,11 @@ function showAbsenceModal(name, ds){
     '<div class="vac-item" style="flex-direction:column;align-items:stretch;margin-bottom:16px">'+
     '<div class="vac-dates">'+fmtBR(v.s)+' &rarr; '+fmtBR(endStr)+' <span style="color:var(--text-3);font-weight:400">('+v.d+' dias)</span></div>'+
     '</div>';
-  var footerHtml='<div class="mbtns">'+
-    (canEdit?
-      '<button class="btn" onclick="'+(lic?'editLicense('+idx+',\''+name+'\')':'editVac('+idx+',\''+name+'\')')+'">Editar</button>'+
-      '<button class="btn danger" onclick="'+(lic?'removeLicense('+idx+',\''+name+'\')':'removeVac('+idx+',\''+name+'\')')+'">Remover</button>'
-    :'')+
-    '</div>';
+  var footerHtml=canEdit?
+    '<div class="mbtns">'+
+    '<button class="btn" onclick="'+(lic?'editLicense('+idx+',\''+name+'\')':'editVac('+idx+',\''+name+'\')')+'">Editar</button>'+
+    '<button class="btn danger" onclick="'+(lic?'removeLicense('+idx+',\''+name+'\')':'removeVac('+idx+',\''+name+'\')')+'">Remover</button>'+
+    '</div>':'';
   openTallModal(bodyHtml, footerHtml, 360);
 }
 
