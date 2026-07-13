@@ -3425,7 +3425,7 @@ function render(){
         h+='<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">';
         personVacsYear.forEach(function(v){
           var y=parseInt(v.s.slice(0,4)),mo=parseInt(v.s.slice(5,7))-1;
-          var active=y===curYear&&mo===curMonth;
+          var active=calHighlightPeriod&&calHighlightPeriod.s===v.s&&calHighlightPeriod.d===v.d;
           var typeLabel=licenseLabel(v.type);
           var label=typeLabel+': '+fmtBR(v.s).slice(0,5)+' → '+fmtBR(fmt(addDays(v.s,v.d-1))).slice(0,5)+' ('+v.d+' dias)';
           h+='<button class="btn sm'+(active?' primary':'')+'" onclick="calHighlightPeriod={s:\''+v.s+'\',d:'+v.d+'};curYear='+y+';curMonth='+mo+';render()">'+label+'</button>';
