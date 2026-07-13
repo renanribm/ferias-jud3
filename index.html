@@ -202,7 +202,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .next-ev{display:inline}
 [data-tip]{position:relative}
 [data-tip]::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999}
-[data-tip]:hover::after{opacity:1}
+[data-tip]:hover::after,[data-tip].tip-active::after{opacity:1}
 @media(max-width:640px){
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   .op-grid{grid-template-columns:1fr}
@@ -1120,7 +1120,7 @@ function buildSubsView(year,month){
             avail.forEach(function(n){h+='<option value="'+n+'"'+(curSub===n?' selected':'')+'>'+n+'</option>';});
             h+='</select>';
             if(hasCon)h+='<span style="font-size:10px;color:var(--red);flex-shrink:0">⚠</span>';
-            else if(curSub){h+='<span style="font-size:10px;color:#16a34a;flex-shrink:0">✓</span>';if(isMan)h+='<span data-tip="Definido manualmente" style="font-size:10px;color:var(--text-3);flex-shrink:0">✎</span>';}
+            else if(curSub){h+='<span style="font-size:10px;color:#16a34a;flex-shrink:0">✓</span>';if(isMan)h+='<span data-tip="Definido manualmente" onclick="showTip(this)" style="font-size:10px;color:var(--text-3);flex-shrink:0">✎</span>';}
             h+='</div>';
           }
         }else{
@@ -1172,12 +1172,12 @@ function buildSubsView(year,month){
           if(hasConflict)h+='<span style="font-size:11px;color:var(--red)" title="'+currentSub+' também está ausente neste dia">&#9888; conflito</span>';
           else if(currentSub){
             h+='<span style="font-size:11px;color:#16a34a">&#10003;</span>';
-            if(isManual)h+='<span data-tip="Definido manualmente" style="font-size:10px;color:var(--text-3)">&#9998;</span>';
+            if(isManual)h+='<span data-tip="Definido manualmente" onclick="showTip(this)" style="font-size:10px;color:var(--text-3)">&#9998;</span>';
           }
         }
       }else{
         h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
-        if(isManual&&currentSub)h+='<span data-tip="Definido manualmente" style="font-size:10px;color:var(--text-3)">&#9998;</span>';
+        if(isManual&&currentSub)h+='<span data-tip="Definido manualmente" onclick="showTip(this)" style="font-size:10px;color:var(--text-3)">&#9998;</span>';
       }
       h+='</div>';
       if(hasConflict){
@@ -1646,6 +1646,7 @@ function openTallModal(bodyHtml, footerHtml, width){
   document.body.appendChild(bg);_modal=bg;
 }
 function closeModal(){if(_modal){_modal.remove();_modal=null;}}
+function showTip(el){document.querySelectorAll('[data-tip].tip-active').forEach(function(e){e.classList.remove('tip-active');});el.classList.add('tip-active');setTimeout(function(){el.classList.remove('tip-active');},2000);}
 
 // ── Password toggle ────────────────────────────────────────────────────────────
 function togglePwd(inputId,btn){
