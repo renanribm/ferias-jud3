@@ -213,7 +213,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .people-header{flex-direction:column;align-items:flex-start;gap:8px}
   .people-header>div{align-self:flex-end}
   .print-btn-desktop{display:none!important}
-  .print-btn-mobile{display:inline-flex}
+  .print-btn-mobile{display:inline-flex;margin-left:auto}
+  .subs-header{flex-direction:column;align-items:stretch!important}
+  .subs-header>div{width:100%}
+  .subs-nav-today{margin-left:auto}
   .cal-head span{font-size:8px;padding:5px 0}
   .day{padding:3px 3px 2px;min-height:54px}
   .dn{font-size:10px;width:18px;height:18px}
@@ -1033,15 +1036,15 @@ function buildSubsView(year,month){
   var absences=getMonthAbsences(year,month);
   var days=Object.keys(absences).sort();
   var h='';
-  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">';
+  h+='<div class="subs-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">';
   h+='<div style="display:flex;align-items:center;gap:8px">';
   h+='<button class="btn sm" onclick="subsMonth--;if(subsMonth<0){subsMonth=11;subsYear--;}render()">&#8592;</button>';
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
   var _subsNotToday=(year!==new Date().getFullYear()||month!==new Date().getMonth());
-  if(_subsNotToday)h+='<button class="btn sm" style="margin-left:6px;white-space:nowrap" onclick="subsYear=new Date().getFullYear();subsMonth=new Date().getMonth();render()">Hoje</button>';
+  if(_subsNotToday)h+='<button class="btn sm subs-nav-today" style="white-space:nowrap" onclick="subsYear=new Date().getFullYear();subsMonth=new Date().getMonth();render()">Hoje</button>';
   h+='</div>';
-  h+='<div style="display:flex;gap:6px">';
+  h+='<div style="display:flex;gap:6px;align-items:center">';
   if(isMaster()){
     h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
     h+='<button class="btn sm danger" onclick="clearSubsMonth('+year+','+month+')">Limpar</button>';
