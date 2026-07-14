@@ -199,8 +199,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .op-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
 .people-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .print-btn-mobile{display:none}
-.panel-divider{border-top-color:var(--border-md)!important}
-.panel-divider>div:last-child{margin-bottom:0}
 .next-ev+.next-ev::before{content:' \00B7  '}
 .next-ev{display:inline}
 [data-tip]{position:relative}
@@ -219,7 +217,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
   .logo-text{font-size:13px}
   .panel-subs-day{display:flex;flex-direction:column;gap:4px}
   .panel-subs-sep{display:none}
-  .panel-divider{border-top-color:var(--border)!important}
   .subs-header{flex-direction:column!important;width:fit-content;flex-wrap:nowrap!important}
   .subs-nav-row,.subs-action-row{justify-content:space-between!important;width:100%}
   .cal-head span{font-size:8px;padding:5px 0}
@@ -3070,7 +3067,7 @@ function buildPanel(year){
     var monthKey=todayStr.slice(0,7);
     var todaySubMap=(subsData[monthKey]||{})[todayStr]||{};
     var subsToday=Object.keys(todaySubMap).filter(function(k){return k!=='_m';}).map(function(absent){return {absent:absent,sub:todaySubMap[absent]};}).sort(function(a,b){return a.absent.localeCompare(b.absent);});
-    h+='<div style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px;margin-top:2px" class="panel-divider">';
+    h+='<div style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px;margin-top:2px">';
     h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Substituições do dia</div>';
     if(subsToday.length){
       h+='<div class="panel-subs-day" style="font-size:12px">';
@@ -3087,7 +3084,7 @@ function buildPanel(year){
     // Hoje
     var hasToday=returnsToday.length||startsToday.length||distToday.length||bancaToday.length;
     if(hasToday){
-      h+='<div class="panel-divider" style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px">';
+      h+='<div style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Hoje</div>';
       function todayEvLine(label,arr){
         if(!arr.length)return;
@@ -3106,7 +3103,7 @@ function buildPanel(year){
     // Próximos 30 dias
     var hasNext=startsEvents.length||licEvents.length||distEvents.length||bancaEvents.length;
     if(hasNext){
-      h+='<div class="panel-divider" style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px">';
+      h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
       function nextEvLine(label,arr){
         if(!arr.length)return;
