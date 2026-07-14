@@ -3333,7 +3333,7 @@ function render(){
   h+='<div class="logo-sub">PGM/SP JUD-3 &middot; '+YEARS[0]+'&ndash;'+YEARS[YEARS.length-1]+'</div></div></div>';
   h+='<div class="topbar-right">';
   h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px">';
-  h+='<span style="font-size:12px;font-weight:500;color:var(--text-2)">'+(currentAdminUser==='ADMIN'?'Administrador':currentAdminUser)+'</span>';
+  h+='<span style="font-size:12px;font-weight:500;color:var(--text-2)">'+currentAdminUser+'</span>';
   h+='<button class="btn sm" style="padding:3px 10px;font-size:11px" onclick="logout()">Sair</button>';
   h+='</div>';
   h+='</div></div>';
