@@ -237,7 +237,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .recesso-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
 @media(max-width:600px){.recesso-cols{grid-template-columns:1fr}}
 .subs-cal-grid{display:none}
-.subs-cal-head{font-size:10px;font-weight:600;text-align:center;color:var(--text-3);padding:4px 0;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);margin-bottom:4px}
+.subs-cal-sticky-header{display:none}
+.subs-cal-head{font-size:10px;font-weight:600;text-align:center;color:var(--text-3);padding:4px 0;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);padding-bottom:6px}
 .subs-cal-cell{background:#f7f6f3;border:1px solid var(--border);border-radius:6px;padding:8px 10px;min-height:82px;box-sizing:border-box}
 .subs-cal-out{background:transparent!important;border-color:transparent!important;min-height:0!important}
 .subs-cal-off{background:#fafaf9!important}
@@ -246,7 +247,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .subs-cal-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:3px}
 .subs-cal-daynum{font-size:12px;font-weight:700;color:var(--text-2);white-space:nowrap;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center}
 .subs-cal-daynum.today{background:var(--accent);color:#fff;border-radius:50%}
-@media(min-width:641px){.subs-cal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}.subs-list{display:none}}
+@media(min-width:641px){.subs-cal-sticky-header{display:grid;grid-template-columns:repeat(5,1fr);gap:0 6px;position:sticky;top:0;z-index:10;background:var(--bg);padding-bottom:4px;margin-bottom:2px}.subs-cal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}.subs-list{display:none}}
 .recesso-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
 .recesso-group-title{font-size:14px;font-weight:600;margin-bottom:3px}
 .recesso-group-dates{font-size:12px;color:var(--text-3);margin-bottom:12px}
@@ -1097,8 +1098,10 @@ function buildSubsView(year,month){
     }
     calCur.setDate(calCur.getDate()+7);
   }
-  h+='<div class="subs-cal-grid">';
+  h+='<div class="subs-cal-sticky-header">';
   DAYS_FULL.forEach(function(d){h+='<div class="subs-cal-head">'+d+'</div>';});
+  h+='</div>';
+  h+='<div class="subs-cal-grid">';
   calWeeks.forEach(function(week){
     week.forEach(function(cell){
       if(!cell.inMonth){h+='<div class="subs-cal-cell subs-cal-out"></div>';return;}
