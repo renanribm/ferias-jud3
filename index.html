@@ -2984,7 +2984,7 @@ function buildPanel(year){
 
       if(v.s===todayStr){if(isLicense(v))licToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});else startsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
       if(v.s>todayStr&&v.s<=windowEndStr&&!seen.starts[v.n+v.s]){seen.starts[v.n+v.s]=true;if(isLicense(v))licEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});else startsEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});}
-      if(nextWorkDay(vEndStr)===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});
+      if(nextWorkDay(vEndStr,v.n,vEndStr.slice(0,4))===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});
 
       // Saída da distribuição — férias (7 dias antes), licenças (a partir do 1º dia)
       var distD=new Date(vStartD);if(!isLicense(v))distD.setDate(distD.getDate()-7);
@@ -3026,7 +3026,7 @@ function buildPanel(year){
           if(vs<=todayD&&todayD<=ve){
             if(isLicense(v))badge='<span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0 5px;border-radius:3px;margin-left:4px">'+licenseLabel(v.type)+'</span>';
             else badge='<span style="font-size:10px;background:var(--green-bg);color:var(--green);border:1px solid #a7d7b8;padding:0 5px;border-radius:3px;margin-left:4px">Férias</span>';
-            var rd=new Date(ve);rd.setDate(rd.getDate()+1);ret=fmtBR(fmt(rd));
+            var veStr=fmt(ve);ret=fmtBR(nextWorkDay(veStr,n,veStr.slice(0,4)));
           }
         });
         return '<div style="font-size:12px;line-height:1.6"><strong>'+n+'</strong>'+badge+(ret?' <span style="color:var(--text-3);font-size:11px">(retorna '+ret+')</span>':'')+'</div>';
@@ -3197,11 +3197,27 @@ function isWorkDayForBanca(ds){
   return true;
 }
 
-function nextWorkDay(ds){
+function getRecessoDaysForPerson(person,year){
+  if(!person||!year)return{};
+  var choices=recessoChoices[year]||{};
+  var dates=recessoDates[year]||{};
+  var choice=choices[person];
+  if(!choice)return{};
+  var s,e;
+  if(choice==='natal'){s=dates.natal_s;e=dates.natal_e;}
+  else if(choice==='ano_novo'){s=dates.ano_novo_s;e=dates.ano_novo_e;}
+  if(!s||!e)return{};
+  var set={};
+  var cur=s;
+  while(cur<=e){set[cur]=true;var d=new Date(cur+'T00:00:00');d.setDate(d.getDate()+1);cur=fmt(d);}
+  return set;
+}
+function nextWorkDay(ds,person,year){
+  var recessDays=(person&&year)?getRecessoDaysForPerson(person,parseInt(year)):{};
   var d=new Date(ds+'T00:00:00');
   d.setDate(d.getDate()+1);
   var next=fmt(d);
-  while(!isWorkDayForBanca(next)){d.setDate(d.getDate()+1);next=fmt(d);}
+  while(!isWorkDayForBanca(next)||recessDays[next]){d.setDate(d.getDate()+1);next=fmt(d);}
   return next;
 }
 function subtractWorkDays(startDs,n){
