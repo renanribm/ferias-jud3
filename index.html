@@ -3085,7 +3085,7 @@ function buildPanel(year){
     // Hoje
     var hasToday=returnsToday.length||startsToday.length||distToday.length||bancaToday.length;
     if(hasToday){
-      h+='<div class="panel-divider" style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px">';
+      h+='<div class="panel-divider" style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:7px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Hoje</div>';
       function todayEvLine(label,arr){
         if(!arr.length)return;
@@ -3104,7 +3104,7 @@ function buildPanel(year){
     // Próximos 30 dias
     var hasNext=startsEvents.length||licEvents.length||distEvents.length||bancaEvents.length;
     if(hasNext){
-      h+='<div class="panel-divider" style="border-top:1px solid var(--border);padding-top:10px">';
+      h+='<div class="panel-divider" style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:7px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
       function nextEvLine(label,arr){
         if(!arr.length)return;
