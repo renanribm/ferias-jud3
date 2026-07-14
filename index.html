@@ -199,7 +199,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .op-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
 .people-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .print-btn-mobile{display:none}
-.next-ev+.next-ev::before{content:'\00B7';display:inline-block;padding:0 8px;font-size:20px;color:var(--text-3);vertical-align:middle}
+.next-ev+.next-ev::before{content:'\2022';display:inline-block;padding:0 8px;font-size:8px;color:var(--text-3);vertical-align:middle}
 .next-ev{display:inline}
 [data-tip]{position:relative}
 [data-tip]::after{content:attr(data-tip);position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:3px 8px;border-radius:4px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999}
@@ -3074,7 +3074,7 @@ function buildPanel(year){
       h+=subsToday.map(function(x){
         var subLabel=x.sub?'<strong>'+x.sub+'</strong>':'<span style="color:var(--amber);font-size:11px">não definido</span>';
         return '<span class="panel-subs-item"><strong>'+x.absent+'</strong> <span style="color:var(--text-3)">&#8594;</span> '+subLabel+'</span>';
-      }).join('<span class="panel-subs-sep" style="color:var(--text-3);padding:0 8px;font-size:20px;vertical-align:middle">&middot;</span>');
+      }).join('<span class="panel-subs-sep" style="color:var(--text-3);padding:0 8px;font-size:8px;vertical-align:middle">&#8226;</span>');
       h+='</div>';
     }else{
       h+='<div style="font-size:12px;color:var(--text-3)">Nenhuma substituição necessária.</div>';
