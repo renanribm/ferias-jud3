@@ -1038,7 +1038,6 @@ function buildSubsView(year,month){
   h+='<button class="btn sm" onclick="subsMonth--;if(subsMonth<0){subsMonth=11;subsYear--;}render()">&#8592;</button>';
   h+='<span style="font-size:15px;font-weight:600;min-width:145px;text-align:center">'+MONTHS_PT[month]+' '+year+'</span>';
   h+='<button class="btn sm" onclick="subsMonth++;if(subsMonth>11){subsMonth=0;subsYear++;}render()">&#8594;</button>';
-  h+='<button class="btn sm print-btn-mobile" onclick="printSubs('+year+','+month+')" title="Versão para impressão">&#128424;</button>';
   var _subsNotToday=(year!==new Date().getFullYear()||month!==new Date().getMonth());
   if(_subsNotToday)h+='<button class="btn sm" style="margin-left:6px;white-space:nowrap" onclick="subsYear=new Date().getFullYear();subsMonth=new Date().getMonth();render()">Hoje</button>';
   h+='</div>';
@@ -1047,6 +1046,7 @@ function buildSubsView(year,month){
     h+='<button class="btn sm primary" onclick="generateSubs('+year+','+month+')">&#9889; Gerar automaticamente</button>';
     h+='<button class="btn sm danger" onclick="clearSubsMonth('+year+','+month+')">Limpar</button>';
   }
+  h+='<button class="btn sm print-btn-mobile" onclick="printSubs('+year+','+month+')" title="Versão para impressão">&#128424;</button>';
   h+='<button class="btn sm print-btn-desktop" onclick="printSubs('+year+','+month+')">&#128424; Versão para impressão</button>';
   h+='</div>';
   h+='</div>';
