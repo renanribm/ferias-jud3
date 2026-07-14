@@ -3019,7 +3019,7 @@ function buildPanel(year){
     if(allPresentToday.length){
       h+=allPresentToday.map(function(n){
         var ret='',badge='';
-        if(recToday.indexOf(n)>=0){badge='<span style="font-size:10px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:0 5px;border-radius:3px;margin-left:4px">Recesso</span>';}
+        if(recToday.indexOf(n)>=0){badge='<span style="font-size:10px;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;padding:0 5px;border-radius:3px;margin-left:4px">Recesso</span>';}
         vacations.forEach(function(v){
           if(v.n!==n)return;
           var vs=new Date(v.s+'T00:00:00'),ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00');
