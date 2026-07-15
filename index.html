@@ -3019,7 +3019,16 @@ function buildPanel(year){
     if(allPresentToday.length){
       h+=allPresentToday.map(function(n){
         var ret='',badge='';
-        if(recToday.indexOf(n)>=0){badge='<span style="font-size:10px;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;padding:0 5px;border-radius:3px;margin-left:4px">Recesso</span>';}
+        if(recToday.indexOf(n)>=0){
+          badge='<span style="font-size:10px;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;padding:0 5px;border-radius:3px;margin-left:4px">Recesso</span>';
+          var recYear=[year,year-1].find(function(y){var c=recessoChoices[y]||{};return c[n];});
+          if(recYear){
+            var choice=(recessoChoices[recYear]||{})[n];
+            var rdates=recessoDates[recYear]||{};
+            var recEnd=choice==='natal'?rdates.natal_e:choice==='ano_novo'?rdates.ano_novo_e:null;
+            if(recEnd)ret=fmtBR(nextWorkDay(recEnd,n,recEnd.slice(0,4)));
+          }
+        }
         vacations.forEach(function(v){
           if(v.n!==n)return;
           var vs=new Date(v.s+'T00:00:00'),ve=new Date(fmt(addDays(v.s,v.d-1))+'T00:00:00');
@@ -3213,7 +3222,12 @@ function getRecessoDaysForPerson(person,year){
   return set;
 }
 function nextWorkDay(ds,person,year){
-  var recessDays=(person&&year)?getRecessoDaysForPerson(person,parseInt(year)):{};
+  var recessDays={};
+  if(person&&year){
+    var yr=parseInt(year);
+    Object.assign(recessDays,getRecessoDaysForPerson(person,yr));
+    Object.assign(recessDays,getRecessoDaysForPerson(person,yr-1));
+  }
   var d=new Date(ds+'T00:00:00');
   d.setDate(d.getDate()+1);
   var next=fmt(d);
