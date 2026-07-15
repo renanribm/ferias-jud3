@@ -2031,7 +2031,16 @@ function confirmEditVac(idx, person){
   var over=false;
   for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
   function doEdit(){vacations[idx]={n:person,s:start,d:days};saveData('✓ Período atualizado');render();showPersonVacs(person);}
-  function _proceed(){closeModal();adminConfirm(doEdit);}
+  function _proceed(){
+    openModal(
+      '<h3>Confirmar edição</h3>'+
+      '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Você está prestes a alterar o período de férias de <strong>'+person+'</strong>. <strong>Esta ação impactará imediatamente o calendário</strong> e sobrescreverá o período atual.</p>'+
+      '<div class="mbtns">'+
+      '<button class="btn" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn danger" onclick="closeModal();adminConfirm(doEdit)">Confirmar edição</button>'+
+      '</div>'
+    );
+  }
   if(over){
     openModal('<h3>Atenção</h3>'+
       '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Este período resulta em mais de <strong>'+LIMIT+'</strong> procuradores ausentes simultaneamente. Confirmar mesmo assim?</p>'+
@@ -2045,7 +2054,7 @@ function removeVac(idx, person){
   if(!canEditVac(person)){showPermissionDenied(person);return;}
   openModal(
     '<h3>Remover período</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Tem certeza que deseja remover este período de férias? Esta ação não pode ser desfeita.</p>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Tem certeza que deseja remover este período de férias? <strong>Esta ação impactará imediatamente o calendário</strong> e não pode ser desfeita.</p>'+
     '<div class="mbtns">'+
     '<button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn danger" onclick="closeModal();_doRemoveVac('+idx+',\''+person+'\')">Remover</button>'+
