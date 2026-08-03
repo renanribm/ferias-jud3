@@ -2032,12 +2032,13 @@ function confirmEditVac(idx, person){
   for(var i=0;i<days;i++){var k=fmt(addDays(start,i));if((tmpMap[k]||[]).length>LIMIT){over=true;break;}}
   function doEdit(){vacations[idx]={n:person,s:start,d:days};saveData('✓ Período atualizado');render();showPersonVacs(person);}
   function _proceed(){
+    window._editVacConfirmCb=doEdit;
     openModal(
       '<h3>Confirmar edição</h3>'+
       '<p style="font-size:13px;color:var(--text-2);margin:10px 0 20px">Você está prestes a alterar o período de férias de <strong>'+person+'</strong>. <strong>Esta ação impactará imediatamente o calendário</strong> e sobrescreverá o período atual.</p>'+
       '<div class="mbtns">'+
       '<button class="btn" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn danger" onclick="closeModal();adminConfirm(doEdit)">Confirmar edição</button>'+
+      '<button class="btn danger" onclick="closeModal();adminConfirm(window._editVacConfirmCb)">Confirmar edição</button>'+
       '</div>'
     );
   }
