@@ -2590,8 +2590,8 @@ function buildConflictsView(year){
   if(!cDays.length){
     return '<div class="conflicts-wrap"><div class="conflict-empty">'+
       '<div class="conflict-ok-icon">&#10003;</div>'+
-      '<div class="conflict-empty-title">Nenhum conflito em '+year+'</div>'+
-      '<div class="conflict-empty-sub">Todos os períodos respeitam o limite de '+LIMIT+' férias simultâneas.</div>'+
+      '<div class="conflict-empty-title">Nenhum dia acima do limite em '+year+'</div>'+
+      '<div class="conflict-empty-sub">Todos os dias respeitam o limite de '+LIMIT+' férias simultâneas.</div>'+
       '</div></div>';
   }
   var byMonth={};
