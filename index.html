@@ -2619,7 +2619,7 @@ function buildConflictsView(year){
         '<div class="conflict-weekday">'+d.toLocaleDateString('pt-BR',{weekday:'long'})+'</div>'+
         '</div>'+
         '<div class="conflict-body">'+
-        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' procuradores ausentes &middot; '+extra+' acima do limite de '+LIMIT+'</div>'+
+        '<div class="conflict-count-badge">&#9888; '+x.ns.length+' procuradores ausentes &middot; '+extra+' acima do limite</div>'+
         '<div class="conflict-names">'+
         x.ns.map(function(n){return '<div class="conflict-name-chip" onclick="showPersonVacs(\''+n+'\','+year+');window._modalReturnCb=function(){showConflictsModal('+year+');}"><div class="conflict-dot" style="background:'+pColor(n)+'"></div>'+n+'</div>';}).join('')+
         '</div></div></div>';
