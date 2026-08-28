@@ -470,7 +470,8 @@ var _calReturnPerson=null; // person to return to after viewing calendar
 var _calReturnTimer=null; // auto-clear timer for return button
 var _calReturnConflictYear=null; // conflicts modal year to return to after viewing calendar
 var _calReturnConflictTimer=null; // auto-clear timer for return button
-var _hlLegendPerson=null; // person shown in temporary highlight legend
+var _tempHl=null; // {s, d, person, activeUntil, outUntil} — temp highlight from "Ver no calendário"; read every render so it survives month navigation
+var _tempHlTimer=null; // schedules the active->fade-out->clear transitions for _tempHl
 var subsData={}; // { "YYYY-MM": { "YYYY-MM-DD": { "NAME": "SUBSTITUTE" } } }
 var subsYear=new Date().getFullYear(),subsMonth=new Date().getMonth();
 
@@ -2528,6 +2529,7 @@ function buildCal(year,month){
     }
     var dayCls='day'+(isT?' today':'')+(hol?' has-hol':'')+(isWeekend?' weekend':'')+(inPreview?(previewConflict?' day-preview-conflict':' day-preview'):'')+(hasRec?' rec-day':'');
     if(calHighlightPeriod){var _hlEnd=fmt(addDays(calHighlightPeriod.s,calHighlightPeriod.d-1));if(ds>=calHighlightPeriod.s&&ds<=_hlEnd)dayCls+=' search-match';}
+    if(_tempHl){var _thNow=Date.now();if(_thNow<_tempHl.outUntil){var _thEnd=fmt(addDays(_tempHl.s,_tempHl.d-1));if(ds>=_tempHl.s&&ds<=_thEnd)dayCls+=(_thNow<_tempHl.activeUntil?' hl-vac':' hl-vac-out');}}
     h+='<div class="'+dayCls+'" data-date="'+ds+'" onclick="selectDay(\''+ds+'\')">';
     h+='<div class="dn">'+d+'</div>';
     h+='<div class="day-content">';
@@ -3532,7 +3534,8 @@ function render(){
     h+='<div class="leg"><div style="width:10px;height:10px;border-radius:2px;background:#fff1f2;border:1px solid #fecdd3;flex-shrink:0"></div>Recesso (clique para ver as equipes)</div>';
     if(calSearch)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Períodos de '+calSearch+'</div>';
     if(previewVac)h+='<div class="leg"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div>Pré-visualização — '+previewVac.n+'</div>';
-    h+='<div class="leg" id="_hl-leg" style="display:none"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">Férias de</span></div>';
+    var _thLegShow=_tempHl&&_tempHl.person&&Date.now()<_tempHl.outUntil;
+    h+='<div class="leg" id="_hl-leg" style="display:'+(_thLegShow?'flex':'none')+'"><div class="leg-dot" style="background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308"></div><span id="_hl-leg-text">'+(_thLegShow?'Férias de '+_tempHl.person:'Férias de')+'</span></div>';
     h+='</div>';
   }
   if(curView==='people'){
@@ -3628,6 +3631,8 @@ function showGanttBar(person, vacStart, vacDays, year, month){
   );
 }
 function goToCalendarDate(year,month,vacStart,vacDays,hlDuration){
+  if(_tempHlTimer){clearTimeout(_tempHlTimer);_tempHlTimer=null;}
+  _tempHl=null;
   curYear=year;curMonth=month;curView='calendar';_pushViewState('calendar');render();
   // Scroll to calendar on mobile
   setTimeout(function(){
@@ -3637,39 +3642,45 @@ function goToCalendarDate(year,month,vacStart,vacDays,hlDuration){
   if(!vacStart||!vacDays)return;
   var holdMs=hlDuration||2200;
   setTimeout(function(){
-    var cells=document.querySelectorAll('.day[data-date]');
+    var now=Date.now();
+    // _tempHl is the source of truth: buildCal()/legend read it on every render,
+    // so the highlight keeps showing correctly even if the user changes month meanwhile.
+    _tempHl={s:vacStart,d:vacDays,person:_calReturnPerson||null,activeUntil:now+holdMs,outUntil:now+holdMs+1100};
     var toHL=[];
     for(var i=0;i<vacDays;i++){toHL.push(fmt(addDays(vacStart,i)));}
+    // Direct DOM tweak below is just for a smooth CSS transition when the user
+    // stays put; if they navigate away, _tempHl above still renders the right
+    // classes on whatever month is visible, just without the fade animation.
+    var cells=document.querySelectorAll('.day[data-date]');
     var hlCells=[];
     cells.forEach(function(el){
       if(toHL.indexOf(el.dataset.date)>=0){hlCells.push(el);}
     });
-    requestAnimationFrame(function(){
+    if(_tempHl.person){
+      var leg=document.getElementById('_hl-leg');
+      var legTxt=document.getElementById('_hl-leg-text');
+      if(leg){leg.style.display='flex';}
+      if(legTxt){legTxt.textContent='Férias de '+_tempHl.person;}
+    }
+    if(hlCells.length){
       requestAnimationFrame(function(){
-        hlCells.forEach(function(el){el.classList.add('hl-vac');});
-        // Show legend entry
-        if(_calReturnPerson){
-          _hlLegendPerson=_calReturnPerson;
-          var leg=document.getElementById('_hl-leg');
-          var legTxt=document.getElementById('_hl-leg-text');
-          if(leg){leg.style.display='flex';}
-          if(legTxt){legTxt.textContent='Férias de '+_hlLegendPerson;}
-        }
-        setTimeout(function(){
-          hlCells.forEach(function(el){
-            el.classList.remove('hl-vac');
-            el.classList.add('hl-vac-out');
-          });
-          setTimeout(function(){
-            hlCells.forEach(function(el){el.classList.remove('hl-vac-out');});
-            // Hide legend entry
-            _hlLegendPerson=null;
-            var leg=document.getElementById('_hl-leg');
-            if(leg)leg.style.display='none';
-          },1100);
-        },holdMs);
+        requestAnimationFrame(function(){
+          hlCells.forEach(function(el){el.classList.add('hl-vac');});
+        });
       });
-    });
+    }
+    _tempHlTimer=setTimeout(function(){
+      var cells2=document.querySelectorAll('.day[data-date]');
+      cells2.forEach(function(el){
+        if(toHL.indexOf(el.dataset.date)>=0){el.classList.remove('hl-vac');el.classList.add('hl-vac-out');}
+      });
+      _tempHlTimer=setTimeout(function(){
+        _tempHl=null;_tempHlTimer=null;
+        var leg=document.getElementById('_hl-leg');
+        if(leg)leg.style.display='none';
+        if(curYear!==year||curMonth!==month)render();
+      },1100);
+    },holdMs);
   },60);
 }
 function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;curMonth=11;}render();}
