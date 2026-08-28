@@ -105,6 +105,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .day.search-match{background:#fef9c3;box-shadow:inset 0 0 0 2px #eab308}
 .day.hl-vac{background:#fefce8 !important;box-shadow:inset 0 0 0 2px #eab308;transition:background .6s ease,box-shadow .6s ease}
 .day.hl-vac-out{background:transparent !important;box-shadow:inset 0 0 0 0px #eab308;transition:background 1s ease,box-shadow 1s ease}
+.cal-return-btn{opacity:1;transition:opacity 1s ease}
+.cal-return-btn.fading{opacity:0}
 .day:not(.empty):hover{background:#f5f5f0}
 .dn{font-size:12px;font-weight:500;color:var(--text-3);margin-bottom:4px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;align-self:flex-end}
 .day.today .dn{background:var(--accent);color:#fff;border-radius:50%}
@@ -451,7 +453,7 @@ function _pushViewState(v){var p=VIEW_PATHS[v]||'/';if(window.location.pathname!
 function _replaceViewState(v){history.replaceState({view:v},'',VIEW_PATHS[v]||'/');}
 window.addEventListener('popstate',function(e){
   var v=(e.state&&e.state.view)||PATH_VIEWS[window.location.pathname]||'panel';
-  if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}_calReturnConflictYear=null;if(_calReturnConflictTimer){clearTimeout(_calReturnConflictTimer);_calReturnConflictTimer=null;}}
+  if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;_calReturnConflictYear=null;_tempHl=null;if(_tempHlTimer){clearTimeout(_tempHlTimer);_tempHlTimer=null;}}
   curView=v;render();
 });
 var lastSaved=null,lastSavedBy=null,statusMsg='';
@@ -467,11 +469,9 @@ var _welcomeDismissed=false; // shown once per session
 var calSearch=''; // calendar search filter
 var calHighlightPeriod=null; // {s, d} — specific period highlighted in calendar
 var _calReturnPerson=null; // person to return to after viewing calendar
-var _calReturnTimer=null; // auto-clear timer for return button
 var _calReturnConflictYear=null; // conflicts modal year to return to after viewing calendar
-var _calReturnConflictTimer=null; // auto-clear timer for return button
 var _tempHl=null; // {s, d, person, activeUntil, outUntil} — temp highlight from "Ver no calendário"; read every render so it survives month navigation
-var _tempHlTimer=null; // schedules the active->fade-out->clear transitions for _tempHl
+var _tempHlTimer=null; // schedules the active->fade-out->clear transitions for _tempHl; also drives the "Retornar..." button's fade so both disappear together
 var subsData={}; // { "YYYY-MM": { "YYYY-MM-DD": { "NAME": "SUBSTITUTE" } } }
 var subsYear=new Date().getFullYear(),subsMonth=new Date().getMonth();
 
@@ -3489,8 +3489,11 @@ function render(){
     var _notToday=curMonth!==_today.getMonth()||curYear!==_today.getFullYear();
     if(_notToday)h+='<button class="btn sm" style="margin-left:6px;white-space:nowrap" onclick="curMonth=new Date().getMonth();curYear=new Date().getFullYear();render()">Hoje</button>';
     h+='<span style="font-size:12px;color:var(--text-3);margin-left:6px">'+mStatus+'</span>';
-    if(_calReturnPerson)h+='<button class="btn sm primary" style="margin-left:auto;white-space:nowrap" onclick="var p=_calReturnPerson;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}setView(\'people\');setTimeout(function(){showPersonVacs(p);},80)">&#8592; Retornar para as férias de '+_calReturnPerson+'</button>';
-    else if(_calReturnConflictYear)h+='<button class="btn sm primary" style="margin-left:auto;white-space:nowrap" onclick="var y=_calReturnConflictYear;_calReturnConflictYear=null;if(_calReturnConflictTimer){clearTimeout(_calReturnConflictTimer);_calReturnConflictTimer=null;}showConflictsModal(y)">&#8592; Voltar para conflitos de '+_calReturnConflictYear+'</button>';
+    var _rbNow=Date.now();
+    var _rbFading=!!(_tempHl&&_rbNow>=_tempHl.activeUntil&&_rbNow<_tempHl.outUntil);
+    var _rbExpired=!!(_tempHl&&_rbNow>=_tempHl.outUntil);
+    if(_calReturnPerson&&!_rbExpired)h+='<button id="_cal-return-btn" class="btn sm primary cal-return-btn'+(_rbFading?' fading':'')+'" style="margin-left:auto;white-space:nowrap" onclick="var p=_calReturnPerson;_calReturnPerson=null;_tempHl=null;if(_tempHlTimer){clearTimeout(_tempHlTimer);_tempHlTimer=null;}setView(\'people\');setTimeout(function(){showPersonVacs(p);},80)">&#8592; Retornar para as férias de '+_calReturnPerson+'</button>';
+    else if(_calReturnConflictYear&&!_rbExpired)h+='<button id="_cal-return-btn" class="btn sm primary cal-return-btn'+(_rbFading?' fading':'')+'" style="margin-left:auto;white-space:nowrap" onclick="var y=_calReturnConflictYear;_calReturnConflictYear=null;_tempHl=null;if(_tempHlTimer){clearTimeout(_tempHlTimer);_tempHlTimer=null;}showConflictsModal(y)">&#8592; Voltar para conflitos de '+_calReturnConflictYear+'</button>';
     h+='</div>';
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">';
     h+='<span style="font-size:12px;color:var(--text-3);white-space:nowrap">Destacar períodos de</span>';
@@ -3599,18 +3602,17 @@ function hmBarClick(el,mi,mName,maxVal){
     setView('calendar');curMonth=mi;render();
   }
 }
-function setView(v){if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}_calReturnConflictYear=null;if(_calReturnConflictTimer){clearTimeout(_calReturnConflictTimer);_calReturnConflictTimer=null;}}curView=v;_pushViewState(v);render();}
+function setView(v){if(v!=='calendar'){calSearch='';calHighlightPeriod=null;_calReturnPerson=null;_calReturnConflictYear=null;_tempHl=null;if(_tempHlTimer){clearTimeout(_tempHlTimer);_tempHlTimer=null;}}curView=v;_pushViewState(v);render();}
+// Both setters are always immediately followed by a goToCalendarDate() call,
+// which owns the whole auto-clear/fade lifecycle via _tempHl/_tempHlTimer —
+// that's what makes the "Retornar..." button disappear together with the highlight.
 function _setReturnPerson(p){
   _calReturnPerson=p;
-  _calReturnConflictYear=null;if(_calReturnConflictTimer){clearTimeout(_calReturnConflictTimer);_calReturnConflictTimer=null;}
-  if(_calReturnTimer)clearTimeout(_calReturnTimer);
-  _calReturnTimer=setTimeout(function(){_calReturnPerson=null;_calReturnTimer=null;render();},30000);
+  _calReturnConflictYear=null;
 }
 function _setReturnConflict(year){
   _calReturnConflictYear=year;
-  _calReturnPerson=null;if(_calReturnTimer){clearTimeout(_calReturnTimer);_calReturnTimer=null;}
-  if(_calReturnConflictTimer)clearTimeout(_calReturnConflictTimer);
-  _calReturnConflictTimer=setTimeout(function(){_calReturnConflictYear=null;_calReturnConflictTimer=null;render();},30000);
+  _calReturnPerson=null;
 }
 function showGanttBar(person, vacStart, vacDays, year, month){
   var endDate=fmt(addDays(vacStart,vacDays-1));
@@ -3674,10 +3676,16 @@ function goToCalendarDate(year,month,vacStart,vacDays,hlDuration){
       cells2.forEach(function(el){
         if(toHL.indexOf(el.dataset.date)>=0){el.classList.remove('hl-vac');el.classList.add('hl-vac-out');}
       });
+      // "Retornar..." button fades away in lockstep with the day highlight.
+      var rbtn=document.getElementById('_cal-return-btn');
+      if(rbtn)rbtn.classList.add('fading');
       _tempHlTimer=setTimeout(function(){
         _tempHl=null;_tempHlTimer=null;
         var leg=document.getElementById('_hl-leg');
         if(leg)leg.style.display='none';
+        _calReturnPerson=null;_calReturnConflictYear=null;
+        var rbtn2=document.getElementById('_cal-return-btn');
+        if(rbtn2)rbtn2.style.display='none';
         if(curYear!==year||curMonth!==month)render();
       },1100);
     },holdMs);
