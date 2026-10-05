@@ -3284,15 +3284,19 @@ function subtractWorkDays(startDs,n){
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────────
-function renderStatus(){
-  var el=document.getElementById('statusbar');
-  if(!el)return;
+function formatStatus(){
   var txt=statusMsg;
   if(lastSaved){
     txt='Última atualização: '+lastSaved.toLocaleString('pt-BR');
     if(lastSavedBy)txt+=' — por '+lastSavedBy;
   }
-  el.innerHTML=txt;
+  return txt;
+}
+
+function renderStatus(){
+  var el=document.getElementById('statusbar');
+  if(!el)return;
+  el.textContent=formatStatus();
 }
 
 function showCustomHolidaysModal(){
@@ -3481,13 +3485,13 @@ function render(){
     YEARS.forEach(function(y){h+='<button class="ytab'+(y===curRecessoYear?' active':'')+'" onclick="setRecessoYear('+y+')">'+y+'</button>';});
     h+='</div>';
     h+=buildRecessoView(curRecessoYear);
-    h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' por '+(lastSavedBy||'?'):statusMsg)+'</div>';
+    h+='<div class="statusbar" id="statusbar">'+formatStatus()+'</div>';
     document.getElementById('app').innerHTML=h;
     return;
   }
   if(curView==='config'){
     h+=buildConfigView();
-    h+='<div class="statusbar" id="statusbar">'+(lastSaved?'Última atualização: '+lastSaved.toLocaleString('pt-BR')+' por '+(lastSavedBy||'?'):statusMsg)+'</div>';
+    h+='<div class="statusbar" id="statusbar">'+formatStatus()+'</div>';
     document.getElementById('app').innerHTML=h;
     return;
   }
@@ -3601,12 +3605,7 @@ function render(){
     h+=buildSubsView(subsYear,subsMonth);
   }
 
-  var statusTxt=statusMsg;
-  if(lastSaved){
-    statusTxt='Última atualização: '+lastSaved.toLocaleString('pt-BR');
-    if(lastSavedBy)statusTxt+=' — por '+lastSavedBy;
-  }
-  h+='<div class="statusbar" id="statusbar">'+statusTxt+'</div>';
+  h+='<div class="statusbar" id="statusbar">'+formatStatus()+'</div>';
 
   // Floating "Minhas Férias" button — always visible for non-master, non-preview
   if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac){
