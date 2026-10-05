@@ -1457,16 +1457,17 @@ function buildConflictRows(year){
   return cDays;
 }
 
+function vacationPeriodsForExport(year){
+  // O período pertence ao ano de início, mesmo quando termina no ano seguinte.
+  return vacations.filter(function(v){return v.s.slice(0,4)===String(year);});
+}
+
 function exportXLS(year){
   var years=year==='todos'?YEARS:[parseInt(year)];
   var tbl='<html><head><meta charset="UTF-8"></head><body>';
 
   years.forEach(function(y){
-    var src=vacations.filter(function(v){
-      var vStart=v.s.slice(0,4);
-      var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
-      return vStart===String(y)||vEnd===String(y);
-    });
+    var src=vacationPeriodsForExport(y);
     if(!src.length)return;
     src=src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);});
 
@@ -1516,11 +1517,7 @@ function exportCSV(year){
   var lines=[];
 
   years.forEach(function(y){
-    var src=vacations.filter(function(v){
-      var vStart=v.s.slice(0,4);
-      var vEnd=fmt(addDays(v.s,v.d-1)).slice(0,4);
-      return vStart===String(y)||vEnd===String(y);
-    });
+    var src=vacationPeriodsForExport(y);
     if(!src.length)return;
     src=src.slice().sort(function(a,b){return a.n.localeCompare(b.n)||a.s.localeCompare(b.s);});
 
@@ -2267,10 +2264,7 @@ function showExportModal(){
   var yearOpts='<option value="todos">Todos os anos</option>';
   var recYearOpts='<option value="todos">Todos os anos</option>';
   YEARS.forEach(function(y){
-    var count=vacations.filter(function(v){
-      var vs=v.s.slice(0,4),ve=fmt(addDays(v.s,v.d-1)).slice(0,4);
-      return vs===String(y)||ve===String(y);
-    }).length;
+    var count=vacationPeriodsForExport(y).length;
     yearOpts+='<option value="'+y+'"'+(y===curYear?' selected':'')+'>'+y+(count>0?' ('+count+' períodos)':' (sem dados)')+' </option>';
     var rCount=Object.keys(recessoChoices[y]||{}).length;
     recYearOpts+='<option value="'+y+'"'+(y===curRecessoYear?' selected':'')+'>'+y+(rCount>0?' ('+rCount+' indicações)':' (sem dados)')+' </option>';
