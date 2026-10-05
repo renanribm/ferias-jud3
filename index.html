@@ -2746,33 +2746,48 @@ window._doRemoveLicense=function(idx){
 function setSection(s){setView(s==='recesso'?'recesso':'panel');}
 function setRecessoYear(y){curRecessoYear=y;render();}
 
+function canEditRecesso(year,personName){
+  return isMaster()||!!(currentAdminUser&&currentAdminUser===personName&&year===new Date().getFullYear());
+}
+
 function recessoChoose(choice){
+  var year=curRecessoYear,personName=currentAdminUser;
+  if(!canEditRecesso(year,personName))return;
   adminConfirm(function(){
-    if(!recessoChoices[curRecessoYear])recessoChoices[curRecessoYear]={};
-    recessoChoices[curRecessoYear][currentAdminUser]=choice;
+    if(!canEditRecesso(year,personName))return;
+    if(!recessoChoices[year])recessoChoices[year]={};
+    recessoChoices[year][personName]=choice;
     saveRecesso();render();
   });
 }
 function recessoSetFor(personName,choice){
+  var year=curRecessoYear;
+  if(!canEditRecesso(year,personName))return;
   closeModal();
   adminConfirm(function(){
-    if(!recessoChoices[curRecessoYear])recessoChoices[curRecessoYear]={};
-    recessoChoices[curRecessoYear][personName]=choice;
+    if(!canEditRecesso(year,personName))return;
+    if(!recessoChoices[year])recessoChoices[year]={};
+    recessoChoices[year][personName]=choice;
     saveRecesso();render();
   });
 }
 function recessoRemoveFor(personName){
+  var year=curRecessoYear;
+  if(!canEditRecesso(year,personName))return;
   closeModal();
   adminConfirm(function(){
-    if(recessoChoices[curRecessoYear])delete recessoChoices[curRecessoYear][personName];
+    if(!canEditRecesso(year,personName))return;
+    if(recessoChoices[year])delete recessoChoices[year][personName];
     saveRecesso();render();
   });
 }
 function recessoRemoveSelf(){
+  if(!canEditRecesso(curRecessoYear,currentAdminUser))return;
   if(recessoChoices[curRecessoYear])delete recessoChoices[curRecessoYear][currentAdminUser];
   saveRecesso();render();
 }
 function recessoChangePerson(personName){
+  if(!canEditRecesso(curRecessoYear,personName))return;
   var cur=recessoChoices[curRecessoYear]&&recessoChoices[curRecessoYear][personName];
   var dates=recessoDates[curRecessoYear]||{};
   var natalStr='semana do Natal'+(recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal)?' ('+recessoDateLabel(dates.natal_s,dates.natal_e,dates.natal)+')':'');
@@ -2886,6 +2901,8 @@ function buildRecessoView(year){
   var active=activePeopleForYear(year);
   var isMe=currentAdminUser&&currentAdminUser!=='ADMIN';
   var myChoice=isMe?choices[currentAdminUser]:null;
+  var currentYear=new Date().getFullYear();
+  var locked=!isMaster()&&year!==currentYear;
   var grupo1=active.filter(function(p){return choices[p]==='ano_novo';});
   var grupo2=active.filter(function(p){return choices[p]==='natal';});
   var pending=active.filter(function(p){return !choices[p];});
@@ -2897,7 +2914,14 @@ function buildRecessoView(year){
   var desc1='Trabalha '+natalStr+' &middot; Recesso '+anoNovoStr;
   var desc2='Recesso '+natalStr+' &middot; Trabalha '+anoNovoStr;
 
-  var h='<div class="recesso-cols">';
+  var h='';
+  if(locked){
+    h+='<div class="recesso-cta">'+
+      '<span style="font-size:13px;color:var(--text-2)">O período de indicação de preferência para o recesso de '+year+
+      (year>currentYear?' ainda não está aberto.':' está encerrado.')+'</span>'+
+      '<button class="btn sm" onclick="setRecessoYear('+currentYear+')">Ir para '+currentYear+'</button></div>';
+  }
+  h+='<div class="recesso-cols">';
 
   [{emoji:'&#127878;',label:'Equipe 1',val:'ano_novo',people:grupo1,desc:desc1},
    {emoji:'&#127876;',label:'Equipe 2',val:'natal',   people:grupo2,desc:desc2}
@@ -2915,7 +2939,7 @@ function buildRecessoView(year){
           +(isMaster()?' onclick="recessoChangePerson(\''+p+'\')" title="Clique para alterar"':'')+'>'+
           '<span style="width:7px;height:7px;border-radius:50%;background:'+pColor(p)+';display:inline-block;flex-shrink:0"></span>'+
           p+
-          (mine&&isMe?' <a href="#" style="font-size:10px;color:var(--text-3);margin-left:4px" onclick="event.stopPropagation();event.preventDefault();recessoRemoveSelf()">remover</a>':'')+
+          (mine&&isMe&&!locked?' <a href="#" style="font-size:10px;color:var(--text-3);margin-left:4px" onclick="event.stopPropagation();event.preventDefault();recessoRemoveSelf()">remover</a>':'')+
           (isMaster()?' <span style="font-size:10px;color:var(--text-3);margin-left:2px">&#8646;</span>':'')+
           '</span>';
       });
@@ -2923,7 +2947,7 @@ function buildRecessoView(year){
       h+='<div style="font-size:12px;color:var(--text-3);padding:8px 0">Nenhuma preferência ainda.</div>';
     }
     // Botão de escolha no rodapé da coluna — apenas para quem ainda não indicou
-    if(isMe&&!myChoice){
+    if(isMe&&!myChoice&&!locked){
       h+='<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">';
       h+='<button class="btn sm" onclick="recessoChoose(\''+g.val+'\')">Indicar preferência por esta equipe</button>';
       h+='</div>';
