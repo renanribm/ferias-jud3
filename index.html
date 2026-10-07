@@ -388,7 +388,8 @@ function buildHolidayMap(y){
   add(easterPlus(y,-46),'Quarta-feira de Cinzas (até 12h)','optional');
 
   // Fixed pontos facultativos
-  add(fixedDate(y,10,30),'Dia do Servidor Público','optional');
+  // Data padrão: 28/10; comemoração transferida para 30/10 somente em 2026.
+  add(fixedDate(y,10,Number(y)===2026?30:28),'Dia do Servidor Público','optional');
   add(fixedDate(y,12,24),'Véspera de Natal','optional');
   add(fixedDate(y,12,31),'Véspera de Ano-Novo','optional');
 
