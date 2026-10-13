@@ -1146,7 +1146,7 @@ function buildSubsView(year,month){
             h+='</div>';
           }
         }else{
-          h+='<div style="font-size:11px"><span style="color:var(--text-2)">'+absent.n+'</span><span style="font-size:10px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <strong style="color:'+(curSub?'var(--accent)':'var(--text-3)')+'">'+( curSub||'—')+'</strong></div>';
+          h+='<div style="font-size:11px"><span style="color:var(--text-2)">'+absent.n+'</span><span style="font-size:10px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <strong style="color:'+(curSub?(currentAdminUser&&curSub===currentAdminUser?'#f59e0b':'var(--accent)'):'var(--text-3)')+'">'+( curSub||'—')+'</strong></div>';
         }
         if(hasCon)h+='<div style="font-size:10px;color:var(--red)">'+curSub+' também ausente.</div>';
         h+='</div>';
@@ -1198,7 +1198,7 @@ function buildSubsView(year,month){
           }
         }
       }else{
-        h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?'var(--accent)':'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
+        h+='<span style="font-size:12px;font-weight:600;color:'+(currentSub?(currentAdminUser&&currentSub===currentAdminUser?'#f59e0b':'var(--accent)'):'var(--text-3)')+'">'+( currentSub||'—')+'</span>';
         if(isManual&&currentSub)h+='<span data-tip="Definido manualmente" onclick="showTip(this)" style="font-size:10px;color:var(--text-3)">&#9998;</span>';
       }
       h+='</div>';
