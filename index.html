@@ -1382,7 +1382,7 @@ function showHistoryModal(){
       var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
       var by=s.savedBy||'—';
       var next=hist[i+1]||null; // older snapshot to compare against
-      var diffs=next?diffSnapshots(s,next):[{type:'neutral',text:'Não é possível identificar as alterações desta versão, pois a versão anterior não está mais disponível.'}];
+      var diffs=next?diffSnapshots(s,next):[{type:'neutral',text:'Esta versão está disponível para restauração, mas o detalhamento das alterações não está disponível.'}];
       var diffColor={add:'var(--green)',rem:'var(--red)',neutral:'var(--text-3)'};
       var diffHtml=diffs.map(function(d){
         return '<div style="font-size:11px;color:'+diffColor[d.type]+';padding:1px 0">'+d.text+'</div>';
