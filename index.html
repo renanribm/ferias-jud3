@@ -336,7 +336,8 @@ function getChefe(){return(people.find(function(p){return p.chefia;})||{}).n||nu
 var ACCESS_PASSWORD='PGMJUD3'; // legacy viewer access
 var OFFICIAL_PIN='admin1'; // senha master
 var SESSION_KEY='ferias-jud3-session';
-var HISTORY_MAX=10;
+var HISTORY_MAX=11;
+var HISTORY_VISIBLE_MAX=10;
 var _histRef=_db.collection("jud3").doc("historico");
 // Senhas individuais derivadas dinamicamente dos procuradores ativos — não ficam hardcoded
 function getAdminPasswords(){return people.filter(function(p){return p.ate===null;}).map(function(p){return p.n;});}
@@ -1378,7 +1379,7 @@ function showHistoryModal(){
       return;
     }
     // Build rows — compare each snapshot to the next one (which is older)
-    var rows=hist.map(function(s,i){
+    var rows=hist.slice(0,HISTORY_VISIBLE_MAX).map(function(s,i){
       var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
       var by=s.savedBy||'—';
       var next=hist[i+1]||null; // older snapshot to compare against
