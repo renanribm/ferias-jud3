@@ -1382,7 +1382,7 @@ function showHistoryModal(){
       var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
       var by=s.savedBy||'—';
       var next=hist[i+1]||null; // older snapshot to compare against
-      var diffs=diffSnapshots(s,next);
+      var diffs=next?diffSnapshots(s,next):[{type:'neutral',text:'Não é possível identificar as alterações desta versão, pois a versão anterior não está mais disponível.'}];
       var diffColor={add:'var(--green)',rem:'var(--red)',neutral:'var(--text-3)'};
       var diffHtml=diffs.map(function(d){
         return '<div style="font-size:11px;color:'+diffColor[d.type]+';padding:1px 0">'+d.text+'</div>';
@@ -1391,7 +1391,7 @@ function showHistoryModal(){
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">'+
         '<div>'+
         '<div style="font-size:13px;font-weight:500">#'+(i+1)+' &mdash; '+dt+'</div>'+
-        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Salvo por: <strong>'+by+'</strong></div>'+
+        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Versão salva por: <strong>'+by+'</strong></div>'+
         '</div>'+
         '<button class="btn sm" onclick="confirmRestore('+i+')">Restaurar</button>'+
         '</div>'+
