@@ -269,6 +269,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);fon
 .hm-bar:hover .hm-label{color:var(--accent)!important;font-weight:600!important}
 .hm-tip{display:none;position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1a1a18;color:#fff;font-size:11px;font-weight:600;padding:3px 7px;border-radius:4px;white-space:nowrap;pointer-events:none;z-index:10}
 .hm-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1a1a18}
+
+.pchip.departed-person{position:relative;background:#eeeee9;border-color:#d6d6d0}
+.pchip.departed-person:hover{background:#e5e5df;border-color:#bcbcb5}
+.pchip.departed-person .pname{color:#66665f}
+.pchip.departed-person .pdot{background:#96968e!important}
+.departure-info{position:absolute;right:3px;top:3px;border:0;background:transparent;color:#66665f;cursor:pointer;font-family:inherit;font-size:14px;padding:3px;line-height:1}
+.departure-tooltip{display:none;position:absolute;left:0;bottom:calc(100% + 7px);z-index:20;background:#333;color:white;padding:7px 9px;border-radius:5px;font-size:11px;font-weight:500;width:max-content;max-width:230px;box-shadow:0 2px 5px #0002;pointer-events:none}
+.pchip.departure-open .departure-tooltip,.pchip:focus-within .departure-tooltip{display:block}
+@media(hover:hover){.pchip.departed-person:hover .departure-tooltip{display:block}}
 </style>
 </head>
 <body>
@@ -1967,7 +1976,10 @@ function confirmAddVac(){
 // ── Person vacations ───────────────────────────────────────────────────────────
 function showPersonVacs(person,year){
   var y=year||curYear;
-  var canEdit=canEditVac(person);
+  var record=people.find(function(p){return p.n===person;});
+  var inactive=!!(record&&record.ate!==null);
+  var departureYear=inactive&&pAteYear(record)===Number(y);
+  var canEdit=inactive?isMaster():canEditVac(person);
   var pvacs=vacations.filter(function(v){return v.n===person&&v.s.slice(0,4)===String(y)&&!isLicense(v);}).sort(function(a,b){return a.s.localeCompare(b.s);});
   var items=pvacs.length?pvacs.map(function(v){
     var idx=vacations.indexOf(v);
@@ -1991,20 +2003,21 @@ function showPersonVacs(person,year){
   var addBtn=canEdit?'<button class="btn primary" onclick="window._modalReturnCb=null;closeModal();showAddVac(\''+person+'\')">+ Adicionar férias</button>':'';
   var testBtn='<button class="btn" onclick="window._modalReturnCb=null;closeModal();showTestPeriod(\''+person+'\')">&#128197; Testar período</button>';
   var daysUsed=pvacs.reduce(function(sum,v){return sum+(!v.type||v.type==='ferias'?v.d:0);},0);
-  var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
+  var daysColor=departureYear?'var(--text-3)':daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--green)';
   var daysLabel='<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--surface2);color:'+daysColor+'">'+daysUsed+' / '+VAC_LIMIT+' dias em '+y+'</span>';
   var bodyHtml=
     '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'+
     '<h3 style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:0">'+
-    '<span style="display:flex;align-items:center;gap:8px">'+
-    '<span style="width:10px;height:10px;border-radius:50%;background:'+pColor(person)+';display:inline-block"></span>'+person+'</span>'+
+    '<span style="display:flex;align-items:center;gap:8px;color:'+(departureYear?'#66665f':'var(--text)')+'">'+
+    '<span style="width:10px;height:10px;border-radius:50%;background:'+(departureYear?'#96968e':pColor(person))+';display:inline-block"></span>'+person+'</span>'+
     daysLabel+'</h3>'+
     '<button onclick="if(window._modalReturnCb){var _rf=window._modalReturnCb;window._modalReturnCb=null;_rf();}else{closeModal();}" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button>'+
     '</div>'+
-    (!canEdit?'<div style="background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--text-3);margin-bottom:12px">Você está visualizando as férias de '+person+'. Apenas '+person+' pode editar seus próprios períodos.</div>':'')+
+    (departureYear?'<div style="background:#eeeee9;border:1px solid #d6d6d0;border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:#50504b;margin-bottom:12px;line-height:1.5"><strong>Saiu da unidade em '+fmtPersonDate(record.ate)+'.</strong> '+(isMaster()?'Como administrador, você pode corrigir os registros históricos.':'Os períodos abaixo permanecem disponíveis para consulta.')+'</div>':'')+
+    (!canEdit?'<div style="background:var(--surface2);border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--text-3);margin-bottom:12px">'+(inactive?'Você está consultando os registros de um procurador que saiu da unidade. Alterações são realizadas pelo administrador.':'Você está visualizando as férias de '+person+'. Apenas '+person+' pode editar seus próprios períodos.')+'</div>':'')+
     '<div class="vac-list">'+items+'</div>';
   var footerHtml=
-    '<div style="display:flex;gap:6px">'+addBtn+(canEdit?testBtn:'')+'</div>';
+    '<div style="display:flex;gap:6px">'+addBtn+(canEdit&&!departureYear?testBtn:'')+'</div>';
   openTallModal(bodyHtml, footerHtml);
 }
 
@@ -3583,14 +3596,16 @@ function render(){
       var c=pvacs.length;
       var daysUsed=pvacs.reduce(function(sum,v){return sum+(!v.type||v.type==='ferias'?v.d:0);},0);
       var isMe=p===currentAdminUser&&currentAdminUser!=='ADMIN';
+      var personRecord=people.find(function(x){return x.n===p;});
+      var departureNote=personRecord&&personRecord.ate!==null&&pAteYear(personRecord)===curYear?'Saiu da unidade em '+fmtPersonDate(personRecord.ate):'';
       var daysColor=daysUsed>VAC_LIMIT?'var(--red)':daysUsed===VAC_LIMIT?'var(--amber)':'var(--text-3)';
-      h+='<div class="pchip'+(isMe?' mine':'')+'" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
+      h+='<div class="pchip'+(isMe?' mine':'')+(departureNote?' departed-person':'')+'" onclick="showPersonVacs(this.dataset.p)" data-p="'+p+'">'+
          '<div class="pdot" style="background:'+pColor(p)+'"></div>'+
          '<div>'+
          '<div class="pname">'+p+(isMe?' <span style="font-size:10px;font-weight:400;color:var(--text-3)">(você)</span>':'')+'</div>'+
          '<div class="psub">'+c+' período'+(c!==1?'s':'')+' em '+curYear+'</div>'+
          '<div class="psub" style="color:'+daysColor+'">'+daysUsed+'/'+VAC_LIMIT+' dias utilizados</div>'+
-         '</div></div>';
+         '</div>'+(departureNote?'<button type="button" class="departure-info" aria-label="'+departureNote+'" onclick="event.stopPropagation();this.parentElement.classList.toggle(&quot;departure-open&quot;)">ⓘ</button><span class="departure-tooltip" role="tooltip">'+departureNote+'</span>':'')+'</div>';
     });
     h+='</div>';
   }
