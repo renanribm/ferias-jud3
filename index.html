@@ -3367,6 +3367,14 @@ function buildConfigView(){
   return h;
 }
 
+function buildPreferenceWarning(year){
+ if(!currentAdminUser||currentAdminUser==='ADMIN'||currentAdminUser==='VIEWER'||previewVac)return '';
+ var dm=buildDayMap(year);
+ var days=Object.keys(dm).filter(function(d){return new Set(dm[d]).size>LIMIT&&dm[d].indexOf(currentAdminUser)>=0;}).sort();
+ if(!days.length)return '';
+ return '<div class="welcome-banner preference-warning" role="status" style="background:var(--amber-bg);border-color:#f0d090;color:var(--amber)"><div class="welcome-banner-text" style="align-items:flex-start"><span aria-hidden="true" style="flex-shrink:0">⚠️</span><div style="line-height:1.5">Sua indicação de férias para '+year+' inclui <strong>'+days.length+' '+(days.length===1?'dia':'dias')+'</strong> acima do limite de ausências da unidade.<div>Confira suas preferências.</div></div></div><div class="welcome-banner-actions"><button class="btn sm" onclick="showConflictsModal('+year+')">Ver dias acima do limite</button></div></div>';
+}
+
 function render(){
   var st=getStats(curYear);
   var dm=buildDayMap(curYear);
@@ -3431,6 +3439,8 @@ function render(){
     h+='<button class="btn sm" onclick="dismissWelcome()">Dispensar</button>';
     h+='</div></div>';
   }
+
+  h+=buildPreferenceWarning(2027);
 
   // Feature 1 — próximas férias indicator for logged-in user
   if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!previewVac){
