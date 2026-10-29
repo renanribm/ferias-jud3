@@ -351,7 +351,7 @@ var HISTORY_MAX=11;
 var HISTORY_VISIBLE_MAX=10;
 var _histRef=_db.collection("jud3").doc("historico");
 // Senhas individuais derivadas dinamicamente dos procuradores ativos — não ficam hardcoded
-function getAdminPasswords(){return people.filter(function(p){return p.ate===null;}).map(function(p){return p.n;});}
+function getAdminPasswords(){return activePeopleForDay(today);}
 var PCOLORS=['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7','#e11d48','#0891b2','#65a30d','#7c3aed','#0284c7','#b45309'];
 
 // ── Holidays ───────────────────────────────────────────────────────────────────
@@ -429,36 +429,8 @@ function getHoliday(ds){
   return customHolidays.find(function(h){return h.date===ds;})||null;
 }
 
-var DEFAULT_PEOPLE=[
-  {n:'ALEX',desde:2026,ate:null},{n:'BEATRICE',desde:2026,ate:null},{n:'BRUNO',desde:2026,ate:null},
-  {n:'CAMILA',desde:2026,ate:null},{n:'DANIEL',desde:2026,ate:null},{n:'EDUARDO',desde:2026,ate:null},
-  {n:'FABIANA',desde:2026,ate:null},{n:'LEONARDO',desde:2026,ate:null},{n:'MARCOS',desde:2026,ate:null},
-  {n:'MARÍLIA',desde:2026,ate:null},{n:'MAURÍCIO',desde:2026,ate:null},{n:'NETO',desde:2026,ate:null},
-  {n:'RENAN',desde:2026,ate:null},{n:'RODRIGO',desde:2026,ate:null},{n:'THAYANE',desde:2026,ate:null},
-  {n:'VINICIUS',desde:2026,ate:null},{n:'VIVIANE',desde:2026,ate:null}
-];
-var DEFAULT_VACS=[
-  {n:'ALEX',s:'2026-04-22',d:17},{n:'ALEX',s:'2026-09-29',d:13},
-  {n:'BEATRICE',s:'2026-07-13',d:12},{n:'BEATRICE',s:'2026-10-13',d:15},
-  {n:'BRUNO',s:'2026-06-08',d:19},{n:'BRUNO',s:'2026-06-29',d:11},
-  {n:'CAMILA',s:'2026-04-06',d:13},{n:'CAMILA',s:'2026-11-03',d:17},
-  {n:'DANIEL',s:'2026-04-22',d:10},{n:'DANIEL',s:'2026-08-18',d:20},
-  {n:'EDUARDO',s:'2026-04-06',d:15},{n:'EDUARDO',s:'2026-10-13',d:15},
-  {n:'FABIANA',s:'2026-06-19',d:20},{n:'FABIANA',s:'2026-12-09',d:10},
-  {n:'LEONARDO',s:'2026-05-21',d:13},{n:'LEONARDO',s:'2026-08-03',d:17},
-  {n:'MARCOS',s:'2026-03-18',d:15},{n:'MARCOS',s:'2026-09-08',d:15},
-  {n:'MARÍLIA',s:'2026-10-13',d:15},
-  {n:'MAURÍCIO',s:'2026-07-15',d:15},{n:'MAURÍCIO',s:'2026-12-28',d:15},
-  {n:'NETO',s:'2026-01-05',d:12},{n:'NETO',s:'2026-07-13',d:18},
-  {n:'RENAN',s:'2026-02-19',d:18},{n:'RENAN',s:'2026-06-08',d:12},
-  {n:'RODRIGO',s:'2026-06-24',d:15},{n:'RODRIGO',s:'2026-11-25',d:15},
-  {n:'THAYANE',s:'2026-04-22',d:11},{n:'THAYANE',s:'2026-06-15',d:19},
-  {n:'VINICIUS',s:'2026-08-10',d:13},{n:'VINICIUS',s:'2026-11-23',d:17},
-  {n:'VIVIANE',s:'2026-07-13',d:12},{n:'VIVIANE',s:'2026-12-01',d:18}
-];
-
 // ── State ──────────────────────────────────────────────────────────────────────
-var officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
+var officialData={vacations:[],people:[]};
 var vacations=[],people=[],customHolidays=[];
 var VIEW_PATHS={panel:'/',calendar:'/calendario',people:'/ferias',licenses:'/licencas',subs:'/substituicoes',recesso:'/recesso',config:'/configuracoes'};
 var PATH_VIEWS={'/':'panel','/calendario':'calendar','/ferias':'people','/licencas':'licenses','/substituicoes':'subs','/recesso':'recesso','/configuracoes':'config'};
@@ -580,97 +552,15 @@ function getStats(year){
 }
 
 // ── Firebase ───────────────────────────────────────────────────────────────────
-function saveOfficial(toastMsg){
-  if(!toastMsg)toastMsg='✓ Alteração salva com sucesso';
-  statusMsg='Salvando...';renderStatus();
-  var now=new Date();
-  var savedBy=currentAdminUser||'ADMIN';
-  var snapshot={
-    vacations:JSON.stringify(vacations),
-    people:JSON.stringify(people),
-    savedAt:now.toISOString(),
-    savedBy:savedBy
-  };
-  // Push to history before overwriting
-  _histRef.get().then(function(snap){
-    var hist=[];
-    if(snap.exists&&snap.data().snapshots){try{hist=JSON.parse(snap.data().snapshots);}catch(e){hist=[];}}
-    // Read current official to snapshot PREVIOUS state (what is being replaced)
-    _docRef.get().then(function(curSnap){
-      if(curSnap.exists){
-        var cd=curSnap.data();
-        var prevSnap={vacations:cd.vacations,people:cd.people,savedAt:cd.savedAt||now.toISOString(),savedBy:cd.savedBy||'ADMIN'};
-        hist.unshift(prevSnap);
-        if(hist.length>HISTORY_MAX)hist=hist.slice(0,HISTORY_MAX);
-        _histRef.set({snapshots:JSON.stringify(hist)}).catch(function(){});
-      }
-      // Save new official
-      _docRef.set(snapshot).then(function(){
-        lastSaved=now;lastSavedBy=savedBy;
-        statusMsg='Dados oficiais salvos';
-        renderStatus();showToast(toastMsg);
-      }).catch(function(e){statusMsg='Erro ao salvar: '+e.message;renderStatus();});
-    }).catch(function(){
-      _docRef.set(snapshot).then(function(){
-        lastSaved=now;lastSavedBy=savedBy;
-        statusMsg='Dados oficiais salvos';renderStatus();showToast(toastMsg);
-      }).catch(function(e){statusMsg='Erro ao salvar: '+e.message;renderStatus();});
-    });
-  }).catch(function(){
-    _docRef.set(snapshot).then(function(){
-      lastSaved=now;lastSavedBy=savedBy;
-      statusMsg='Dados oficiais salvos';renderStatus();showToast(toastMsg);
-    }).catch(function(e){statusMsg='Erro ao salvar: '+e.message;renderStatus();});
-  });
-}
 
-function loadOfficial(cb){
-  statusMsg='Carregando...';renderStatus();
-  _docRef.get().then(function(snap){
-    if(snap.exists){
-      var d=snap.data();
-      officialData={vacations:JSON.parse(d.vacations),people:migratePeople(JSON.parse(d.people))};
-      if(d.savedAt)lastSaved=new Date(d.savedAt);
-      if(d.savedBy)lastSavedBy=d.savedBy;
-      statusMsg='Dados carregados';
-    }else{
-      officialData={vacations:DEFAULT_VACS.map(function(v){return Object.assign({},v);}),people:DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);})};
-      _docRef.set({
-        vacations:JSON.stringify(officialData.vacations),
-        people:JSON.stringify(officialData.people),
-        savedAt:new Date().toISOString(),
-        savedBy:'SISTEMA'
-      });
-      statusMsg='Dados iniciais publicados';
-    }
-    if(cb)cb();
-  }).catch(function(e){
-    statusMsg='Erro Firebase — usando cache';
-    try{var r=localStorage.getItem('ferias-jud3-cache');if(r){var d=JSON.parse(r);officialData={vacations:d.vacations,people:migratePeople(d.people)};}}catch(ex){}
-    if(cb)cb();
-  });
-}
 
-function subscribeOfficial(){
-  if(_unsub)_unsub();
-  _unsub=_docRef.onSnapshot(function(snap){
-    if(!snap.exists)return;
-    var d=snap.data();
-    var inc={vacations:JSON.parse(d.vacations),people:migratePeople(JSON.parse(d.people))};
-    officialData=inc;
-    localStorage.setItem('ferias-jud3-cache',JSON.stringify(inc));
-    applyData(officialData);
-    if(d.savedAt)lastSaved=new Date(d.savedAt);
-    if(d.savedBy)lastSavedBy=d.savedBy;
-    statusMsg='Sincronizado';
-    render();
-    if(!_historyReady){_historyReady=true;_replaceViewState(curView);}
-  },function(err){console.warn('Firestore error:',err);});
-}
+
+
+
 
 // ── Sim storage ────────────────────────────────────────────────────────────────
 function migratePeople(raw){
-  if(!raw||!raw.length)return DEFAULT_PEOPLE.map(function(p){return Object.assign({},p);});
+  if(!Array.isArray(raw))throw Error('Cadastro inválido');
   return raw.map(function(p){
     if(typeof p==='string')return {n:p,desde:YEARS[0],ate:null};
     return Object.assign({},p);
@@ -698,70 +588,25 @@ function activePeopleForMonth(year,month){
   var mEnd=fmt(new Date(year,month+1,0));
   return people.filter(function(p){
     var dd=pDesdeDate(p),ad=pAteDate(p);
-    return dd<=mEnd&&(ad===null||ad>=mStart);
+    return dd<=mEnd&&(ad===null||ad>mStart);
   }).map(function(p){return p.n;});
 }
 function activePeopleForDay(ds){
   return people.filter(function(p){
     var dd=pDesdeDate(p),ad=pAteDate(p);
-    return dd<=ds&&(ad===null||ad>=ds);
+    return dd<=ds&&(ad===null||ad>ds);
   }).map(function(p){return p.n;});
 }
 function saveData(msg){saveOfficial(msg||'✓ Férias salvas com sucesso');}
 
 // ── Recesso Firebase ────────────────────────────────────────────────────────────
-function saveRecesso(){
-  var savedBy=currentAdminUser||'ADMIN';
-  _recessoRef.set({
-    choices:JSON.stringify(recessoChoices),
-    dates:JSON.stringify(recessoDates),
-    savedAt:new Date().toISOString(),
-    savedBy:savedBy
-  }).then(function(){
-    showToast('✓ Recesso salvo');
-  }).catch(function(e){showToast('Erro ao salvar recesso: '+e.message);});
-}
-function loadConfig(cb){
-  _configRef.get().then(function(doc){
-    if(doc.exists){var d=doc.data();customHolidays=d.customHolidays?JSON.parse(d.customHolidays):[];}
-    if(cb)cb();
-  }).catch(function(){if(cb)cb();});
-}
-function saveConfig(){
-  _configRef.set({customHolidays:JSON.stringify(customHolidays),savedAt:new Date().toISOString()});
-}
-function loadRecesso(cb){
-  _recessoRef.get().then(function(snap){
-    if(snap.exists){
-      var d=snap.data();
-      try{recessoChoices=JSON.parse(d.choices||'{}');}catch(e){recessoChoices={};}
-      try{recessoDates=JSON.parse(d.dates||'{}');}catch(e){recessoDates={};}
-    }
-    if(cb)cb();
-  }).catch(function(){if(cb)cb();});
-}
-function subscribeRecesso(){
-  _recessoRef.onSnapshot(function(snap){
-    if(!snap.exists)return;
-    var d=snap.data();
-    try{recessoChoices=JSON.parse(d.choices||'{}');}catch(e){recessoChoices={};}
-    try{recessoDates=JSON.parse(d.dates||'{}');}catch(e){recessoDates={};}
-    if(curView==='recesso')render();
-  },function(err){console.warn('Recesso sync error:',err);});
-}
-function subscribeSubs(){
-  _subsRef.onSnapshot(function(snap){
-    if(!snap.exists)return;
-    var d=snap.data();
-    try{subsData=JSON.parse(d.data||'{}');}catch(e){subsData={};}
-    render();
-  },function(err){console.warn('Subs sync error:',err);});
-}
-function saveSubs(){
-  _subsRef.set({data:JSON.stringify(subsData),savedAt:new Date().toISOString(),savedBy:currentAdminUser||'ADMIN'})
-    .then(function(){showToast('✓ Substituição salva');})
-    .catch(function(e){showToast('Erro: '+e.message);});
-}
+
+
+
+
+
+
+
 window.setSub=function(monthKey,dateStr,from,to){
   if(!isMaster())return;
   if(!subsData[monthKey])subsData[monthKey]={};
@@ -861,7 +706,7 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     if(manuals.length)newData[ds]._m=manuals;
   });
   subsData[monthKey]=newData;
-  saveSubs();
+  return saveSubs();
 }
 // Retorna o último substituto registrado para person nos meses anteriores
 function getLastSubFromPrevMonth(person,year,month){
@@ -1005,8 +850,7 @@ window.changeFabianaSub=function(year,month){
   );
   window._changeFabCb=function(newFab){
     var crossData=getCrossMonthData(year,month);
-    generateSubsMonth(year,month,newFab,crossData.auto);
-    render();showToast('✓ Substituto de Fabiana alterado');
+    if(generateSubsMonth(year,month,newFab,crossData.auto)!==false){render();showToast('✓ Substituto de Fabiana alterado');}
   };
 };
 window.generateSubs=function(year,month){
@@ -1021,7 +865,7 @@ window.generateSubs=function(year,month){
     Object.keys(absences).forEach(function(ds){if(absences[ds].some(function(a){return a.n===chefeN;}))fabAbsent=true;});
     var crossData=getCrossMonthData(year,month);
     function doGenerate(fabianaSub,startingPoints){
-      generateSubsMonth(year,month,fabianaSub,startingPoints);render();showToast('✓ Tabela gerada');
+      if(generateSubsMonth(year,month,fabianaSub,startingPoints)!==false){render();showToast('✓ Tabela gerada');}
     }
     function afterStartingPoints(startingPoints){
       if(fabAbsent){showFabianaSubModal(year,month,function(fab){doGenerate(fab,startingPoints);});}
@@ -1097,7 +941,7 @@ function buildSubsView(year,month){
   }
   var totalPairs=days.reduce(function(acc,ds){return acc+absences[ds].length;},0);
   var assignedPairs=days.reduce(function(acc,ds){var da=monthAssignments[ds]||{};return acc+absences[ds].filter(function(a){return da[a.n];}).length;},0);
-  var allDef=assignedPairs===totalPairs&&totalPairs>0;
+  var allDef=assignedPairs===totalPairs&&totalPairs>0&&!(typeof departurePending!=='undefined'&&departurePending[monthKey]);
   var defIcon=allDef?'<span style="color:#16a34a">&#10003;</span>':'<span style="color:var(--amber)">&#9888;</span>';
   h+='<div style="font-size:12px;color:var(--text-3);margin-bottom:14px">'+days.length+' dia'+(days.length!==1?'s':'')+' &middot; '+totalPairs+' '+(totalPairs===1?'substituição':'substituições')+' &middot; '+defIcon+' '+assignedPairs+'/'+totalPairs+' definidas</div>';
   // ── Desktop: calendário semanal ───────────────────────────────────────────────
@@ -1139,7 +983,7 @@ function buildSubsView(year,month){
       abs.forEach(function(absent){
         var curSub=da[absent.n]||'';
         var isMan=manSet.indexOf(absent.n)>=0;
-        var hasCon=curSub&&absNames.indexOf(curSub)>=0;
+        var hasCon=!!curSub&&(absNames.indexOf(curSub)>=0||activePeopleForDay(cell.ds).indexOf(curSub)<0||activePeopleForDay(cell.ds).indexOf(absent.n)<0);
         var fabCon=absent.n===chefeN&&fabianaSub&&!curSub&&absNames.indexOf(fabianaSub)>=0;
         var avail=activePeopleForDay(cell.ds).filter(function(n){return absNames.indexOf(n)<0;});
         h+='<div style="margin-top:5px">';
@@ -1160,7 +1004,7 @@ function buildSubsView(year,month){
         }else{
           h+='<div style="font-size:11px"><span style="color:var(--text-2)">'+absent.n+'</span><span style="font-size:10px;color:var(--text-3)"> ('+licenseLabel(absent.type)+')</span> <span style="color:var(--text-3)">&#8594;</span> <strong style="color:'+(curSub?(currentAdminUser&&curSub===currentAdminUser?'#f59e0b':'var(--accent)'):'var(--text-3)')+'">'+( curSub||'—')+'</strong></div>';
         }
-        if(hasCon)h+='<div style="font-size:10px;color:var(--red)">'+curSub+' também ausente.</div>';
+        if(hasCon&&activePeopleForDay(cell.ds).indexOf(curSub)>=0&&activePeopleForDay(cell.ds).indexOf(absent.n)>=0)h+='<div style="font-size:10px;color:var(--red)">'+'Atribuição precisa ser atualizada.</div>';
         h+='</div>';
       });
       h+='</div>';
@@ -1186,7 +1030,7 @@ function buildSubsView(year,month){
     absentToday.forEach(function(absent){
       var currentSub=dayAssignments[absent.n]||'';
       var isManual=manualSet.indexOf(absent.n)>=0;
-      var hasConflict=currentSub&&absentNames.indexOf(currentSub)>=0;
+      var hasConflict=!!currentSub&&(absentNames.indexOf(currentSub)>=0||activePeopleForDay(ds).indexOf(currentSub)<0||activePeopleForDay(ds).indexOf(absent.n)<0);
       var fabConflict=absent.n===chefeN&&fabianaSub&&!currentSub&&absentNames.indexOf(fabianaSub)>=0;
       var available=activePeopleForDay(ds).filter(function(n){return absentNames.indexOf(n)<0;});
       h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">';
@@ -1214,8 +1058,8 @@ function buildSubsView(year,month){
         if(isManual&&currentSub)h+='<span data-tip="Definido manualmente" onclick="showTip(this)" style="font-size:10px;color:var(--text-3)">&#9998;</span>';
       }
       h+='</div>';
-      if(hasConflict){
-        h+='<div style="font-size:11px;color:var(--red);margin:-2px 0 4px 4px">'+currentSub+' também está ausente neste dia — defina manualmente.</div>';
+      if(hasConflict&&activePeopleForDay(ds).indexOf(currentSub)>=0&&activePeopleForDay(ds).indexOf(absent.n)>=0){
+        h+='<div style="font-size:11px;color:var(--red);margin:-2px 0 4px 4px">'+'Atribuição precisa ser atualizada. Use Gerar automaticamente.</div>';
       }
     });
     h+='</div>';
@@ -1376,92 +1220,11 @@ function diffSnapshots(curr, prev){
   return lines;
 }
 
-function showHistoryModal(){
-  openTallModal(
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><h3 style="margin-bottom:0">Histórico de versões</h3><button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);line-height:1;padding:0;flex-shrink:0" onmouseover="this.style.color=\'var(--text)\'" onmouseout="this.style.color=\'var(--text-3)\'">&#215;</button></div><div id="hist-body" style="font-size:13px;color:var(--text-3);padding:8px 0">Carregando...</div>',
-    ''
-  );
-  _histRef.get().then(function(snap){
-    var el=document.getElementById('hist-body');if(!el)return;
-    var hist=[];
-    if(snap.exists&&snap.data().snapshots){try{hist=JSON.parse(snap.data().snapshots);}catch(e){hist=[];}}
-    if(!hist.length){
-      el.innerHTML='<span style="color:var(--text-3)">Nenhuma versão anterior encontrada.</span>';
-      return;
-    }
-    // Build rows — compare each snapshot to the next one (which is older)
-    var rows=hist.slice(0,HISTORY_VISIBLE_MAX).map(function(s,i){
-      var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
-      var by=s.savedBy||'—';
-      var next=hist[i+1]||null; // older snapshot to compare against
-      var diffs=next?diffSnapshots(s,next):[{type:'neutral',text:'Esta versão está disponível para restauração, mas o detalhamento das alterações não está disponível.'}];
-      var diffColor={add:'var(--green)',rem:'var(--red)',neutral:'var(--text-3)'};
-      var diffHtml=diffs.map(function(d){
-        return '<div style="font-size:11px;color:'+diffColor[d.type]+';padding:1px 0">'+d.text+'</div>';
-      }).join('');
-      return '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">'+
-        '<div>'+
-        '<div style="font-size:13px;font-weight:500">#'+(i+1)+' &mdash; '+dt+'</div>'+
-        '<div style="font-size:11px;color:var(--text-3);margin-top:2px">Versão salva por: <strong>'+by+'</strong></div>'+
-        '</div>'+
-        '<button class="btn sm" onclick="confirmRestore('+i+')">Restaurar</button>'+
-        '</div>'+
-        '<div style="margin-top:8px;padding:8px 10px;background:var(--surface2);border-radius:var(--r-sm)">'+diffHtml+'</div>'+
-        '</div>';
-    }).join('');
-    el.innerHTML=rows;
-  }).catch(function(){
-    var el=document.getElementById('hist-body');
-    if(el)el.innerHTML='Erro ao carregar histórico.';
-  });
-}
 
-function confirmRestore(idx){
-  _histRef.get().then(function(snap){
-    if(!snap.exists)return;
-    var hist=[];
-    try{hist=JSON.parse(snap.data().snapshots);}catch(e){return;}
-    var s=hist[idx];if(!s)return;
-    var vacs=JSON.parse(s.vacations);
-    var peops=migratePeople(JSON.parse(s.people));
-    var dt=s.savedAt?new Date(s.savedAt).toLocaleString('pt-BR'):'—';
-    var by=s.savedBy||'—';
-    var vacCount=vacs.length;
-    var peopCount=peops.length;
-    var activeNames=peops.filter(function(p){return p.ate===null;}).map(function(p){return p.n;}).join(', ');
-    openModal(
-      '<h3>Confirmar restauração</h3>'+
-      '<p style="font-size:13px;color:var(--text-2);margin:8px 0 14px">Você está prestes a restaurar a versão salva em <strong>'+dt+'</strong> por <strong>'+by+'</strong>. O estado atual será substituído pelo seguinte:</p>'+
-      '<div style="background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;margin-bottom:14px">'+
-      '<div style="margin-bottom:6px"><span style="color:var(--text-3)">Períodos de férias:</span> <strong>'+vacCount+' registro'+(vacCount!==1?'s':'')+' no total</strong></div>'+
-      '<div><span style="color:var(--text-3)">Procuradores ativos:</span> <strong>'+activeNames+'</strong></div>'+
-      '</div>'+
-      '<div style="background:var(--amber-bg);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--amber);margin-bottom:16px">'+
-      'Todos os dados atuais — períodos de férias e lista de procuradores — serão substituídos por esta versão. Esta ação não pode ser desfeita diretamente, mas a versão atual será salva no histórico antes da restauração.'+
-      '</div>'+
-      '<div class="mbtns" style="justify-content:space-between">'+
-      '<button class="btn" onclick="closeModal()">Cancelar</button>'+
-      '<button class="btn primary" onclick="_doRestore('+idx+')">Confirmar restauração</button>'+
-      '</div>'
-    );
-  }).catch(function(){alert('Erro ao carregar versão.');});
-}
 
-window._doRestore=function(idx){
-  adminConfirm(function(){
-    _histRef.get().then(function(snap){
-      if(!snap.exists)return;
-      var hist=[];
-      try{hist=JSON.parse(snap.data().snapshots);}catch(e){return;}
-      var s=hist[idx];if(!s)return;
-      vacations=JSON.parse(s.vacations);
-      people=migratePeople(JSON.parse(s.people));
-      saveOfficial('✓ Versão restaurada com sucesso');
-      render();
-    }).catch(function(){alert('Erro ao restaurar versão.');});
-  });
-};
+
+
+
 
 // ── Export ─────────────────────────────────────────────────────────────────────
 function buildConflictRows(year){
@@ -1690,31 +1453,7 @@ function togglePwd(inputId,btn){
 }
 
 // ── Login ──────────────────────────────────────────────────────────────────────
-function checkLogin(){
-  var input=document.getElementById('login-input');
-  var err=document.getElementById('login-error');
-  var val=input.value.trim();
-  var normalize=function(s){return s.normalize?s.normalize('NFD').replace(/[\u0300-\u036f]/g,''):s;};
-  var normVal=normalize(val);
-  var matched=null;
-  if(val===OFFICIAL_PIN){matched='ADMIN';}
-  else if(val===ACCESS_PASSWORD){matched='VIEWER';}
-  else{
-    // Match against known people (DEFAULT_PEOPLE as fallback, then live Firestore list)
-    DEFAULT_PEOPLE.forEach(function(p){if(normVal===normalize(p.n))matched=p.n;});
-    if(!matched)people.forEach(function(p){if(normVal===normalize(p.n))matched=p.n;});
-  }
-  if(matched){
-    sessionStorage.setItem(SESSION_KEY,matched);
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='';
-    err.textContent='';
-    bootDashboard(matched);
-  }else{
-    err.textContent='Senha incorreta. Tente novamente.';
-    input.value='';input.focus();
-  }
-}
+
 
 
 function logout(){
@@ -1945,7 +1684,7 @@ function adminConfirm(cb){
   },90);
 }
 
-function hasPersonOverlap(person,start,days,excludeIdx){
+function originalHasPersonOverlap(person,start,days,excludeIdx){
   var newEnd=fmt(addDays(start,days-1));
   return vacations.some(function(v,i){
     if(v.n!==person)return false;
@@ -2911,7 +2650,7 @@ function recessoDateLabel(s,e,fallback){
 function buildRecessoView(year){
   var choices=recessoChoices[year]||{};
   var dates=recessoDates[year]||{};
-  var active=activePeopleForYear(year);
+  var active=recessoPeopleForYear(year);
   var isMe=currentAdminUser&&currentAdminUser!=='ADMIN';
   var myChoice=isMe?choices[currentAdminUser]:null;
   var currentYear=new Date().getFullYear();
@@ -3743,28 +3482,500 @@ function prevM(){if(curMonth>0)curMonth--;else if(curYear>YEARS[0]){curYear--;cu
 function nextM(){if(curMonth<11)curMonth++;else if(curYear<YEARS[YEARS.length-1]){curYear++;curMonth=0;}render();}
 
 // ── Boot ───────────────────────────────────────────────────────────────────────
-function bootDashboard(user){
-  if(user)currentAdminUser=user==='VIEWER'?null:user;
-  document.getElementById('app').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="font-size:14px;color:var(--text-3)">Conectando...</div></div>';
-  loadOfficial(function(){
-    applyData(officialData);
-    // Re-validate user — match ignoring accents so MARILIA matches MÁRILIA etc.
-    if(currentAdminUser&&currentAdminUser!=='ADMIN'){
-      var normalize=function(s){return s.normalize?s.normalize('NFD').replace(/[\u0300-\u036f]/g,''):s;};
-      var normUser=normalize(currentAdminUser);
-      var matched=getAdminPasswords().find(function(p){return normalize(p)===normUser;});
-      if(matched){currentAdminUser=matched;}else{currentAdminUser=null;}
-    }
-    loadConfig(function(){
-      loadRecesso(function(){
-        render();
-        window.scrollTo(0,0);
-        subscribeOfficial();
-        subscribeRecesso();
-        subscribeSubs();
-      });
-    });
+
+
+// Departure domain logic; production persistence is injected separately.
+var scheduleLocks={},departurePending={},recessoCutoffs={},departureNotice='',previewHistory=[],previewRevision=0;
+var previewPersisted=null;
+function clone(x){return JSON.parse(JSON.stringify(x));}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function namesText(ns){ns=Array.from(new Set(ns)).sort(function(a,b){return a.localeCompare(b,'pt-BR');});return ns.length<2?(ns[0]||''):ns.slice(0,-1).join(', ')+' e '+ns[ns.length-1];}
+function periodEnd(v){return fmt(addDays(v.s,v.d-1));}
+function daysBetween(a,b){return Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);}
+function previewState(){return clone({people:people,vacations:vacations,customHolidays:customHolidays,recessoChoices:recessoChoices,recessoDates:recessoDates,subsData:subsData,departurePending:departurePending,recessoCutoffs:recessoCutoffs,departureNotice:departureNotice,scheduleLocks:scheduleLocks});}
+function usePreviewState(s){if(Array.isArray(s.customHolidays))customHolidays=clone(s.customHolidays);people=s.people;vacations=s.vacations;recessoChoices=s.recessoChoices;recessoDates=s.recessoDates;subsData=s.subsData;departurePending=s.departurePending||{};recessoCutoffs=s.recessoCutoffs||{};departureNotice=s.departureNotice||'';scheduleLocks=s.scheduleLocks||inferScheduleLocks(s);}
+function inferScheduleLocks(state){
+ var locks={};
+ (state.people||[]).forEach(function(person){
+  var date=pAteDate(person);if(!date)return;
+  Object.keys(state.subsData||{}).forEach(function(mk){
+   if(!Object.keys(state.subsData[mk]).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds>=date;}))return;
+   var cut=date>mk+'-01'?date:mk+'-01',lock=locks[mk]||{from:cut,names:[],reasons:{}};
+   if(cut<lock.from)lock.from=cut;lock.names=Array.from(new Set(lock.names.concat(person.n)));lock.reasons[person.n]='saída';locks[mk]=lock;
   });
+ });return locks;
+}
+
+function absenceAllowed(person,start,days){
+ var p=people.find(function(p){return p.n===person;});
+ return !!p&&start>=pDesdeDate(p)&&(!pAteDate(p)||fmt(addDays(start,days-1))<pAteDate(p));
+}
+function hasPersonOverlap(person,start,days,idx){
+ if(!absenceAllowed(person,start,days)){alert('O período deve estar dentro da atuação na unidade e terminar antes do dia da saída.');return true;}
+ return originalHasPersonOverlap(person,start,days,idx);
+}
+function planDeparture(state,name,date){
+ var next=clone(state),p=next.people.find(function(p){return p.n===name;});
+ if(!p||!/^\d{4}-\d{2}-\d{2}$/.test(date)||isNaN(Date.parse(date))||fmt(parseD(date))!==date||date<pDesdeDate(p))throw Error('Informe uma data de saída válida, igual ou posterior à entrada na unidade.');
+ if(p.ate!==null)throw Error('Este procurador já está desativado.');
+ var changes=[],removed=0,shortened=0;
+ next.vacations=next.vacations.filter(function(v){
+  if(v.n!==name||periodEnd(v)<date)return true;
+  var before=clone(v),keep=v.s<date;
+  if(keep){v.d=daysBetween(v.s,date);shortened++;}else removed++;
+  changes.push({kind:licenseLabel(v.type),start:before.s,end:periodEnd(before),action:keep?'shorten':'remove',newEnd:keep?fmt(addDays(date,-1)):null});return keep;
+ });
+ Object.keys(next.recessoChoices).forEach(function(y){
+  var choice=next.recessoChoices[y][name];if(!choice)return;
+  var dates=next.recessoDates[y]||{},s=dates[choice+'_s'],e=dates[choice+'_e'];
+  if(!s||!e){
+   if(Number(y)<Number(date.slice(0,4)))return;
+   if(Number(y)===Number(date.slice(0,4)))throw Error('Defina as datas do recesso de '+y+' antes de desativar '+name+', para conferir o que é anterior ou posterior à saída.');
+   delete next.recessoChoices[y][name];changes.push({kind:'Recesso '+y,action:'remove',start:null,end:null});return;
+  }
+  if(e<date)return;
+  if(s>=date){delete next.recessoChoices[y][name];changes.push({kind:'Recesso '+y,action:'remove',start:s,end:e});}
+  else{
+   if(!next.recessoCutoffs[y])next.recessoCutoffs[y]={};next.recessoCutoffs[y][name]=date;
+   changes.push({kind:'Recesso '+y,action:'shorten',start:s,end:e,newEnd:fmt(addDays(date,-1))});
+  }
+ });
+ p.ate=date;
+ var months=[];
+ // Any existing schedule after the departure can change the queue, even if it has no direct assignment to this person.
+ Object.keys(next.subsData).sort().forEach(function(mk){
+  if(!/^\d{4}-\d{2}$/.test(mk))return;
+  var table=next.subsData[mk];
+  if(!Object.keys(table).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds>=date;}))return;
+  var cut=date>mk+'-01'?date:mk+'-01';
+  var pending=next.departurePending[mk]||{from:cut,names:[]};
+  if(cut<pending.from)pending.from=cut;
+  pending.names=Array.from(new Set(pending.names.concat(name)));
+  pending.reasons=pending.reasons||{};pending.reasons[name]='saída';next.departurePending[mk]=pending;months.push(mk);
+ });
+ return {next:next,name:name,date:date,changes:changes,months:months,chief:!!p.chefia,retroactive:date<today};
+}
+function changeText(c){
+ var range=c.start?' — '+fmtBR(c.start)+' a '+fmtBR(c.end):'';
+ return esc('Período de '+c.kind.toLowerCase()+range)+(c.action==='remove'?' será removido.':' será mantido somente até '+fmtBR(c.newEnd)+'.');
+}
+function departureSummary(plan){
+ var parts=[];
+ [{test:function(c){return c.kind==='Férias';},one:'período de férias',many:'períodos de férias'},
+ {test:function(c){return c.kind.indexOf('Licença')===0||c.kind==='Outra licença';},one:'período de licença',many:'períodos de licença'},
+ {test:function(c){return c.kind.indexOf('Recesso')===0;},one:'período de recesso',many:'períodos de recesso'}].forEach(function(g){
+  ['remove','shorten'].forEach(function(action){var n=plan.changes.filter(function(c){return g.test(c)&&c.action===action;}).length;
+   if(n)parts.push(n+' '+(n===1?g.one:g.many)+' '+(action==='remove'?'removido':'encurtado')+(n===1?'':'s'));
+  });
+ });
+ return parts.length?parts.join('; ')+'.':'Nenhum período de férias, licença ou recesso precisou ser alterado.';
+}
+function deactivatePerson(name){
+ if(!isMaster())return;
+ openModal('<h3>Desativar procurador</h3><p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Em qual data <strong>'+esc(name)+'</strong> saiu da unidade?</p><div class="field"><label>Data de saída</label><input type="date" id="deact-date" value="'+today+'"></div><div class="mbtns"><button class="btn" onclick="showPeopleManager()">Cancelar</button><button class="btn primary" id="departure-review">Desativar</button></div>');
+ document.getElementById('departure-review').onclick=function(){
+  try{showDepartureReview(planDeparture(previewState(),name,document.getElementById('deact-date').value));}catch(e){alert(e.message);}
+ };
+}
+function showDepartureReview(plan){
+ var stamp=JSON.stringify(previewState());
+ var body='<h3>Confirmar desativação de '+esc(plan.name)+'</h3><p style="font-size:13px;line-height:1.6">A partir de <strong>'+fmtBR(plan.date)+'</strong>, '+esc(plan.name)+' não estará mais trabalhando na unidade.</p>';
+ if(plan.changes.length)body+='<p style="font-size:13px;line-height:1.6;text-align:justify;margin:0 0 16px">Os registros até '+fmtBR(fmt(addDays(plan.date,-1)))+' serão mantidos. Confira abaixo o que será removido ou encurtado a partir do dia da saída.</p>';
+ if(plan.changes.length)body+='<div style="background:var(--amber-bg);color:var(--amber);padding:12px;border-radius:var(--r-sm);font-size:13px;margin-bottom:16px"><strong>Confira os ajustes:</strong><ul style="padding-left:18px;line-height:1.7">'+plan.changes.map(function(c){return '<li>'+changeText(c)+'</li>';}).join('')+'</ul></div>';
+ else body+='<p style="font-size:13px;line-height:1.6;text-align:justify;margin:0 0 16px">Não há férias, licenças ou recesso cadastrados para o dia da saída ou depois dele. Por isso, não será necessário remover ou encurtar períodos; os registros anteriores à saída permanecerão no histórico.</p>';
+ if(plan.months.length)body+='<p style="font-size:13px;line-height:1.6;margin:0 0 16px">'+(plan.months.length===1?'A tabela de substituições de ':'As tabelas de substituições de ')+esc(namesText(plan.months.map(monthLabel)))+' '+(plan.months.length===1?'precisará':'precisarão')+' ser atualizada'+(plan.months.length===1?'':'s')+'. Na aba <strong>Substituições</strong>, use <strong>Gerar automaticamente</strong>. Os dias anteriores à saída serão preservados. Um aviso permanecerá até a conclusão.</p>';
+ else body+='<p style="font-size:13px;line-height:1.6;margin:0 0 16px">Não há tabela de substituições já gerada que precise ser atualizada.</p>';
+ if(plan.chief)body+='<p style="color:var(--amber);font-size:13px;line-height:1.6;margin:0 0 16px">⚠ A chefia precisará ser definida antes de atualizar as tabelas de substituições posteriores à saída.</p>';
+ if(plan.retroactive)body+='<p style="color:var(--amber);font-size:13px;line-height:1.6;margin:0 0 16px">⚠ A data é anterior a hoje. Os ajustes também alcançarão registros posteriores à saída que já passaram.</p>';
+ body+='<p style="font-size:12px;color:var(--text-3);line-height:1.6;margin:0">Uma cópia completa será mantida no histórico do sistema.</p>';
+ openTallModal('<div class="departure-review-content" style="padding-bottom:20px">'+body+'</div>','<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="departure-confirm">Confirmar desativação</button></div>',660);
+ document.getElementById('departure-confirm').onclick=function(){adminConfirm(function(){
+  if(JSON.stringify(previewState())!==stamp){alert('Os dados mudaram. Confira novamente os impactos da desativação.');return;}
+  plan.next.departureNotice=(plan.next.departureNotice?plan.next.departureNotice+' ':'')+plan.name+': '+departureSummary(plan);
+  if(commitPreview(plan.next,'Desativação de '+plan.name)){showToast('✓ Desativação salva');}
+ });};
+}
+function monthLabel(mk){return MONTHS_PT[Number(mk.slice(5))-1]+'/'+mk.slice(0,4);}
+function pendingReason(ns,details){
+ var groups={};
+ Array.from(new Set(ns)).forEach(function(n){
+  var reason=details&&details.reasons&&details.reasons[n];
+  if(!reason){var p=people.find(function(p){return p.n===n;});reason=p&&p.ate!==null?'saída':'entrada';}
+  if(!groups[reason])groups[reason]=[];groups[reason].push(n);
+ });return Object.keys(groups).map(function(reason){return reason+' de '+namesText(groups[reason]);}).join(' e a ');
+}
+function departureBanner(){
+ if(!isMaster())return '';
+ var months=Object.keys(departurePending).sort(),ns=[];
+ if(!months.length)return '';
+ var reasons={};months.forEach(function(m){ns=ns.concat(departurePending[m].names);Object.assign(reasons,departurePending[m].reasons||{});});
+ var text='Atualize '+(months.length===1?'a tabela de substituições de ':'as tabelas de substituições de ')+'<strong>'+esc(namesText(months.map(monthLabel)))+'</strong> para considerar a '+esc(pendingReason(ns,{reasons:reasons}))+'.';
+ return '<div class="welcome-banner" role="status" style="background:var(--amber-bg);color:var(--amber);border-color:#f0d090"><div class="welcome-banner-text"><span>⚠️</span><div style="font-size:13px;line-height:1.6">'+text+'</div></div><div class="welcome-banner-actions"><button class="btn sm" onclick="openPendingDeparture()">Ir para substituições</button></div></div>';
+}
+function openPendingDeparture(){var m=Object.keys(departurePending).sort()[0];if(m){subsYear=Number(m.slice(0,4));subsMonth=Number(m.slice(5))-1;curView='subs';render();}}
+function ackDepartureNotice(){if(Object.keys(departurePending).length)return;var next=previewState();next.departureNotice='';commitPreview(next,'Aviso de desativação lido');}
+var originalRender=render;
+render=function(){originalRender();var bar=departureBanner();if(bar){var top=document.querySelector('#app .topbar');if(top)top.insertAdjacentHTML('afterend',bar);} decoratePendingNames();};
+function decoratePendingNames(){
+ if(!isMaster()||curView!=='subs')return;
+ var pending=departurePending[subsYear+'-'+String(subsMonth+1).padStart(2,'0')];if(!pending)return;
+ document.querySelectorAll('#app [data-departure-name]').forEach(function(el){el.style.color='var(--amber)';});
+ // Existing selects must show the saved, now-ineligible substitute instead of silently falling back to an empty option.
+ document.querySelectorAll('#app select[onchange^="setSub"]').forEach(function(select){
+  var args=select.getAttribute('onchange').match(/setSub\('([^']+)','([^']+)','([^']+)'/);if(!args)return;
+  var ds=args[2],from=args[3],to=((subsData[args[1]]||{})[ds]||{})[from];
+  if(ds>=pending.from){select.disabled=true;select.title='Use Gerar automaticamente para atualizar a fila.';}
+  if(activePeopleForDay(ds).indexOf(from)<0){
+   var nameEl=select.parentElement.previousElementSibling;
+   if(!nameEl||nameEl.textContent.indexOf(from)!==0)nameEl=select.parentElement.querySelector('span');
+   if(nameEl){nameEl.style.color='var(--amber)';nameEl.title=from+' não atua na unidade nesta data. Atualize a tabela pelo botão Gerar automaticamente.';}
+  }
+  if(!to||activePeopleForDay(ds).indexOf(to)>=0)return;
+  if(!Array.from(select.options).some(function(o){return o.value===to;})){var o=document.createElement('option');o.value=to;o.textContent=to;select.appendChild(o);}
+  select.title=to+' não atua na unidade nesta data. Atualize a tabela pelo botão Gerar automaticamente.';select.value=to;select.style.color='var(--amber)';select.style.borderColor='var(--amber)';
+ });
+}
+function historicalAbsenceType(n,ds){
+ for(var i=0;i<previewHistory.length;i++){var v=previewHistory[i].state.vacations.find(function(v){return v.n===n&&v.s<=ds&&periodEnd(v)>=ds;});if(v)return v.type||'ferias';}
+ return 'Ausência';
+}
+var actualMonthAbsences=getMonthAbsences,renderingDepartureTable=false;
+getMonthAbsences=function(y,m){
+ var map=actualMonthAbsences(y,m),mk=y+'-'+String(m+1).padStart(2,'0'),pending=departurePending[mk];
+ if(!renderingDepartureTable||!isMaster()||!pending)return map;
+ Object.keys(subsData[mk]||{}).forEach(function(ds){if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds<pending.from)return;
+  Object.keys(subsData[mk][ds]).filter(function(n){return n!=='_m';}).forEach(function(n){
+   if(activePeopleForDay(ds).indexOf(n)>=0)return;
+   if(!map[ds])map[ds]=[];
+   if(!map[ds].some(function(a){return a.n===n;}))map[ds].push({n:n,type:historicalAbsenceType(n,ds)});
+  });
+ });return map;
+};
+var originalBuildSubsView=buildSubsView;
+buildSubsView=function(y,m){renderingDepartureTable=true;var html;try{html=originalBuildSubsView(y,m);}finally{renderingDepartureTable=false;}
+ var p=departurePending[y+'-'+String(m+1).padStart(2,'0')];
+ if(p&&isMaster()){
+  html='<div style="font-size:13px;color:var(--amber);margin-bottom:12px">Ao gerar novamente, as substituições de '+fmtBR(p.from)+' em diante serão redistribuídas pela fila, inclusive as escolhidas manualmente. As substituições até '+fmtBR(fmt(addDays(p.from,-1)))+' permanecerão como estão.</div>'+html;
+  // Highlight inactive absent names in both existing desktop and mobile rows, leaving dates prior to departure unchanged.
+
+ }
+ return html;
+};
+function generateDepartureSchedule(y,m,fixed,startingPoints){
+ var mk=y+'-'+String(m+1).padStart(2,'0'),pending=departurePending[mk]||scheduleLocks[mk],cut=pending?pending.from:mk+'-01';
+ var abs=actualMonthAbsences(y,m),old=subsData[mk]||{},out={},last={},chief=getChefe();
+ // Keep departed people in the circular reference order, then skip them using daily eligibility.
+ // This retains the next position when the previous substitute is no longer eligible.
+ if(startingPoints)Object.keys(startingPoints).forEach(function(n){last[n]=startingPoints[n];});
+ var queue=people.map(function(p){return p.n;}).sort(function(a,b){return getSortKey(a).localeCompare(getSortKey(b),'pt-BR',{sensitivity:'base'});});
+ Object.keys(subsData).sort().forEach(function(key){Object.keys(subsData[key]).sort().forEach(function(ds){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds>=cut)return;
+  var day=subsData[key][ds];Object.keys(day).forEach(function(n){if(n!=='_m'&&(day._m||[]).indexOf(n)<0)last[n]=day[n];});
+ });});
+ Object.keys(old).forEach(function(ds){if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds<cut)out[ds]=clone(old[ds]);});
+ out.fabianaFixedSub=fixed||null;
+ Object.keys(abs).sort().filter(function(ds){return ds>=cut;}).forEach(function(ds){
+  var away=abs[ds].map(function(a){return a.n;}),avail=activePeopleForDay(ds).filter(function(n){return away.indexOf(n)<0;}),day={};
+  if(chief&&away.indexOf(chief)>=0&&avail.indexOf(fixed)>=0){day[chief]=fixed;avail=avail.filter(function(n){return n!==fixed;});}
+  away.sort(function(a,b){return queue.indexOf(a)-queue.indexOf(b);}).forEach(function(n){
+   if(n===chief)return;
+   var anchor=last[n]||n,start=queue.indexOf(anchor);
+   for(var i=1;i<=queue.length;i++){
+    var candidate=queue[(start+i+queue.length)%queue.length];
+    if(candidate!==n&&avail.indexOf(candidate)>=0){day[n]=candidate;last[n]=candidate;avail=avail.filter(function(x){return x!==candidate;});break;}
+   }
+  });out[ds]=day;
+ });return out;
+}
+function validateDepartureSchedule(y,m,table,cut){
+ var errors=[],abs=actualMonthAbsences(y,m);
+ Object.keys(abs).sort().filter(function(ds){return ds>=cut;}).forEach(function(ds){
+  var away=abs[ds].map(function(a){return a.n;}),used=[];
+  away.forEach(function(n){var sub=(table[ds]||{})[n];
+   if(!sub||sub===n||away.indexOf(sub)>=0||activePeopleForDay(ds).indexOf(sub)<0||used.indexOf(sub)>=0)errors.push(fmtBR(ds)+': '+n+' precisa de substituto elegível.');
+   if(sub)used.push(sub);
+  });
+ });
+ Object.keys(table).filter(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds>=cut;}).forEach(function(ds){Object.keys(table[ds]).filter(function(n){return n!=='_m';}).forEach(function(n){if(!(abs[ds]||[]).some(function(a){return a.n===n;}))errors.push(fmtBR(ds)+': atribuição sem ausência correspondente.');});});
+ return errors;
+}
+function existingDepartureChiefSub(y,m,chief,days){
+ var mk=y+'-'+String(m+1).padStart(2,'0'),current=subsData[mk]||{};
+ if(current.fabianaFixedSub)return current.fabianaFixedSub;
+ var first=days.slice().sort()[0];if(!first)return null;
+ var period=vacations.find(function(v){return v.n===chief&&v.s<mk+'-01'&&v.s<=first&&periodEnd(v)>=first;});
+ if(!period)return null;
+ // Only assignments belonging to this same absence can establish continuity.
+ var matches=[];
+ Object.keys(subsData).filter(function(key){return key<mk;}).forEach(function(key){
+  Object.keys(subsData[key]).filter(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds>=period.s&&ds<=periodEnd(period)&&subsData[key][ds][chief];}).forEach(function(ds){matches.push({date:ds,sub:subsData[key][ds][chief]});});
+ });
+ matches.sort(function(a,b){return b.date.localeCompare(a.date);});
+ return matches.length?matches[0].sub:null;
+}
+var previousGenerateSubs=window.generateSubs;
+window.generateSubs=function(y,m,providedStarts){
+ if(!isMaster())return;
+ var mk=y+'-'+String(m+1).padStart(2,'0'),pending=departurePending[mk]||scheduleLocks[mk];
+ if(!pending){previousGenerateSubs(y,m);return;}
+ var older=Object.keys(departurePending).sort().filter(function(k){return k<mk;});
+ if(older.length){alert('Atualize primeiro '+monthLabel(older[0])+', para preservar a continuidade da fila.');return;}
+ var chief=getChefe(),chiefRecord=people.find(function(p){return p.n===chief;}),monthEnd=fmt(new Date(y,m+1,0));
+ if(chiefRecord&&chiefRecord.ate&&pAteDate(chiefRecord)<=monthEnd){alert('A chefia está vinculada a um procurador que saiu da unidade. Defina a chefia em Gerenciar procuradores antes de atualizar esta tabela de substituições.');return;}
+ var abs=actualMonthAbsences(y,m),chiefDays=Object.keys(abs).filter(function(ds){return ds>=pending.from&&abs[ds].some(function(a){return a.n===chief;});});
+ var candidates=people.map(function(p){return p.n;}).filter(function(n){return chiefDays.every(function(ds){return activePeopleForDay(ds).indexOf(n)>=0&&!abs[ds].some(function(a){return a.n===n;});});});
+ if(chiefDays.length&&!candidates.length){alert('Não há substituto fixo disponível durante todo o período da chefia. A tabela de substituições continuará pendente. Revise a configuração antes de gerar.');return;}
+ var previousFixed=existingDepartureChiefSub(y,m,chief,chiefDays),retainedFixed=chiefDays.length&&candidates.indexOf(previousFixed)>=0?previousFixed:null;
+ var chiefField='';
+ if(chiefDays.length){
+  chiefField=retainedFixed?'<p style="font-size:13px;line-height:1.6;margin:0 0 20px">'+esc(retainedFixed)+' continuará como substituto fixo de '+esc(chief)+'.</p>':(previousFixed?'<p style="font-size:13px;line-height:1.6;margin:0 0 14px">'+esc(previousFixed)+' não está disponível em todos os dias que serão atualizados. Escolha outro substituto para esse trecho. Os dias anteriores serão mantidos.</p>':'')+'<div class="field"><label>Substituto fixo de '+esc(chief)+'</label><select id="departure-chief"><option value="">Selecione o substituto</option>'+candidates.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('')+'</select></div>';
+ }
+ var needStarts=Array.from(new Set(Object.keys(abs).filter(function(ds){return ds>=pending.from;}).reduce(function(ns,ds){return ns.concat(abs[ds].map(function(a){return a.n;}));},[]))).filter(function(n){
+  if(n===chief||providedStarts&&providedStarts[n])return false;
+  if(!vacations.some(function(v){return v.n===n&&v.s<mk+'-01'&&periodEnd(v)>=pending.from;}))return false;
+  return !Object.keys(subsData).some(function(key){return Object.keys(subsData[key]).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds<pending.from&&subsData[key][ds][n]&&(subsData[key][ds]._m||[]).indexOf(n)<0;});});
+ });
+ if(needStarts.length){showStartingPointsModal(needStarts,function(points){window.generateSubs(y,m,Object.assign({},providedStarts,points));},m?y:y-1,m?m-1:11);return;}
+ var stamp=JSON.stringify(previewState());
+ openTallModal('<h3>Atualizar tabela de substituições</h3><p style="font-size:13px;color:var(--text-2);line-height:1.6;text-align:justify;margin:0 0 14px">A tabela de <strong>'+monthLabel(mk)+'</strong> será refeita a partir de <strong>'+fmtBR(pending.from)+'</strong> (ajuste pela '+esc(pendingReason(pending.names,pending))+'), seguindo a fila de substituição.</p><p style="font-size:13px;color:var(--text-2);line-height:1.6;text-align:justify;margin:0 0 20px">As substituições até <strong>'+fmtBR(fmt(addDays(pending.from,-1)))+'</strong> permanecerão como estão. De <strong>'+fmtBR(pending.from)+'</strong> em diante, todas serão redistribuídas pela fila, inclusive as escolhidas manualmente.</p>'+chiefField,'<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="departure-generate">Gerar automaticamente</button></div>',520);
+ document.getElementById('departure-generate').onclick=function(){
+  var el=document.getElementById('departure-chief'),fixed=retainedFixed||(el?el.value:null);
+  if(chiefDays.length&&candidates.indexOf(fixed)<0){alert('Selecione um substituto fixo para a chefia.');return;}
+  adminConfirm(function(){
+   if(JSON.stringify(previewState())!==stamp){alert('Os dados mudaram. Confira a tabela novamente.');return;}
+   var table=generateDepartureSchedule(y,m,fixed,providedStarts),errors=validateDepartureSchedule(y,m,table,pending.from);
+   if(errors.length){openTallModal('<h3>Não foi possível completar a tabela de substituições</h3><p>A tabela anterior foi preservada. O aviso continuará visível.</p><ul>'+errors.map(function(e){return '<li>'+esc(e)+'</li>';}).join('')+'</ul>','<button class="btn" onclick="closeModal()">Fechar</button>',660);return;}
+   var next=previewState();next.subsData[mk]=table;next.scheduleLocks[mk]=clone(pending);delete next.departurePending[mk];
+   if(!Object.keys(next.departurePending).length)next.departureNotice='';
+   commitPreview(next,'Atualização da tabela de substituições de '+monthLabel(mk));
+  });
+ };
+};
+var previousClearSubs=window.clearSubsMonth;
+window.clearSubsMonth=function(y,m){if(departurePending[y+'-'+String(m+1).padStart(2,'0')]||scheduleLocks[y+'-'+String(m+1).padStart(2,'0')]){alert('Esta tabela contém um trecho preservado. Use Gerar automaticamente para atualizar apenas o período permitido.');return;}previousClearSubs(y,m);};
+var previousSetSub=window.setSub;
+window.setSub=function(mk,ds,from,to){if(departurePending[mk]){alert('Atualize primeiro esta tabela pelo botão Gerar automaticamente, para manter a ordem da fila.');return;}previousSetSub(mk,ds,from,to);};
+var previousChangeFixed=window.changeFabianaSub;
+window.changeFabianaSub=function(y,m){if(departurePending[y+'-'+String(m+1).padStart(2,'0')]||scheduleLocks[y+'-'+String(m+1).padStart(2,'0')]){window.generateSubs(y,m);return;}previousChangeFixed(y,m);};
+var originalRecessoDays=getRecessoDaysForPerson;
+getRecessoDaysForPerson=function(n,y){var set=originalRecessoDays(n,y),p=people.find(function(p){return p.n===n;}),cut=(recessoCutoffs[y]||{})[n]||(p&&pAteDate(p));if(cut)Object.keys(set).forEach(function(ds){if(ds>=cut)delete set[ds];});return set;};
+buildRecessoDayMap=function(y){var map={};Object.keys(recessoChoices[y]||{}).forEach(function(n){Object.keys(getRecessoDaysForPerson(n,y)).forEach(function(ds){if(!map[ds])map[ds]=[];map[ds].push(n);});});return map;};
+var originalRecessoView=buildRecessoView;
+buildRecessoView=function(y){var html=originalRecessoView(y),cuts=recessoCutoffs[y]||{},details=Object.keys(cuts).filter(function(n){return !!(recessoChoices[y]||{})[n];}).map(function(n){return esc(n)+': recesso preservado somente até '+fmtBR(fmt(addDays(cuts[n],-1)))+'.';});return (details.length?'<div class="recesso-notice">'+details.join('<br>')+'</div>':'')+html;};
+var previousRecessoSet=recessoSetFor,previousRecessoChoose=recessoChoose;
+function validRecesso(n,choice){var d=recessoDates[curRecessoYear]||{},s=d[choice+'_s'],e=d[choice+'_e'];if(!s||!e){alert('Defina as datas do recesso antes de registrar a escolha.');return false;}if(!absenceAllowed(n,s,daysBetween(s,e)+1)){alert('O recesso deve ocorrer antes do dia da saída e depois da entrada na unidade.');return false;}return true;}
+recessoSetFor=function(n,c){if(validRecesso(n,c))previousRecessoSet(n,c);};
+recessoChoose=function(c){if(validRecesso(currentAdminUser,c))previousRecessoChoose(c);};
+// Keep departures out of the year's list when they left on January 1.
+activePeopleForYear=function(y){return people.filter(function(p){return pDesdeDate(p)<=y+'-12-31'&&(!pAteDate(p)||pAteDate(p)>y+'-01-01');}).map(function(p){return p.n;});};
+function showPreviewHistory(){
+ openTallModal('<h3>Histórico de alterações</h3><p style="font-size:12px;color:var(--text-3)">Inclui procuradores, férias, licenças, recesso, substituições e avisos. </p>'+previewHistory.slice(0,10).map(function(h,i){return '<div class="vac-item"><div>'+esc(h.label)+'<br><small>'+new Date(h.at).toLocaleString('pt-BR')+'</small></div><button class="btn sm" onclick="restorePreviewVersion('+i+')">Restaurar</button></div>';}).join(''),'<button class="btn" onclick="closeModal()">Fechar</button>',660);
+}
+function restorePreviewVersion(i){if(!isMaster()||!previewHistory[i])return;var next=clone(previewHistory[i].state);adminConfirm(function(){commitPreview(next,'Restauração');});}
+function markRosterTables(next,name,date,reason){
+ var months=[];
+ Object.keys(next.subsData).sort().forEach(function(mk){
+  if(!/^\d{4}-\d{2}$/.test(mk)||!Object.keys(next.subsData[mk]).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds>=date;}))return;
+  var cut=date>mk+'-01'?date:mk+'-01',p=next.departurePending[mk]||{from:cut,names:[]};
+  if(cut<p.from)p.from=cut;p.names=Array.from(new Set(p.names.concat(name)));p.reasons=p.reasons||{};p.reasons[name]=reason;
+  next.departurePending[mk]=p;months.push(mk);
+ });return months;
+}
+function planReactivation(state,n){
+ var next=clone(state),p=next.people.find(function(p){return p.n===n;});
+ if(!p||p.ate===null)throw Error('Este procurador não está desativado.');
+ var date=pAteDate(p);p.ate=null;
+ return {next:next,name:n,date:date,months:markRosterTables(next,n,date,'reativação')};
+}
+reactivatePerson=function(n){
+ if(!isMaster())return;
+ var plan;try{plan=planReactivation(previewState(),n);}catch(e){alert(e.message);return;}
+ var stamp=JSON.stringify(previewState());
+ openTallModal('<h3>Reativar '+esc(n)+'</h3><p style="font-size:13px;line-height:1.6;text-align:justify;margin:0 0 16px">Esta opção corrige a desativação e volta a considerar '+esc(n)+' na unidade a partir de '+fmtBR(plan.date)+'. Os períodos de férias, licença ou recesso removidos não serão recuperados automaticamente.</p><p style="font-size:13px;line-height:1.6;margin:0 0 20px">'+(plan.months.length?'As tabelas de substituições de '+esc(namesText(plan.months.map(monthLabel)))+' precisarão ser atualizadas pelo botão Gerar automaticamente.':'Não há tabela de substituições já gerada que precise ser atualizada.')+'</p><p style="font-size:12px;color:var(--text-3);margin:0 0 20px">Se houve uma saída real e um retorno posterior, não use esta correção: o cadastro de vários intervalos de atuação ainda não está disponível no sistema.</p>','<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="preview-reactivate">Confirmar reativação</button></div>',520);
+ document.getElementById('preview-reactivate').onclick=function(){adminConfirm(function(){if(JSON.stringify(previewState())!==stamp){alert('Os dados mudaram. Confira novamente a reativação.');return;}commitPreview(plan.next,'Reativação de '+n);});};
+};
+
+
+
+var departurePrintSubs=window.printSubs;
+window.printSubs=function(y,m){if(departurePending[y+'-'+String(m+1).padStart(2,'0')]){alert('Atualize a tabela de substituições antes de imprimir. Há substituições pendentes de revisão.');return;}departurePrintSubs(y,m);};
+function recessoPeopleForYear(y){
+ var dates=recessoDates[y]||{},starts=[dates.natal_s,dates.ano_novo_s].filter(Boolean).sort(),ends=[dates.natal_e,dates.ano_novo_e].filter(Boolean).sort();
+ if(!starts.length||!ends.length)return activePeopleForYear(y);
+ return people.filter(function(p){return pDesdeDate(p)<=ends[ends.length-1]&&(!pAteDate(p)||pAteDate(p)>starts[0]);}).map(function(p){return p.n;});
+}
+function recessoRangeForPerson(n,y,choice){
+ var d=recessoDates[y]||{},s=d[choice+'_s'],e=d[choice+'_e'],p=people.find(function(p){return p.n===n;});
+ if(!s||!e||!p)return '—';
+ var cut=pAteDate(p);if((recessoChoices[y]||{})[n]===choice)cut=(recessoCutoffs[y]||{})[n]||cut;
+ if(pDesdeDate(p)>s)s=pDesdeDate(p);if(cut&&e>=cut)e=fmt(addDays(cut,-1));
+ return s<=e?fmtBR(s)+' a '+fmtBR(e):'—';
+}
+function recessoExportRows(year){
+ var rows=[['Ano','Procurador','Equipe','Trabalha em','Recesso em']];
+ (year==='todos'?YEARS:[Number(year)]).forEach(function(y){var choices=recessoChoices[y]||{};
+ recessoPeopleForYear(y).sort().forEach(function(n){var c=choices[n];rows.push([String(y),n,c?(c==='ano_novo'?'Equipe 1':'Equipe 2'):'Pendente',c?recessoRangeForPerson(n,y,c==='natal'?'ano_novo':'natal'):'—',c?recessoRangeForPerson(n,y,c):'—']);});});return rows;
+}
+function downloadControlExport(content,mime,name){var url=URL.createObjectURL(new Blob([content],{type:mime})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
+exportRecessoCSV=function(y){downloadControlExport('\ufeff'+recessoExportRows(y).map(function(row){return row.map(function(v){return '"'+v.replace(/"/g,'""')+'"';}).join(';');}).join('\r\n'),'text/csv;charset=utf-8','recesso-'+y+'.csv');};
+exportRecessoXLS=function(y){downloadControlExport('<html><head><meta charset="utf-8"></head><body><table border="1">'+recessoExportRows(y).map(function(row,i){return '<tr>'+row.map(function(v){var tag=i?'td':'th';return '<'+tag+'>'+esc(v)+'</'+tag+'>';}).join('')+'</tr>';}).join('')+'</table></body></html>','application/vnd.ms-excel;charset=utf-8','recesso-'+y+'.xls');};
+
+// All exports, including a range of months, use the same pending-table check.
+function pendingTablesBetween(first,last){return Object.keys(departurePending).sort().filter(function(mk){return mk>=first&&mk<=last;});}
+var originalExportSubs=doExportSubs;
+doExportSubs=function(format){
+ var sy=Number(document.getElementById('sexp-sy').value),sm=Number(document.getElementById('sexp-sm').value),multi=document.getElementById('sexp-multi').checked;
+ var ey=multi?Number(document.getElementById('sexp-ey').value):sy,em=multi?Number(document.getElementById('sexp-em').value):sm;
+ var first=sy+'-'+String(sm+1).padStart(2,'0'),last=ey+'-'+String(em+1).padStart(2,'0'),pending=pendingTablesBetween(first,last);
+ if(pending.length){alert('Antes de exportar, atualize '+(pending.length===1?'a tabela de ':'as tabelas de ')+namesText(pending.map(monthLabel))+'.');return;}
+ return originalExportSubs(format);
+};
+// Legacy entry points must never silently regenerate the protected prefix.
+// The fixed substitute must be eligible on every affected day, not merely part of the month.
+_fabianaAvail=function(y,m){
+ var chief=getChefe(),abs=actualMonthAbsences(y,m);
+ var days=Object.keys(abs).filter(function(ds){return abs[ds].some(function(a){return a.n===chief;});});
+ return activePeopleForMonth(y,m).filter(function(n){return n!==chief&&days.every(function(ds){return activePeopleForDay(ds).indexOf(n)>=0&&!abs[ds].some(function(a){return a.n===n;});});});
+};
+var previousChiefModal=showFabianaSubModal;
+showFabianaSubModal=function(y,m,cb){
+ if(!_fabianaAvail(y,m).length){alert('Não há substituto da chefia disponível em todos os dias do período neste mês. A tabela não foi alterada.');return;}
+ return previousChiefModal(y,m,cb);
+};
+var unprotectedGenerateMonth=generateSubsMonth;
+generateSubsMonth=function(y,m,fixed,starts){
+ var mk=y+'-'+String(m+1).padStart(2,'0');
+ if(departurePending[mk]||scheduleLocks[mk]){alert('Use Gerar automaticamente para revisar e atualizar somente o trecho permitido desta tabela.');return;}
+ var chief=getChefe(),abs=actualMonthAbsences(y,m);
+ var chiefAbsent=Object.keys(abs).some(function(ds){return abs[ds].some(function(a){return a.n===chief;});});
+ if(chiefAbsent&&_fabianaAvail(y,m).indexOf(fixed)<0){alert('Escolha um substituto da chefia disponível em todos os dias do período neste mês. A tabela não foi alterada.');return false;}
+ return unprotectedGenerateMonth(y,m,fixed,starts);
+};
+function planPermanentRemoval(state,n){
+ var next=clone(state),person=next.people.find(function(p){return p.n===n;});
+ if(!person)throw Error('Procurador não encontrado.');
+ if(person.chefia)throw Error('Defina a chefia antes de excluir este cadastro.');
+ var periods=next.vacations.filter(function(v){return v.n===n;}).length,recess=0,assignments=0;
+ // Unlike deactivation, deletion changes the entire person's recorded participation.
+ var months=markRosterTables(next,n,pDesdeDate(person),'exclusão');
+ next.people=next.people.filter(function(p){return p.n!==n;});next.vacations=next.vacations.filter(function(v){return v.n!==n;});
+ Object.keys(next.recessoChoices).forEach(function(y){if(next.recessoChoices[y][n]){recess++;delete next.recessoChoices[y][n];}});
+ Object.keys(next.recessoCutoffs).forEach(function(y){delete next.recessoCutoffs[y][n];});
+ Object.keys(next.subsData).forEach(function(mk){var table=next.subsData[mk];
+  if(table.fabianaFixedSub===n)table.fabianaFixedSub=null;
+  Object.keys(table).forEach(function(ds){if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))return;var day=table[ds];
+   Object.keys(day).filter(function(from){return from!=='_m';}).forEach(function(from){
+    if(from===n||day[from]===n){assignments++;delete day[from];if(day._m)day._m=day._m.filter(function(m){return m!==from;});}
+   });
+  });
+ });
+ return {next:next,name:n,periods:periods,recess:recess,assignments:assignments,months:months};
+}
+removePerson=function(n){
+ if(!isMaster())return;
+ var plan;try{plan=planPermanentRemoval(previewState(),n);}catch(e){alert(e.message);return;}
+ var stamp=JSON.stringify(previewState());
+ openTallModal('<h3 style="color:var(--red)">Excluir procurador</h3><p style="font-size:13px;line-height:1.6;text-align:justify;margin:0 0 16px">A exclusão de <strong>'+esc(n)+'</strong> removerá o cadastro e todos os seus períodos de férias, licenças e escolhas de recesso, em todos os anos, inclusive os anteriores.</p><p style="font-size:13px;line-height:1.6;margin:0 0 16px">Se a pessoa saiu da unidade, use <strong>Desativar</strong> para preservar seu histórico.</p>'+(plan.months.length?'<p style="font-size:13px;line-height:1.6;margin:0 0 16px">As referências a '+esc(n)+' serão retiradas das tabelas de substituições. Será necessário atualizar '+esc(namesText(plan.months.map(monthLabel)))+' em ordem cronológica. O aviso permanecerá até que todas estejam completas.</p>':'')+'<p style="font-size:12px;color:var(--text-3);margin:0 0 20px">Uma cópia completa do estado anterior será mantida no histórico do sistema.</p>','<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn danger" id="preview-remove-person">Excluir cadastro</button></div>',560);
+ document.getElementById('preview-remove-person').onclick=function(){adminConfirm(function(){
+  if(JSON.stringify(previewState())!==stamp){alert('Os dados mudaram. Confira novamente a exclusão.');return;}commitPreview(plan.next,'Exclusão de '+n);
+ });};
+};
+// Route old inline handlers through the reviewed flow as well.
+window._confirmRemovePerson=function(n){removePerson(n);};
+
+// No seeding, migration, or cache-to-server writes in the application.
+var releaseRef=_db.collection('jud3v2').doc('current');
+var releaseReady=false,releaseBusy=false,releaseStale=false,releaseBase=null;
+var releaseToast=showToast;
+showToast=function(msg){if(!releaseBusy&&!releaseStale)releaseToast(msg);};
+function validateRelease(data){
+ if(!data||data.schema!==2||!Number.isInteger(data.revision)||!data.state||!Array.isArray(data.history))throw Error('Formato de dados incompatível');
+ ['people','vacations','customHolidays'].forEach(function(k){if(!Array.isArray(data.state[k]))throw Error('Dados inválidos: '+k);});
+ ['recessoChoices','recessoDates','subsData','departurePending','recessoCutoffs','scheduleLocks'].forEach(function(k){if(!data.state[k]||Array.isArray(data.state[k])||typeof data.state[k]!=='object')throw Error('Dados inválidos: '+k);});
+ return data;
+}
+function applyRelease(data){
+ validateRelease(data);releaseBase=clone(data);usePreviewState(clone(data.state));
+ people=migratePeople(people);officialData={people:clone(people),vacations:clone(vacations)};
+ previewRevision=data.revision;previewHistory=clone(data.history);previewPersisted=JSON.stringify(data);
+ if(data.savedAt){lastSaved=new Date(data.savedAt);lastSavedBy=data.savedBy||'';}
+ releaseReady=true;statusMsg='Dados carregados';
+}
+function releaseOverlay(on){
+ var el=document.getElementById('release-saving');if(!el){el=document.createElement('div');el.id='release-saving';el.setAttribute('role','status');el.style='position:fixed;inset:0;z-index:99999;background:rgba(255,255,255,.8);align-items:center;justify-content:center';el.innerHTML='<div style="padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px">Salvando alterações…</div>';document.body.appendChild(el);}el.style.display=on?'flex':'none';
+}
+function releaseError(e){
+ releaseStale=true;
+ var message=e&&e.code==='release/conflict'?'Outra pessoa salvou alterações enquanto esta página estava aberta. Sua alteração não foi salva. Recarregue os dados e confira novamente.':'Não foi possível confirmar o salvamento. Recarregue os dados para conferir o que está registrado antes de tentar novamente.';
+ openTallModal('<h3>Alteração não confirmada</h3><p style="font-size:13px;line-height:1.6;margin:0 0 20px">'+message+'</p>','<div class="mbtns"><button class="btn primary" onclick="reloadRelease()">Recarregar dados</button></div>',520);
+}
+async function loadRelease(){
+ var snap=await releaseRef.get({source:'server'});
+ if(!snap.exists)throw Error('Atualização em preparação. Tente novamente em instantes.');
+ return validateRelease(snap.data());
+}
+async function reloadRelease(){
+ if(releaseBusy)return;releaseBusy=true;releaseOverlay(true);
+ try{applyRelease(await loadRelease());releaseStale=false;closeModal();render();releaseToast('✓ Dados atualizados');}
+ catch(e){releaseError(e);}finally{releaseBusy=false;releaseOverlay(false);}
+}
+function commitPreview(next,label){
+ if(!releaseReady||releaseBusy)return false;
+ if(releaseStale){releaseError({code:'release/conflict'});return false;}
+ var revision=previewRevision,proposal=clone(next),actor=currentAdminUser||'ADMIN';
+ releaseBusy=true;releaseOverlay(true);var toast=document.getElementById('_toast');if(toast)toast.classList.remove('show');
+ window.releaseLastSave=_db.runTransaction(async function(tx){
+  var snap=await tx.get(releaseRef);if(!snap.exists)throw Error('Dados indisponíveis');var old=validateRelease(snap.data());
+  if(old.revision!==revision){var conflict=Error('Revisão desatualizada');conflict.code='release/conflict';throw conflict;}
+  var now=new Date().toISOString();
+  var data={schema:2,revision:old.revision+1,state:proposal,history:[{state:old.state,label:label,actor:actor,at:now}].concat(old.history).slice(0,11),savedAt:now,savedBy:actor,migration:old.migration||null};
+  validateRelease(data);
+  if(new TextEncoder().encode(JSON.stringify(data)).length>850000)throw Error('O histórico atingiu o limite seguro de tamanho');
+  tx.set(releaseRef,data);return data;
+ }).then(function(data){applyRelease(data);closeModal();render();releaseToast('✓ Alterações salvas');return true;})
+ .catch(function(e){if(releaseBase)applyRelease(releaseBase);render();releaseError(e);return false;})
+ .finally(function(){releaseBusy=false;releaseOverlay(false);});
+ return false;
+}
+function saveRelease(msg){
+ if(!releaseBase)return false;
+ var next=previewState(),before=clone(releaseBase.state);
+ next.people.forEach(function(p){if(!before.people.some(function(old){return old.n===p.n;}))markRosterTables(next,p.n,pDesdeDate(p),'entrada');});
+ var invalid=next.vacations.some(function(v){if(before.vacations.some(function(old){return JSON.stringify(old)===JSON.stringify(v);}))return false;var p=next.people.find(function(p){return p.n===v.n;});return !p||v.s<pDesdeDate(p)||(pAteDate(p)&&periodEnd(v)>=pAteDate(p));});
+ usePreviewState(before);people=migratePeople(people);
+ if(invalid){alert('O período deve estar dentro da atuação na unidade. Nenhuma alteração foi salva.');render();return false;}
+ return commitPreview(next,typeof msg==='string'?msg:'Alteração de dados');
+}
+saveData=saveOfficial=saveSubs=saveRecesso=saveConfig=saveRelease;
+showHistoryModal=function(){if(isMaster())showPreviewHistory();};
+var productionRender=render;
+render=function(){if(!isMaster()&&curView==='config')curView='panel';productionRender();};
+function watchRelease(){
+ if(_unsub)_unsub();
+ _unsub=releaseRef.onSnapshot(function(snap){
+  if(!snap.exists||snap.metadata.fromCache||releaseBusy||!releaseReady)return;
+  var data=snap.data();if(data.revision<=previewRevision)return;
+  if(_modal){releaseStale=true;return;}
+  try{applyRelease(data);releaseStale=false;render();}catch(e){releaseError(e);}
+ },function(){statusMsg='Conexão interrompida';renderStatus();});
+}
+async function bootDashboard(user){
+ currentAdminUser=user&&user!=='VIEWER'?user:null;
+ document.getElementById('app').innerHTML='<p style="padding:32px">Carregando os dados registrados…</p>';
+ try{
+  applyRelease(await loadRelease());releaseStale=false;
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!getAdminPasswords().includes(currentAdminUser))throw Error('Cadastro inativo ou indisponível');
+  render();watchRelease();_replaceViewState(curView);window.scrollTo(0,0);
+ }catch(e){releaseReady=false;document.getElementById('app').innerHTML='<div style="padding:32px"><p>'+esc(e.message)+'</p><button class="btn" onclick="location.reload()">Tentar novamente</button></div>';}
+}
+async function checkLogin(){
+ var input=document.getElementById('login-input'),error=document.getElementById('login-error'),value=input.value.trim();
+ var norm=function(s){return s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');};
+ try{
+  applyRelease(await loadRelease());var match=value===OFFICIAL_PIN?'ADMIN':value===ACCESS_PASSWORD?'VIEWER':getAdminPasswords().find(function(n){return norm(n)===norm(value);});
+  if(!match){error.textContent='Senha incorreta ou cadastro inativo.';return;}
+  sessionStorage.setItem(SESSION_KEY,match);document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='';error.textContent='';bootDashboard(match);
+ }catch(e){error.textContent='Não foi possível carregar os dados do sistema. Tente novamente.';}
 }
 
 // Login events
