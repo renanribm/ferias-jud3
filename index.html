@@ -715,6 +715,11 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     newData[ds]=dayResult;
     if(manuals.length)newData[ds]._m=manuals;
   });
+  var errors=validateDepartureSchedule(year,month,newData,monthKey+'-01');
+  if(errors.length){
+    openTallModal('<h3>Não foi possível completar a tabela de substituições</h3><p>A tabela não foi salva. Os registros anteriores foram preservados. Confira as pendências abaixo, inclusive eventuais escolhas manuais.</p><ul>'+errors.map(function(e){return '<li>'+esc(e)+'</li>';}).join('')+'</ul>','<button class="btn" onclick="closeModal()">Fechar</button>',660);
+    return false;
+  }
   subsData[monthKey]=newData;
   return saveSubs();
 }
@@ -3723,13 +3728,17 @@ function existingDepartureChiefSub(y,m,chief,days){
  matches.sort(function(a,b){return b.date.localeCompare(a.date);});
  return matches.length?matches[0].sub:null;
 }
+function hasEarlierPendingTable(mk){
+ var older=Object.keys(departurePending).sort().filter(function(k){return k<mk;});
+ if(!older.length)return false;
+ alert('Atualize primeiro a tabela de '+monthLabel(older[0])+', que está pendente, para preservar a continuidade da fila.');return true;
+}
 var previousGenerateSubs=window.generateSubs;
 window.generateSubs=function(y,m,providedStarts){
  if(!isMaster())return;
  var mk=y+'-'+String(m+1).padStart(2,'0'),pending=departurePending[mk]||scheduleLocks[mk];
- if(!pending){previousGenerateSubs(y,m);return;}
- var older=Object.keys(departurePending).sort().filter(function(k){return k<mk;});
- if(older.length){alert('Atualize primeiro '+monthLabel(older[0])+', para preservar a continuidade da fila.');return;}
+ if(hasEarlierPendingTable(mk))return false;
+ if(!pending){return previousGenerateSubs(y,m);}
  var chief=getChefe(),chiefRecord=people.find(function(p){return p.n===chief;}),monthEnd=fmt(new Date(y,m+1,0));
  if(chiefRecord&&chiefRecord.ate&&pAteDate(chiefRecord)<=monthEnd){alert('A chefia está vinculada a um procurador que saiu da unidade. Defina a chefia em Gerenciar procuradores antes de atualizar esta tabela de substituições.');return;}
  var abs=actualMonthAbsences(y,m),chiefDays=Object.keys(abs).filter(function(ds){return ds>=pending.from&&abs[ds].some(function(a){return a.n===chief;});});
@@ -3855,7 +3864,8 @@ showFabianaSubModal=function(y,m,cb){
 var unprotectedGenerateMonth=generateSubsMonth;
 generateSubsMonth=function(y,m,fixed,starts){
  var mk=y+'-'+String(m+1).padStart(2,'0');
- if(departurePending[mk]||scheduleLocks[mk]){alert('Use Gerar automaticamente para revisar e atualizar somente o trecho permitido desta tabela.');return;}
+ if(hasEarlierPendingTable(mk))return false;
+ if(departurePending[mk]||scheduleLocks[mk]){alert('Use Gerar automaticamente para revisar e atualizar somente o trecho permitido desta tabela.');return false;}
  var chief=getChefe(),abs=actualMonthAbsences(y,m);
  var chiefAbsent=Object.keys(abs).some(function(ds){return abs[ds].some(function(a){return a.n===chief;});});
  if(chiefAbsent&&_fabianaAvail(y,m).indexOf(fixed)<0){alert('Escolha um substituto da chefia disponível em todos os dias do período neste mês. A tabela não foi alterada.');return false;}
