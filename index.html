@@ -650,6 +650,33 @@ function getMonthAbsences(year,month){
   }
   return result;
 }
+// A queue position belongs to one absence block, never to an unrelated period.
+function absenceBlocks(n){
+ var periods=vacations.filter(function(v){return v.n===n;}).map(function(v){return {start:v.s,end:fmt(addDays(v.s,v.d-1)),vac:!isLicense(v)};}).sort(function(a,b){return a.start.localeCompare(b.start);}),blocks=[];
+ periods.forEach(function(p){
+  var prev=blocks[blocks.length-1],join=!!(prev&&prev.vac&&p.vac);
+  if(join)for(var d=fmt(addDays(prev.end,1));d<p.start;d=fmt(addDays(d,1))){if(isWorkDayForBanca(d)){join=false;break;}}
+  if(join){if(p.end>prev.end)prev.end=p.end;}else blocks.push(p);
+ });return blocks;
+}
+function absenceBlockAt(n,ds){return absenceBlocks(n).find(function(b){return b.start<=ds&&b.end>=ds;});}
+function previousBlockWorkday(block,cut){
+ if(!block)return null;
+ for(var d=fmt(addDays(cut,-1));d>=block.start;d=fmt(addDays(d,-1))){if(d<=block.end&&isWorkDayForBanca(d))return d;}
+ return null;
+}
+function blockLastSub(n,block,cut){
+ var d=previousBlockWorkday(block,cut);if(!d)return null;
+ var day=(subsData[d.slice(0,7)]||{})[d]||{};return day[n]||null;
+}
+function blockStartingData(year,month,cut){
+ var abs=actualMonthAbsences(year,month),seen={},auto={},needsInput=[],chief=getChefe();
+ Object.keys(abs).sort().filter(function(d){return d>=cut;}).forEach(function(ds){abs[ds].forEach(function(a){
+  if(a.n===chief||seen[a.n])return;seen[a.n]=true;
+  var block=absenceBlockAt(a.n,ds);if(!previousBlockWorkday(block,cut))return;
+  var last=blockLastSub(a.n,block,cut);if(last)auto[a.n]=last;else needsInput.push(a.n);
+ });});return {auto:auto,needsInput:needsInput};
+}
 // ── Geração automática de substituições ────────────────────────────────────────
 // startingPoints: { "PERSON": "LAST_SUB_FROM_PREV_MONTH" }
 function generateSubsMonth(year,month,fabianaSub,startingPoints){
@@ -662,10 +689,10 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     if(manuals.length){manualOverrides[k]={};manuals.forEach(function(n){if(day[n])manualOverrides[k][n]=day[n];});}
   });
   var absencesByDay=getMonthAbsences(year,month);
-  var queue=getSubsQueue(year,month);
+  var queue=people.map(function(p){return p.n;}).sort(function(a,b){return getSortKey(a).localeCompare(getSortKey(b),'pt-BR',{sensitivity:'base'});});
   var days=Object.keys(absencesByDay).sort();
   var N=queue.length;
-  var pointers={};
+  var pointers={},pointerBlocks={};
   var chefeN=getChefe();
   var newData={fabianaFixedSub:fabianaSub||existing.fabianaFixedSub||null};
   days.forEach(function(ds){
@@ -679,6 +706,7 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
       if(absentNames.indexOf(name)>=0){
         var sub=manDay[name];
         dayResult[name]=sub;manuals.push(name);
+        var mb=absenceBlockAt(name,ds);pointerBlocks[name]=mb?mb.start:ds;pointers[name]=(queue.indexOf(sub)+1)%N;
         available=available.filter(function(n){return n!==sub;});
       }
     });
@@ -696,8 +724,10 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
     remaining.forEach(function(absent){
       var n=absent.n;
       var qIdx=queue.indexOf(n);if(qIdx<0)qIdx=0;
-      if(pointers[n]===undefined){
-        var sp=startingPoints&&startingPoints[n];
+      var block=absenceBlockAt(n,ds),blockKey=block?block.start:ds;
+      if(pointerBlocks[n]!==blockKey){
+        pointerBlocks[n]=blockKey;
+        var sp=previousBlockWorkday(block,monthKey+'-01')&&(blockLastSub(n,block,monthKey+'-01')||(startingPoints&&startingPoints[n]));
         if(sp){var spIdx=queue.indexOf(sp);pointers[n]=spIdx>=0?(spIdx+1)%N:(qIdx+1)%N;}
         else{pointers[n]=(qIdx+1)%N;}
       }
@@ -725,39 +755,10 @@ function generateSubsMonth(year,month,fabianaSub,startingPoints){
 }
 // Retorna o último substituto registrado para person nos meses anteriores
 function getLastSubFromPrevMonth(person,year,month){
-  for(var i=1;i<=4;i++){
-    var pm=month-i;var py=year;
-    while(pm<0){pm+=12;py--;}
-    var pk=py+'-'+String(pm+1).padStart(2,'0');
-    var prev=subsData[pk];if(!prev)continue;
-    var dates=Object.keys(prev).filter(function(k){return /^\d{4}-\d{2}-\d{2}$/.test(k)&&prev[k][person];}).sort();
-    if(dates.length)return prev[dates[dates.length-1]][person];
-  }
-  return null;
+ var cut=year+'-'+String(month+1).padStart(2,'0')+'-01';
+ return blockLastSub(person,absenceBlockAt(person,cut),cut);
 }
-// Retorna { auto: {person:lastSub}, needsInput: [person] } para ausentes cross-month (exceto Fabiana)
-function getCrossMonthData(year,month){
-  var mo=String(month+1).padStart(2,'0');
-  var monthFirst=year+'-'+mo+'-01';
-  var absences=getMonthAbsences(year,month);
-  var seen={};var auto={};var needsInput=[];
-  var chefeN=getChefe();
-  Object.keys(absences).forEach(function(ds){
-    absences[ds].forEach(function(a){
-      var n=a.n;
-      if(n===chefeN||seen[n])return;
-      seen[n]=true;
-      var isCross=vacations.some(function(v){
-        return v.n===n&&v.s<monthFirst&&fmt(addDays(v.s,v.d-1))>=monthFirst;
-      });
-      if(!isCross)return;
-      var last=getLastSubFromPrevMonth(n,year,month);
-      if(last)auto[n]=last;
-      else needsInput.push(n);
-    });
-  });
-  return{auto:auto,needsInput:needsInput};
-}
+function getCrossMonthData(year,month){return blockStartingData(year,month,year+'-'+String(month+1).padStart(2,'0')+'-01');}
 function showStartingPointsModal(people,onConfirm,refYear,refMonth){
   var refLabel=refYear!=null?' (em '+MONTHS_PT[refMonth]+'/'+refYear+')':'';
   var fields=people.map(function(n){
@@ -767,7 +768,7 @@ function showStartingPointsModal(people,onConfirm,refYear,refMonth){
   window._spCb=onConfirm;
   openModal(
     '<h3>Ponto de partida da fila</h3>'+
-    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">As ausências abaixo vêm do mês anterior sem dados registrados. Informe o último substituto de cada procurador:</p>'+
+    '<p style="font-size:13px;color:var(--text-2);margin:10px 0 16px">Não há registro do último substituto no trecho anterior destes afastamentos contínuos. Informe quem substituiu cada procurador no último dia de expediente anterior ao trecho que será gerado:</p>'+
     fields+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="'+
@@ -3679,14 +3680,8 @@ buildSubsView=function(y,m){renderingDepartureTable=true;var html;try{html=origi
 function generateDepartureSchedule(y,m,fixed,startingPoints){
  var mk=y+'-'+String(m+1).padStart(2,'0'),pending=departurePending[mk]||scheduleLocks[mk],cut=pending?pending.from:mk+'-01';
  var abs=actualMonthAbsences(y,m),old=subsData[mk]||{},out={},last={},chief=getChefe();
- // Keep departed people in the circular reference order, then skip them using daily eligibility.
- // This retains the next position when the previous substitute is no longer eligible.
- if(startingPoints)Object.keys(startingPoints).forEach(function(n){last[n]=startingPoints[n];});
+ var lastBlocks={};
  var queue=people.map(function(p){return p.n;}).sort(function(a,b){return getSortKey(a).localeCompare(getSortKey(b),'pt-BR',{sensitivity:'base'});});
- Object.keys(subsData).sort().forEach(function(key){Object.keys(subsData[key]).sort().forEach(function(ds){
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||ds>=cut)return;
-  var day=subsData[key][ds];Object.keys(day).forEach(function(n){if(n!=='_m'&&(day._m||[]).indexOf(n)<0)last[n]=day[n];});
- });});
  Object.keys(old).forEach(function(ds){if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds<cut)out[ds]=clone(old[ds]);});
  out.fabianaFixedSub=fixed||null;
  Object.keys(abs).sort().filter(function(ds){return ds>=cut;}).forEach(function(ds){
@@ -3694,6 +3689,8 @@ function generateDepartureSchedule(y,m,fixed,startingPoints){
   if(chief&&away.indexOf(chief)>=0&&avail.indexOf(fixed)>=0){day[chief]=fixed;avail=avail.filter(function(n){return n!==fixed;});}
   away.sort(function(a,b){return queue.indexOf(a)-queue.indexOf(b);}).forEach(function(n){
    if(n===chief)return;
+   var block=absenceBlockAt(n,ds),key=block?block.start:ds;
+   if(lastBlocks[n]!==key){lastBlocks[n]=key;last[n]=previousBlockWorkday(block,cut)&&(blockLastSub(n,block,cut)||(startingPoints&&startingPoints[n]));}
    var anchor=last[n]||n,start=queue.indexOf(anchor);
    for(var i=1;i<=queue.length;i++){
     var candidate=queue[(start+i+queue.length)%queue.length];
@@ -3749,11 +3746,9 @@ window.generateSubs=function(y,m,providedStarts){
  if(chiefDays.length){
   chiefField=retainedFixed?'<p style="font-size:13px;line-height:1.6;margin:0 0 20px">'+esc(retainedFixed)+' continuará como substituto fixo de '+esc(chief)+'.</p>':(previousFixed?'<p style="font-size:13px;line-height:1.6;margin:0 0 14px">'+esc(previousFixed)+' não está disponível em todos os dias que serão atualizados. Escolha outro substituto para esse trecho. Os dias anteriores serão mantidos.</p>':'')+'<div class="field"><label>Substituto fixo de '+esc(chief)+'</label><select id="departure-chief"><option value="">Selecione o substituto</option>'+candidates.map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join('')+'</select></div>';
  }
- var needStarts=Array.from(new Set(Object.keys(abs).filter(function(ds){return ds>=pending.from;}).reduce(function(ns,ds){return ns.concat(abs[ds].map(function(a){return a.n;}));},[]))).filter(function(n){
-  if(n===chief||providedStarts&&providedStarts[n])return false;
-  if(!vacations.some(function(v){return v.n===n&&v.s<mk+'-01'&&periodEnd(v)>=pending.from;}))return false;
-  return !Object.keys(subsData).some(function(key){return Object.keys(subsData[key]).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds<pending.from&&subsData[key][ds][n]&&(subsData[key][ds]._m||[]).indexOf(n)<0;});});
- });
+ var startData=blockStartingData(y,m,pending.from);
+ var needStarts=startData.needsInput.filter(function(n){return !(providedStarts&&providedStarts[n]);});
+ providedStarts=Object.assign({},startData.auto,providedStarts);
  if(needStarts.length){showStartingPointsModal(needStarts,function(points){window.generateSubs(y,m,Object.assign({},providedStarts,points));},m?y:y-1,m?m-1:11);return;}
  var stamp=JSON.stringify(previewState());
  openTallModal('<h3>Atualizar tabela de substituições</h3><p style="font-size:13px;color:var(--text-2);line-height:1.6;text-align:justify;margin:0 0 14px">A tabela de <strong>'+monthLabel(mk)+'</strong> será refeita a partir de <strong>'+fmtBR(pending.from)+'</strong> (ajuste pela '+esc(pendingReason(pending.names,pending))+'), seguindo a fila de substituição.</p><p style="font-size:13px;color:var(--text-2);line-height:1.6;text-align:justify;margin:0 0 20px">As substituições até <strong>'+fmtBR(fmt(addDays(pending.from,-1)))+'</strong> permanecerão como estão. De <strong>'+fmtBR(pending.from)+'</strong> em diante, todas serão redistribuídas pela fila, inclusive as escolhidas manualmente.</p>'+chiefField,'<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn primary" id="departure-generate">Gerar automaticamente</button></div>',520);
