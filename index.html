@@ -351,7 +351,17 @@ var HISTORY_MAX=11;
 var HISTORY_VISIBLE_MAX=10;
 var _histRef=_db.collection("jud3").doc("historico");
 // Senhas individuais derivadas dinamicamente dos procuradores ativos — não ficam hardcoded
-function getAdminPasswords(){return activePeopleForDay(today);}
+function accessDate(){
+ var parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ var values={};parts.forEach(function(p){values[p.type]=p.value;});return values.year+'-'+values.month+'-'+values.day;
+}
+function canAccessRoster(name,roster){
+ if(name==='ADMIN')return true;
+ if(!name)return false;
+ var day=accessDate(),person=roster.find(function(p){return p.n===name;});
+ return !!person&&pDesdeDate(person)<=day&&(!pAteDate(person)||day<pAteDate(person));
+}
+function getAdminPasswords(){return people.filter(function(p){return canAccessRoster(p.n,people);}).map(function(p){return p.n;});}
 var PCOLORS=['#6366f1','#0ea5e9','#10b981','#f59e0b','#8b5cf6','#06b6d4','#84cc16','#f97316','#ec4899','#14b8a6','#a855f7','#e11d48','#0891b2','#65a30d','#7c3aed','#0284c7','#b45309'];
 
 // ── Holidays ───────────────────────────────────────────────────────────────────
@@ -3904,6 +3914,18 @@ function applyRelease(data){
 function releaseOverlay(on){
  var el=document.getElementById('release-saving');if(!el){el=document.createElement('div');el.id='release-saving';el.setAttribute('role','status');el.style='position:fixed;inset:0;z-index:99999;background:rgba(255,255,255,.8);align-items:center;justify-content:center';el.innerHTML='<div style="padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:12px">Salvando alterações…</div>';document.body.appendChild(el);}el.style.display=on?'flex':'none';
 }
+function endRosterSession(){
+ if(_unsub){_unsub();_unsub=null;}
+ sessionStorage.removeItem(SESSION_KEY);currentAdminUser=null;releaseReady=false;releaseStale=false;releaseBase=null;
+ closeModal();document.getElementById('app').innerHTML='';document.getElementById('app').style.display='none';
+ document.getElementById('login-screen').style.display='';document.getElementById('login-input').value='';
+ document.getElementById('login-error').textContent='Seu acesso não está mais disponível neste cadastro. Procure o administrador.';
+}
+function checkOpenRosterSession(){
+ if(releaseReady&&currentAdminUser&&currentAdminUser!=='ADMIN'&&!canAccessRoster(currentAdminUser,people))endRosterSession();
+}
+window.addEventListener('focus',checkOpenRosterSession);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)checkOpenRosterSession();});
 function releaseError(e){
  releaseStale=true;
  var message=e&&e.code==='release/conflict'?'Outra pessoa salvou alterações enquanto esta página estava aberta. Sua alteração não foi salva. Recarregue os dados e confira novamente.':'Não foi possível confirmar o salvamento. Recarregue os dados para conferir o que está registrado antes de tentar novamente.';
@@ -3916,16 +3938,17 @@ async function loadRelease(){
 }
 async function reloadRelease(){
  if(releaseBusy)return;releaseBusy=true;releaseOverlay(true);
- try{applyRelease(await loadRelease());releaseStale=false;closeModal();render();releaseToast('✓ Dados atualizados');}
+ try{var fresh=await loadRelease();if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!canAccessRoster(currentAdminUser,fresh.state.people)){endRosterSession();return;}applyRelease(fresh);releaseStale=false;closeModal();render();releaseToast('✓ Dados atualizados');}
  catch(e){releaseError(e);}finally{releaseBusy=false;releaseOverlay(false);}
 }
 function commitPreview(next,label){
  if(!releaseReady||releaseBusy)return false;
  if(releaseStale){releaseError({code:'release/conflict'});return false;}
- var revision=previewRevision,proposal=clone(next),actor=currentAdminUser||'ADMIN';
+ var revision=previewRevision,proposal=clone(next),actor=currentAdminUser;
  releaseBusy=true;releaseOverlay(true);var toast=document.getElementById('_toast');if(toast)toast.classList.remove('show');
  window.releaseLastSave=_db.runTransaction(async function(tx){
   var snap=await tx.get(releaseRef);if(!snap.exists)throw Error('Dados indisponíveis');var old=validateRelease(snap.data());
+  if(!canAccessRoster(actor,old.state.people)){var denied=Error('Cadastro sem acesso');denied.code='release/access-revoked';throw denied;}
   if(old.revision!==revision){var conflict=Error('Revisão desatualizada');conflict.code='release/conflict';throw conflict;}
   var now=new Date().toISOString();
   var data={schema:2,revision:old.revision+1,state:proposal,history:[{state:old.state,label:label,actor:actor,at:now}].concat(old.history).slice(0,11),savedAt:now,savedBy:actor,migration:old.migration||null};
@@ -3933,7 +3956,7 @@ function commitPreview(next,label){
   if(new TextEncoder().encode(JSON.stringify(data)).length>850000)throw Error('O histórico atingiu o limite seguro de tamanho');
   tx.set(releaseRef,data);return data;
  }).then(function(data){applyRelease(data);closeModal();render();releaseToast('✓ Alterações salvas');return true;})
- .catch(function(e){if(releaseBase)applyRelease(releaseBase);render();releaseError(e);return false;})
+ .catch(function(e){if(e.code==='release/access-revoked'){endRosterSession();return false;}if(releaseBase)applyRelease(releaseBase);render();releaseError(e);return false;})
  .finally(function(){releaseBusy=false;releaseOverlay(false);});
  return false;
 }
@@ -3954,7 +3977,9 @@ function watchRelease(){
  if(_unsub)_unsub();
  _unsub=releaseRef.onSnapshot(function(snap){
   if(!snap.exists||snap.metadata.fromCache||releaseBusy||!releaseReady)return;
-  var data=snap.data();if(data.revision<=previewRevision)return;
+  var data=validateRelease(snap.data());
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!canAccessRoster(currentAdminUser,data.state.people)){endRosterSession();return;}
+  if(data.revision<=previewRevision)return;
   if(_modal){releaseStale=true;return;}
   try{applyRelease(data);releaseStale=false;render();}catch(e){releaseError(e);}
  },function(){statusMsg='Conexão interrompida';renderStatus();});
@@ -3964,7 +3989,7 @@ async function bootDashboard(user){
  document.getElementById('app').innerHTML='<p style="padding:32px">Carregando os dados registrados…</p>';
  try{
   applyRelease(await loadRelease());releaseStale=false;
-  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!getAdminPasswords().includes(currentAdminUser))throw Error('Cadastro inativo ou indisponível');
+  if(currentAdminUser&&currentAdminUser!=='ADMIN'&&!canAccessRoster(currentAdminUser,people)){endRosterSession();return;}
   render();watchRelease();_replaceViewState(curView);window.scrollTo(0,0);
  }catch(e){releaseReady=false;document.getElementById('app').innerHTML='<div style="padding:32px"><p>'+esc(e.message)+'</p><button class="btn" onclick="location.reload()">Tentar novamente</button></div>';}
 }
