@@ -1844,7 +1844,7 @@ function showPeopleManager(){
       '<div style="display:flex;align-items:center;gap:8px">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
       '<div>'+nameDisplay+
-      '<span style="font-size:10px;color:var(--text-3);margin-left:6px">desde '+fmtPersonDate(p.desde)+'</span></div></div>'+
+      '</div></div>'+
       '<div style="display:flex;gap:6px">'+
       '<button class="btn sm" onclick="editPerson(\''+p.n.replace(/'/g,"\\'")+'\')" >Editar</button>'+
       '<button class="btn sm" onclick="deactivatePerson(\''+p.n+'\')">Desativar</button>'+
@@ -1856,7 +1856,7 @@ function showPeopleManager(){
         '<div style="display:flex;align-items:center;gap:8px">'+
         '<span style="width:8px;height:8px;border-radius:50%;background:'+pColor(p.n)+';flex-shrink:0"></span>'+
         '<div><span style="font-weight:500">'+p.n+'</span>'+
-        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">'+fmtPersonDate(p.desde)+'–'+fmtPersonDate(p.ate)+'</span></div></div>'+
+        '<span style="font-size:10px;color:var(--text-3);margin-left:6px">saída em '+fmtPersonDate(p.ate)+'</span></div></div>'+
         '<div style="display:flex;gap:6px">'+
         '<button class="btn sm" onclick="reactivatePerson(\''+p.n+'\')">Reativar</button>'+
         '<button class="btn sm" style="color:var(--text-3);border-color:var(--border)" onclick="removePerson(\''+p.n+'\')">Remover</button></div></div>';
