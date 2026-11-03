@@ -2799,30 +2799,36 @@ function buildPanel(year){
     var recToday=(buildRecessoDayMap(year)[todayStr]||[]).concat(buildRecessoDayMap(year-1)[todayStr]||[]);
     var foraDistNow=[],bancaNow=[],startsToday=[],licToday=[],returnsToday=[];
     var distToday=[],bancaToday=[];
-    var distEvents=[],bancaEvents=[],startsEvents=[],licEvents=[];
+    var distEvents=[],bancaEvents=[],startsEvents=[],licEvents=[],returnEvents=[];
+    var seenReturns={};
     var seen={dist:{},banca:{},starts:{}};
 
-    vacations.forEach(function(v){
+    vacations.slice().sort(function(a,b){return a.s.localeCompare(b.s);}).forEach(function(v){
       var vEndStr=fmt(addDays(v.s,v.d-1));
       var vEndD=new Date(vEndStr+'T00:00:00');
       var vStartD=new Date(v.s+'T00:00:00');
 
       if(v.s===todayStr){if(isLicense(v))licToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});else startsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
       if(v.s>todayStr&&v.s<=windowEndStr&&!seen.starts[v.n+v.s]){seen.starts[v.n+v.s]=true;if(isLicense(v))licEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});else startsEvents.push({n:v.n,date:v.s,start:v.s,end:vEndStr,type:v.type});}
-      if(nextWorkDay(vEndStr,v.n,vEndStr.slice(0,4))===todayStr)returnsToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});
+      var returnDate=nextWorkDay(vEndStr,v.n,vEndStr.slice(0,4)),returnKey=v.n+'|'+returnDate;
+      if(!seenReturns[returnKey]){
+        seenReturns[returnKey]=true;
+        var chain=vacations.filter(function(x){return x.n===v.n&&x.s>=v.s&&x.s<returnDate;}),chainEnd=chain.map(function(x){return fmt(addDays(x.s,x.d-1));}).sort().pop()||vEndStr;
+        var ret={n:v.n,start:v.s,end:chainEnd,date:returnDate,type:v.type,label:Array.from(new Set(chain.map(function(x){return licenseLabel(x.type);}))).join(' / ')};
+        if(returnDate===todayStr)returnsToday.push(ret);
+        if(returnDate>todayStr&&returnDate<=windowEndStr)returnEvents.push(ret);
+      }
 
-      // Saída da distribuição — férias (7 dias antes), licenças (a partir do 1º dia)
-      var distD=new Date(vStartD);if(!isLicense(v))distD.setDate(distD.getDate()-7);
-      var distStr=isLicense(v)?licenseDistributionDate(v):fmt(distD);
-      if(distStr<=todayStr&&vEndStr>=todayStr)foraDistNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr,type:v.type});
-      if(distStr===todayStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
-      if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distEvents.push({n:v.n,date:distStr,start:v.s,end:vEndStr,type:v.type});}
-      // Banca rodando — férias (2 dias úteis antes) e licenças (a partir do 1º dia)
-      var bancaStr=isLicense(v)?licenseBancaDate(v):subtractWorkDays(v.s,2);
-      if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr,type:v.type});
-      if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
-      if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr,type:v.type});}
     });
+    ['distribution','banca'].forEach(function(kind){
+      var nowList=kind==='distribution'?foraDistNow:bancaNow,todayList=kind==='distribution'?distToday:bancaToday,events=kind==='distribution'?distEvents:bancaEvents;
+      panelOperationalIntervals(kind).forEach(function(e){
+        if(e.date<=todayStr&&e.end>=todayStr)nowList.push(e);
+        if(e.date===todayStr)todayList.push(e);
+        if(e.date>todayStr&&e.date<=windowEndStr)events.push(e);
+      });
+    });
+    returnEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
 
     distEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
     bancaEvents.sort(function(a,b){return a.date.localeCompare(b.date);});
@@ -2876,7 +2882,7 @@ function buildPanel(year){
     h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Fora da distribuição</div>';
     if(foraDistNow.length){
       h+=foraDistNow.map(function(e){
-        var lbl=e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias';
+        var lbl=e.label||(e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias');
         return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></div>';
       }).join('');
     }else{
@@ -2890,7 +2896,7 @@ function buildPanel(year){
     h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Banca rodando</div>';
     if(bancaNow.length){
       h+=bancaNow.map(function(e){
-        var lbl=e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias';
+        var lbl=e.label||(e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias');
         return '<div style="font-size:12px;line-height:1.6"><strong>'+e.n+'</strong> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></div>';
       }).join('');
     }else{
@@ -2920,14 +2926,14 @@ function buildPanel(year){
     h+='</div>';
 
     // Hoje
-    var hasToday=returnsToday.length||startsToday.length||distToday.length||bancaToday.length;
+    var hasToday=returnsToday.length||startsToday.length||licToday.length||distToday.length||bancaToday.length;
     if(hasToday){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px;padding-bottom:10px">';
       h+='<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Hoje</div>';
       function todayEvLine(label,arr){
         if(!arr.length)return;
         h+='<div style="font-size:12px;margin-bottom:3px"><span style="color:var(--text-2)">'+label+':</span> ';
-        h+=arr.map(function(e){var lbl=e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias';return '<span class="next-ev"><a href="#" onclick="event.preventDefault();showAbsenceModal(\''+e.n+'\',\''+e.start+'\')" style="color:var(--text);font-weight:700;text-decoration:underline;text-decoration-color:var(--border-md)">'+e.n+'</a> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
+        h+=arr.map(function(e){var lbl=e.label||(e.type&&e.type!=='ferias'?licenseLabel(e.type):'férias');return '<span class="next-ev"><a href="#" onclick="event.preventDefault();showAbsenceModal(\''+e.n+'\',\''+e.start+'\')" style="color:var(--text);font-weight:700;text-decoration:underline;text-decoration-color:var(--border-md)">'+e.n+'</a> <span style="color:var(--text-3);font-size:11px">('+lbl+' '+fmtBR(e.start)+' → '+fmtBR(e.end)+')</span></span>';}).join('');
         h+='</div>';
       }
       todayEvLine('Retorna',returnsToday);
@@ -2939,7 +2945,7 @@ function buildPanel(year){
     }
 
     // Próximos 30 dias
-    var hasNext=startsEvents.length||licEvents.length||distEvents.length||bancaEvents.length;
+    var hasNext=startsEvents.length||licEvents.length||distEvents.length||bancaEvents.length||returnEvents.length;
     if(hasNext){
       h+='<div style="border-top:1px solid var(--border);padding-top:10px">';
       h+='<div class="next30-title" style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:6px">Próximos 30 dias</div>';
@@ -2949,6 +2955,7 @@ function buildPanel(year){
         h+=arr.map(function(e){return '<span class="next-ev"><a href="#" onclick="event.preventDefault();showAbsenceModal(\''+e.n+'\',\''+e.start+'\')" style="color:var(--text);font-weight:700;text-decoration:underline;text-decoration-color:var(--border-md)">'+e.n+'</a> <span style="color:var(--text-2)">em '+fmtBR(e.date)+'</span></span>';}).join('');
         h+='</div>';
       }
+      nextEvLine('Retorna',returnEvents);
       nextEvLine('Sai da distribuição',distEvents);
       nextEvLine('Banca começa a rodar',bancaEvents);
       nextEvLine('Inicia férias',startsEvents);
@@ -3047,17 +3054,26 @@ function getRecessoDaysForPerson(person,year){
   return set;
 }
 function nextWorkDay(ds,person,year){
-  var recessDays={};
-  if(person&&year){
-    var yr=parseInt(year);
-    Object.assign(recessDays,getRecessoDaysForPerson(person,yr));
-    Object.assign(recessDays,getRecessoDaysForPerson(person,yr-1));
-  }
-  var d=new Date(ds+'T00:00:00');
-  d.setDate(d.getDate()+1);
-  var next=fmt(d);
-  while(!isWorkDayForBanca(next)||recessDays[next]){d.setDate(d.getDate()+1);next=fmt(d);}
-  return next;
+ var next=fmt(addDays(ds,1)),recessCache={};
+ function inRecess(day){var y=Number(day.slice(0,4));if(!recessCache[y])recessCache[y]=Object.assign({},getRecessoDaysForPerson(person,y),getRecessoDaysForPerson(person,y-1));return recessCache[y][day];}
+ while(!isWorkDayForBanca(next)||(person&&(inRecess(next)||vacations.some(function(v){return v.n===person&&v.s<=next&&fmt(addDays(v.s,v.d-1))>=next;}))))next=fmt(addDays(next,1));
+ return next;
+}
+// Panel operational intervals are independent from substitution queue blocks.
+function panelOperationalIntervals(kind){
+ var grouped={};
+ vacations.forEach(function(v){
+  var start=kind==='distribution'?(isLicense(v)?licenseDistributionDate(v):fmt(addDays(v.s,-7))):(isLicense(v)?licenseBancaDate(v):subtractWorkDays(v.s,2));
+  (grouped[v.n]||(grouped[v.n]=[])).push({n:v.n,date:start,start:v.s,end:fmt(addDays(v.s,v.d-1)),type:v.type,labels:[licenseLabel(v.type)]});
+ });
+ var result=[];
+ Object.keys(grouped).forEach(function(n){var merged=[];grouped[n].sort(function(a,b){return a.date.localeCompare(b.date);}).forEach(function(e){
+  var prev=merged[merged.length-1],join=!!prev;
+  if(prev)for(var d=fmt(addDays(prev.end,1));d<e.date;d=fmt(addDays(d,1))){if(isWorkDayForBanca(d)){join=false;break;}}
+  if(join){if(e.end>prev.end)prev.end=e.end;if(e.start<prev.start)prev.start=e.start;prev.labels=Array.from(new Set(prev.labels.concat(e.labels)));}
+  else merged.push(e);
+ });merged.forEach(function(e){e.label=e.labels.join(' / ');result.push(e);});});
+ return result.sort(function(a,b){return a.date.localeCompare(b.date)||a.n.localeCompare(b.n,'pt-BR');});
 }
 function subtractWorkDays(startDs,n){
   var ds=startDs;
