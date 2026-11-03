@@ -2431,6 +2431,7 @@ function buildLicensesView(year){
       h+='<span style="font-size:11px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;padding:1px 7px;border-radius:4px">'+licenseLabel(v.type)+'</span>';
       h+='</div>';
       h+='<div style="font-size:12px;color:var(--text-3)">'+fmtBR(v.s)+' → '+fmtBR(fmt(addDays(v.s,v.d-1)))+' &middot; '+v.d+' dias</div>';
+      h+='<div style="font-size:12px;color:var(--text-3);margin-top:4px">Saída da distribuição: '+fmtBR(licenseDistributionDate(v))+' &middot; Banca começa a rodar: '+fmtBR(licenseBancaDate(v))+'</div>';
       if(isMaster()){
         h+='<div style="display:flex;gap:6px;margin-top:6px">';
         h+='<button class="btn sm" onclick="editLicense('+idx+',\''+v.n+'\')">Editar</button>';
@@ -2442,6 +2443,23 @@ function buildLicensesView(year){
     h+='</div>';
   }
   return h;
+}
+function licenseDistributionDate(v){return v.distributionDate||v.s;}
+function licenseBancaDate(v){return v.bancaDate||v.s;}
+function licenseDateFields(v){
+ return '<div class="field"><label>Saída da distribuição</label><input type="date" id="lic-distribution" value="'+licenseDistributionDate(v)+'"></div><div class="field"><label>Banca começa a rodar</label><input type="date" id="lic-banca" value="'+licenseBancaDate(v)+'"></div><p style="font-size:12px;color:var(--text-3);line-height:1.6;margin:0 0 16px">Estas datas orientam o painel. As substituições começam somente no início efetivo da licença.</p>';
+}
+function bindLicenseDates(v){
+ var start=document.getElementById('lic-start');
+ ['lic-distribution','lic-banca'].forEach(function(id){var input=document.getElementById(id);input.dataset.follow=String(!v||(id==='lic-distribution'?!v.distributionDate:!v.bancaDate));input.oninput=function(){input.dataset.follow='false';};});
+ start.oninput=function(){['lic-distribution','lic-banca'].forEach(function(id){var input=document.getElementById(id);if(input.dataset.follow==='true')input.value=start.value;});};
+}
+function readLicenseOperationalDates(value){
+ var d=document.getElementById('lic-distribution'),b=document.getElementById('lic-banca');
+ if(!d.value||!b.value)throw Error('Preencha as datas de saída da distribuição e início da circulação da banca.');
+ if(d.dataset.follow!=='true')value.distributionDate=d.value;
+ if(b.dataset.follow!=='true')value.bancaDate=b.value;
+ return value;
 }
 function showAddLicense(person){
   if(!isMaster())return;
@@ -2457,9 +2475,11 @@ function showAddLicense(person){
     '<div class="field"><label>Tipo</label><select id="lic-type">'+licOpts+'</select></div>'+
     '<div class="field"><label>Data de início</label><input type="date" id="lic-start" value="'+curYear+'-'+mo+'-01"></div>'+
     '<div class="field"><label>Número de dias</label><input type="number" id="lic-days" min="1" max="365" value="1"></div>'+
+    licenseDateFields({s:curYear+'-'+mo+'-01'})+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmAddLicense(\''+person+'\')">Salvar</button></div>'
   );
+  bindLicenseDates(null);
 }
 function confirmAddLicense(fixedPerson){
   if(!isMaster())return;
@@ -2483,9 +2503,11 @@ function editLicense(idx,person){
     '<div class="field"><label>Tipo</label><select id="lic-type">'+licOpts+'</select></div>'+
     '<div class="field"><label>Data de início</label><input type="date" id="lic-start" value="'+v.s+'"></div>'+
     '<div class="field"><label>Número de dias</label><input type="number" id="lic-days" min="1" max="365" value="'+v.d+'"></div>'+
+    licenseDateFields(v)+
     '<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button>'+
     '<button class="btn primary" onclick="confirmEditLicense('+idx+',\''+person+'\')">Salvar</button></div>'
   );
+  bindLicenseDates(v);
 }
 function confirmEditLicense(idx,person){
   if(!isMaster())return;
@@ -2791,12 +2813,12 @@ function buildPanel(year){
 
       // Saída da distribuição — férias (7 dias antes), licenças (a partir do 1º dia)
       var distD=new Date(vStartD);if(!isLicense(v))distD.setDate(distD.getDate()-7);
-      var distStr=fmt(distD);
+      var distStr=isLicense(v)?licenseDistributionDate(v):fmt(distD);
       if(distStr<=todayStr&&vEndStr>=todayStr)foraDistNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr,type:v.type});
       if(distStr===todayStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
       if(distStr>todayStr&&distStr<=windowEndStr&&!seen.dist[v.n+distStr]){seen.dist[v.n+distStr]=true;distEvents.push({n:v.n,date:distStr,start:v.s,end:vEndStr,type:v.type});}
       // Banca rodando — férias (2 dias úteis antes) e licenças (a partir do 1º dia)
-      var bancaStr=isLicense(v)?v.s:subtractWorkDays(v.s,2);
+      var bancaStr=isLicense(v)?licenseBancaDate(v):subtractWorkDays(v.s,2);
       if(bancaStr<=todayStr&&vEndStr>=todayStr)bancaNow.push({n:v.n,start:v.s,end:vEndStr,started:v.s<=todayStr,type:v.type});
       if(bancaStr===todayStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaToday.push({n:v.n,start:v.s,end:vEndStr,type:v.type});}
       if(bancaStr>todayStr&&bancaStr<=windowEndStr&&!seen.banca[v.n+bancaStr]){seen.banca[v.n+bancaStr]=true;bancaEvents.push({n:v.n,date:bancaStr,start:v.s,end:vEndStr,type:v.type});}
@@ -3216,6 +3238,7 @@ function render(){
       if(daysLeft<=3){color='var(--amber)';bg='var(--amber-bg)';border='#f0d090';}
       var msg=daysLeft===0?'Suas férias terminam hoje! ('+endDate+')':
         'Você está de férias — falta'+(daysLeft===1?'':'m')+' <strong>'+daysLeft+' dia'+(daysLeft>1?'s':'')+' </strong>para o fim ('+endDate+')';
+      if(isLicense(activeVac))msg='Você está em '+licenseLabel(activeVac.type).toLowerCase()+' até <strong>'+endDate+'</strong>.';
       h+='<div style="background:'+bg+';border:1px solid '+border+';border-radius:var(--r-sm);padding:9px 14px;margin-bottom:16px;font-size:13px;color:'+color+'">&#127958; '+msg+'</div>';
     } else {
       // Check upcoming vacations
@@ -3228,10 +3251,10 @@ function render(){
       if(nextVac){
         var daysUntil=Math.round((parseD(nextVac.s)-todayD)/86400000);
         var endDate=fmtBR(fmt(addDays(nextVac.s,nextVac.d-1)));
-        var distDate=new Date(nextVac.s+'T00:00:00');distDate.setDate(distDate.getDate()-7);
+        var distDate=new Date((isLicense(nextVac)?licenseDistributionDate(nextVac):nextVac.s)+'T00:00:00');if(!isLicense(nextVac))distDate.setDate(distDate.getDate()-7);
         var distFmt=fmtBR(fmt(distDate));
         var distLabel=fmt(distDate)<=today?'Saiu da distribuição em':'Saída da distribuição:';
-        var bancaDate=subtractWorkDays(nextVac.s,2);
+        var bancaDate=isLicense(nextVac)?licenseBancaDate(nextVac):subtractWorkDays(nextVac.s,2);
         var bancaFmt=fmtBR(bancaDate);
         var bancaLabel=bancaDate<=today?'Banca rodando desde':'Banca começa a rodar em';
         var bancaInfo='<div style="font-size:11.5px;margin-top:5px;opacity:.85">'+distLabel+' <strong>'+distFmt+'</strong> &middot; '+bancaLabel+' <strong>'+bancaFmt+'</strong></div>';
@@ -3239,6 +3262,7 @@ function render(){
         if(daysUntil===0){msg='Suas férias começam hoje! ('+fmtBR(nextVac.s)+' → '+endDate+')';}
         else if(daysUntil<=7){msg='Suas próximas férias começam em <strong>'+daysUntil+' dia'+(daysUntil>1?'s':'')+' </strong>('+fmtBR(nextVac.s)+' → '+endDate+')';}
         else if(daysUntil<=30){msg='Suas próximas férias começam em <strong>'+daysUntil+' dias</strong> ('+fmtBR(nextVac.s)+' → '+endDate+')';}
+        if(isLicense(nextVac)&&daysUntil<=30)msg='Sua '+licenseLabel(nextVac.type).toLowerCase()+' começa em <strong>'+fmtBR(nextVac.s)+'</strong> e termina em '+endDate+'.';
         if(msg)h+='<div style="background:var(--green-bg);border:1px solid #b8dba8;border-radius:var(--r-sm);padding:9px 14px;margin-bottom:16px;font-size:13px;color:var(--green)">&#128197; '+msg+bancaInfo+'</div>';
       }
     }
@@ -3906,6 +3930,7 @@ function planLicenseChange(state,idx,value){
   var p=next.people.find(function(p){return p.n===value.n;});
   if(!p||!LICENSE_TYPES[value.type]||!Number.isInteger(value.d)||value.d<1||!/^\d{4}-\d{2}-\d{2}$/.test(value.s)||isNaN(Date.parse(value.s))||fmt(parseD(value.s))!==value.s)throw Error('Informe uma licença com data e duração válidas.');
   if(value.s<pDesdeDate(p)||(pAteDate(p)&&periodEnd(value)>=pAteDate(p)))throw Error('A licença deve ocorrer dentro da atuação na unidade.');
+  ['distributionDate','bancaDate'].forEach(function(key){var d=value[key]||value.s;if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||isNaN(Date.parse(d))||fmt(parseD(d))!==d||d<pDesdeDate(p)||d>periodEnd(value))throw Error('As datas operacionais devem ser válidas, dentro da atuação na unidade e não posteriores ao término da licença.');});
   if(next.vacations.some(function(v,i){return i!==idx&&v.n===value.n&&v.s<=periodEnd(value)&&periodEnd(v)>=value.s;}))throw Error('A licença se sobrepõe a outro período cadastrado.');
  }
  var person=(value||old).n,action=!old?'registro':!value?'exclusão':'alteração';
@@ -3919,7 +3944,8 @@ function planLicenseChange(state,idx,value){
   for(var ds=first;ds<=last;ds=fmt(addDays(ds,1))){if(isWorkDayForBanca(ds))return true;}return false;
  });
  var months=[];
- if(affected.length){
+ var affectsSchedule=!old||!value||old.n!==value.n||old.s!==value.s||old.d!==value.d;
+ if(affectsSchedule&&affected.length){
   // Later generated months may depend on the revised queue; update them chronologically too.
   var first=cut>affected[0]+'-01'?cut:affected[0]+'-01';
   Object.keys(next.subsData).sort().forEach(function(mk){
@@ -3938,6 +3964,7 @@ function showLicenseReview(idx,value){
  var plan;try{plan=planLicenseChange(previewState(),idx,value);}catch(e){alert(e.message);return;}
  var stamp=JSON.stringify(previewState()),v=plan.value||plan.old;
  var body='<h3>Confirmar '+plan.action+' de licença</h3><p style="font-size:13px;line-height:1.6;margin:0 0 16px"><strong>'+esc(plan.person)+'</strong> — '+esc(licenseLabel(v.type))+'<br>Período: <strong>'+fmtBR(v.s)+' a '+fmtBR(periodEnd(v))+'</strong>.</p>';
+ body+='<p style="font-size:13px;line-height:1.6;margin:0 0 16px">Saída da distribuição: <strong>'+fmtBR(licenseDistributionDate(v))+'</strong><br>Banca começa a rodar: <strong>'+fmtBR(licenseBancaDate(v))+'</strong>.</p>';
  if(plan.old&&plan.value)body+='<p style="font-size:13px;line-height:1.6;margin:0 0 16px">Registro anterior: '+esc(licenseLabel(plan.old.type))+' — '+fmtBR(plan.old.s)+' a '+fmtBR(periodEnd(plan.old))+'.</p>';
  if(plan.months.length){
   body+='<div style="background:var(--amber-bg);color:var(--amber);padding:12px;border-radius:var(--r-sm);font-size:13px;line-height:1.6;margin:0 0 16px">'+(plan.months.length===1?'A tabela de substituições de ':'As tabelas de substituições de ')+'<strong>'+esc(namesText(plan.months.map(monthLabel)))+'</strong> '+(plan.months.length===1?'precisará ser atualizada':'precisarão ser atualizadas')+'.</div>';
@@ -3950,8 +3977,8 @@ function showLicenseReview(idx,value){
   commitPreview(plan.next,plan.action.charAt(0).toUpperCase()+plan.action.slice(1)+' de licença de '+plan.person);
  });};
 }
-confirmAddLicense=function(fixedPerson){if(!isMaster())return;var el=document.getElementById('lic-person');showLicenseReview(null,{n:fixedPerson||(el?el.value:''),s:document.getElementById('lic-start').value,d:Number(document.getElementById('lic-days').value),type:document.getElementById('lic-type').value});};
-confirmEditLicense=function(idx,person){if(!isMaster())return;showLicenseReview(idx,{n:person,s:document.getElementById('lic-start').value,d:Number(document.getElementById('lic-days').value),type:document.getElementById('lic-type').value});};
+confirmAddLicense=function(fixedPerson){if(!isMaster())return;var el=document.getElementById('lic-person');try{showLicenseReview(null,readLicenseOperationalDates({n:fixedPerson||(el?el.value:''),s:document.getElementById('lic-start').value,d:Number(document.getElementById('lic-days').value),type:document.getElementById('lic-type').value}));}catch(e){alert(e.message);}};
+confirmEditLicense=function(idx,person){if(!isMaster())return;try{showLicenseReview(idx,readLicenseOperationalDates({n:person,s:document.getElementById('lic-start').value,d:Number(document.getElementById('lic-days').value),type:document.getElementById('lic-type').value}));}catch(e){alert(e.message);}};
 removeLicense=function(idx){showLicenseReview(idx,null);};
 window._doRemoveLicense=function(idx){showLicenseReview(idx,null);};
 
