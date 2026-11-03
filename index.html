@@ -3898,6 +3898,63 @@ removePerson=function(n){
 // Route old inline handlers through the reviewed flow as well.
 window._confirmRemovePerson=function(n){removePerson(n);};
 
+// License changes use the same atomic review and schedule-update flow as roster changes.
+function planLicenseChange(state,idx,value){
+ var next=clone(state),old=idx===null?null:next.vacations[idx];
+ if(idx!==null&&(!old||!isLicense(old)))throw Error('A licença não está mais disponível. Reabra o cadastro.');
+ if(value){
+  var p=next.people.find(function(p){return p.n===value.n;});
+  if(!p||!LICENSE_TYPES[value.type]||!Number.isInteger(value.d)||value.d<1||!/^\d{4}-\d{2}-\d{2}$/.test(value.s)||isNaN(Date.parse(value.s))||fmt(parseD(value.s))!==value.s)throw Error('Informe uma licença com data e duração válidas.');
+  if(value.s<pDesdeDate(p)||(pAteDate(p)&&periodEnd(value)>=pAteDate(p)))throw Error('A licença deve ocorrer dentro da atuação na unidade.');
+  if(next.vacations.some(function(v,i){return i!==idx&&v.n===value.n&&v.s<=periodEnd(value)&&periodEnd(v)>=value.s;}))throw Error('A licença se sobrepõe a outro período cadastrado.');
+ }
+ var person=(value||old).n,action=!old?'registro':!value?'exclusão':'alteração';
+ if(old&&value&&JSON.stringify(old)===JSON.stringify(value))throw Error('Nenhuma alteração foi feita na licença.');
+ if(idx===null)next.vacations.push(clone(value));else if(value)next.vacations[idx]=clone(value);else next.vacations.splice(idx,1);
+ var dates=[old,value].filter(Boolean).map(function(v){return v.s;}).sort(),cut=dates[0],end=[old,value].filter(Boolean).map(periodEnd).sort().pop();
+ var affected=Object.keys(next.subsData).sort().filter(function(mk){
+  if(!/^\d{4}-\d{2}$/.test(mk))return false;
+  if(!Object.keys(next.subsData[mk]).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds);}))return false;
+  var first=cut>mk+'-01'?cut:mk+'-01',last=fmt(new Date(Number(mk.slice(0,4)),Number(mk.slice(5)),0));if(end<last)last=end;
+  for(var ds=first;ds<=last;ds=fmt(addDays(ds,1))){if(isWorkDayForBanca(ds))return true;}return false;
+ });
+ var months=[];
+ if(affected.length){
+  // Later generated months may depend on the revised queue; update them chronologically too.
+  var first=cut>affected[0]+'-01'?cut:affected[0]+'-01';
+  Object.keys(next.subsData).sort().forEach(function(mk){
+   if(mk<affected[0]||!/^\d{4}-\d{2}$/.test(mk)||!Object.keys(next.subsData[mk]).some(function(ds){return /^\d{4}-\d{2}-\d{2}$/.test(ds);}))return;
+   var from=first>mk+'-01'?first:mk+'-01',pending=next.departurePending[mk]||{from:from,names:[],reasons:{}};
+   if(from<pending.from)pending.from=from;pending.names=Array.from(new Set(pending.names.concat(person)));pending.reasons=pending.reasons||{};
+   var reason=(action==='registro'?'inclusão':action)+' de '+licenseLabel((value||old).type).toLowerCase();
+   if(pending.reasons[person]&&pending.reasons[person]!==reason)reason=pending.reasons[person]+' e '+reason;
+   pending.reasons[person]=reason;next.departurePending[mk]=pending;months.push(mk);
+  });
+ }
+ return {next:next,person:person,old:old,value:value,action:action,cut:cut,months:months};
+}
+function showLicenseReview(idx,value){
+ if(!isMaster())return;
+ var plan;try{plan=planLicenseChange(previewState(),idx,value);}catch(e){alert(e.message);return;}
+ var stamp=JSON.stringify(previewState()),v=plan.value||plan.old;
+ var body='<h3>Confirmar '+plan.action+' de licença</h3><p style="font-size:13px;line-height:1.6;margin:0 0 16px"><strong>'+esc(plan.person)+'</strong> — '+esc(licenseLabel(v.type))+'<br>Período: <strong>'+fmtBR(v.s)+' a '+fmtBR(periodEnd(v))+'</strong>.</p>';
+ if(plan.old&&plan.value)body+='<p style="font-size:13px;line-height:1.6;margin:0 0 16px">Registro anterior: '+esc(licenseLabel(plan.old.type))+' — '+fmtBR(plan.old.s)+' a '+fmtBR(periodEnd(plan.old))+'.</p>';
+ if(plan.months.length){
+  body+='<div style="background:var(--amber-bg);color:var(--amber);padding:12px;border-radius:var(--r-sm);font-size:13px;line-height:1.6;margin:0 0 16px">'+(plan.months.length===1?'A tabela de substituições de ':'As tabelas de substituições de ')+'<strong>'+esc(namesText(plan.months.map(monthLabel)))+'</strong> '+(plan.months.length===1?'precisará ser atualizada':'precisarão ser atualizadas')+'.</div>';
+  body+='<p style="font-size:13px;line-height:1.6;text-align:justify;margin:0 0 16px">Após salvar, acesse <strong>Substituições</strong> e use <strong>Gerar automaticamente</strong>. Os dias anteriores à data indicada para cada tabela serão preservados. A partir dela, as atribuições serão redistribuídas pela fila, inclusive as escolhas manuais.</p><ul style="font-size:13px;line-height:1.7;padding-left:18px;margin:0 0 16px">'+plan.months.map(function(mk){return '<li>'+monthLabel(mk)+': atualizar a partir de '+fmtBR(plan.next.departurePending[mk].from)+'.</li>';}).join('')+'</ul><p style="font-size:13px;line-height:1.6;margin:0 0 16px">Um aviso permanecerá até a conclusão. Tabelas posteriores já geradas também são incluídas para manter a continuidade da fila.</p>';
+ }else body+='<p style="font-size:13px;line-height:1.6;text-align:justify;margin:0 0 16px">Não há tabela já gerada que precise ser atualizada. O cadastro atualizado será considerado nas próximas gerações.</p>';
+ body+='<p style="font-size:12px;color:var(--text-3);line-height:1.6;margin:0">Uma cópia completa do estado anterior será mantida no histórico do sistema.</p>';
+ openTallModal('<div class="departure-review-content" style="padding-bottom:20px">'+body+'</div>','<div class="mbtns"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn '+(value?'primary':'danger')+'" id="license-review-confirm">Confirmar '+plan.action+'</button></div>',660);
+ document.getElementById('license-review-confirm').onclick=function(){adminConfirm(function(){
+  if(JSON.stringify(previewState())!==stamp){alert('Os dados mudaram. Reabra a licença e confira novamente os impactos.');return;}
+  commitPreview(plan.next,plan.action.charAt(0).toUpperCase()+plan.action.slice(1)+' de licença de '+plan.person);
+ });};
+}
+confirmAddLicense=function(fixedPerson){if(!isMaster())return;var el=document.getElementById('lic-person');showLicenseReview(null,{n:fixedPerson||(el?el.value:''),s:document.getElementById('lic-start').value,d:Number(document.getElementById('lic-days').value),type:document.getElementById('lic-type').value});};
+confirmEditLicense=function(idx,person){if(!isMaster())return;showLicenseReview(idx,{n:person,s:document.getElementById('lic-start').value,d:Number(document.getElementById('lic-days').value),type:document.getElementById('lic-type').value});};
+removeLicense=function(idx){showLicenseReview(idx,null);};
+window._doRemoveLicense=function(idx){showLicenseReview(idx,null);};
+
 // No seeding, migration, or cache-to-server writes in the application.
 var releaseRef=_db.collection('jud3v2').doc('current');
 var releaseReady=false,releaseBusy=false,releaseStale=false,releaseBase=null;
